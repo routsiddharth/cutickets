@@ -20,7 +20,8 @@ import { availableListingWhere } from "@/lib/listing";
 import type { ActionState } from "./types";
 export type { ActionState };
 
-const MAX_EXPIRY_DAYS = 60;
+// When an event has no set date, a listing can't track it — fall back to this.
+const DEFAULT_EXPIRY_DAYS = 30;
 
 const schema = z.object({
   eventId: z.string().min(1, "Pick an event"),
@@ -31,7 +32,6 @@ const schema = z.object({
     .min(1, "At least 1 ticket")
     .max(MAX_TICKETS_PER_LISTING, `At most ${MAX_TICKETS_PER_LISTING} tickets`),
   price: z.string().trim().min(1, "Enter a price"),
-  expiresInDays: z.coerce.number().int().min(1).max(MAX_EXPIRY_DAYS),
   notes: z.string().trim().max(MAX_NOTES_LENGTH).optional(),
 });
 
@@ -47,7 +47,6 @@ export async function createListing(
     type: formData.get("type"),
     quantity: formData.get("quantity"),
     price: formData.get("price"),
-    expiresInDays: formData.get("expiresInDays"),
     notes: formData.get("notes") || undefined,
   });
   if (!parsed.success) {
@@ -62,7 +61,7 @@ export async function createListing(
   // The event must exist.
   const event = await prisma.event.findUnique({
     where: { id: parsed.data.eventId },
-    select: { id: true },
+    select: { id: true, startsAt: true },
   });
   if (!event) return { error: "That event no longer exists" };
 
@@ -81,7 +80,12 @@ export async function createListing(
     };
   }
 
-  const expiresAt = new Date(Date.now() + parsed.data.expiresInDays * 86_400_000);
+  // A ticket is only good until the event happens, so the listing expires the
+  // day after the event — derived from the event, not chosen by the user. Events
+  // with no set date fall back to a fixed window.
+  const expiresAt = event.startsAt
+    ? new Date(event.startsAt.getTime() + 86_400_000)
+    : new Date(Date.now() + DEFAULT_EXPIRY_DAYS * 86_400_000);
 
   await prisma.listing.create({
     data: {

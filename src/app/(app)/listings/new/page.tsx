@@ -10,11 +10,16 @@ export default async function NewListingPage({
 }) {
   const { eventId, type } = await searchParams;
 
-  const events = await prisma.event.findMany({
+  const eventRows = await prisma.event.findMany({
     orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
-    select: { id: true, name: true },
+    select: { id: true, name: true, startsAt: true },
     take: 200,
   });
+  const events = eventRows.map((e) => ({
+    id: e.id,
+    name: e.name,
+    startsAt: e.startsAt ? e.startsAt.toISOString() : null,
+  }));
 
   const defaultType: ListingType = LISTING_TYPES.includes(type as ListingType)
     ? (type as ListingType)
@@ -28,8 +33,8 @@ export default async function NewListingPage({
       </Link>
       <h1 className="font-serif text-3xl mt-3 mb-1">Post a listing</h1>
       <p className="text-sm text-muted mb-7">
-        Tell the board what you need. Buying or selling, your price, when it
-        expires.
+        Tell the board what you need — buying or selling, and your price. Listings
+        come down on their own the day after the event.
       </p>
 
       {events.length === 0 ? (

@@ -5,7 +5,22 @@ import { createListing, type ActionState } from "@/lib/actions/listings";
 import { MAX_TICKETS_PER_LISTING } from "@/lib/constants";
 import SubmitButton from "@/components/SubmitButton";
 
-type EventOption = { id: string; name: string };
+type EventOption = { id: string; name: string; startsAt: string | null };
+
+/** When does a listing for this event come down? The day after the event. */
+function expiryLabel(event: EventOption | undefined): string | null {
+  if (!event) return null;
+  if (!event.startsAt) {
+    return "No event date set — this listing stays up for 30 days.";
+  }
+  const dayAfter = new Date(new Date(event.startsAt).getTime() + 86_400_000);
+  const when = dayAfter.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `Comes down the day after the event — ${when}.`;
+}
 
 export default function ListingForm({
   events,
@@ -21,6 +36,9 @@ export default function ListingForm({
     undefined,
   );
   const [type, setType] = useState<"SELL" | "BUY">(defaultType);
+  const [eventId, setEventId] = useState<string>(defaultEventId ?? "");
+
+  const expiry = expiryLabel(events.find((e) => e.id === eventId));
 
   return (
     <form action={action} className="space-y-5">
@@ -65,7 +83,8 @@ export default function ListingForm({
           id="eventId"
           name="eventId"
           required
-          defaultValue={defaultEventId ?? ""}
+          value={eventId}
+          onChange={(e) => setEventId(e.target.value)}
           className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
         >
           <option value="" disabled>
@@ -77,13 +96,17 @@ export default function ListingForm({
             </option>
           ))}
         </select>
-        <p className="text-xs text-muted mt-1">
-          Don&apos;t see it?{" "}
-          <a href="/events/new" className="text-columbia-deep hover:underline">
-            Add the event first
-          </a>
-          .
-        </p>
+        {expiry ? (
+          <p className="text-xs text-muted mt-1.5">🗓️ {expiry}</p>
+        ) : (
+          <p className="text-xs text-muted mt-1">
+            Don&apos;t see it?{" "}
+            <a href="/events/new" className="text-columbia-deep hover:underline">
+              Add the event first
+            </a>
+            .
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -118,24 +141,6 @@ export default function ListingForm({
             />
           </div>
         </div>
-      </div>
-
-      <div>
-        <label htmlFor="expiresInDays" className="tag text-muted">
-          Expires
-        </label>
-        <select
-          id="expiresInDays"
-          name="expiresInDays"
-          defaultValue={7}
-          className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
-        >
-          <option value={1}>In 1 day</option>
-          <option value={3}>In 3 days</option>
-          <option value={7}>In 1 week</option>
-          <option value={14}>In 2 weeks</option>
-          <option value={30}>In 1 month</option>
-        </select>
       </div>
 
       <div>
