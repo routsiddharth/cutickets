@@ -67,9 +67,6 @@ export default async function ProfilePage({
           <div>
             <p className="font-serif text-2xl">{publicName(target.name, target.email)}</p>
             {schoolLine && <p className="text-sm text-muted">{schoolLine}</p>}
-            <span className="inline-block mt-1.5 text-xs bg-columbia-soft text-columbia-deep px-2.5 py-1 rounded-full font-medium">
-              ✓ Verified student · joined {formatDate(target.createdAt)}
-            </span>
           </div>
         </div>
 

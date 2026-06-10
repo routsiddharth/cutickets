@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { User } from "@prisma/client";
 import Avatar from "@/components/Avatar";
-import { schoolAbbrev } from "@/lib/format";
 
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
   return (
@@ -21,11 +20,6 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
         </nav>
 
         <div className="flex items-center gap-3">
-          {user.school && (
-            <span className="hidden sm:inline-block text-xs bg-columbia-soft text-columbia-deep px-2.5 py-1 rounded-full font-medium">
-              ✓ {schoolAbbrev(user.school, user.classYear)}
-            </span>
-          )}
           <Link
             href="/notifications"
             aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}

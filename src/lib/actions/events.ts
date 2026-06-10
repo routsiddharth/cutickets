@@ -11,7 +11,7 @@ export type { ActionState };
 const schema = z.object({
   name: z.string().trim().min(2, "Event name is too short").max(120),
   venue: z.string().trim().max(120).optional(),
-  startsAt: z.string().trim().min(1, "Pick the event date and time"),
+  startsAt: z.string().trim().min(1, "Pick the event date"),
   description: z.string().trim().max(500).optional(),
 });
 
@@ -34,11 +34,16 @@ export async function createEvent(
 
   // An event date is required and drives listing expiry, so it must be a real,
   // future date — a past event would make every listing expire immediately.
-  const startsAt = new Date(parsed.data.startsAt);
+  // The form sends a date-only value ("YYYY-MM-DD"); treat it as local midnight
+  // of that calendar day rather than UTC midnight.
+  const raw = parsed.data.startsAt;
+  const startsAt = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
   if (Number.isNaN(startsAt.getTime())) {
-    return { error: "Enter a valid date and time" };
+    return { error: "Enter a valid date" };
   }
-  if (startsAt.getTime() < Date.now()) {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  if (startsAt.getTime() < startOfToday.getTime()) {
     return { error: "Event date must be in the future" };
   }
 

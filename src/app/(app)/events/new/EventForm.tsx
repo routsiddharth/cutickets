@@ -40,12 +40,12 @@ export default function EventForm() {
         </div>
         <div>
           <label htmlFor="startsAt" className="tag text-muted">
-            Date &amp; time
+            Date
           </label>
           <input
             id="startsAt"
             name="startsAt"
-            type="datetime-local"
+            type="date"
             required
             className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
           />
