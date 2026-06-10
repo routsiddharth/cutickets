@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { AcceptReservationForm } from "@/components/MatchActions";
+import MatchCelebration from "@/components/MatchCelebration";
 import { formatPrice } from "@/lib/format";
 
 export default async function MatchesPage() {
@@ -34,6 +35,15 @@ export default async function MatchesPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
+      <MatchCelebration
+        matches={toConfirm.map((m) => ({
+          id: m.id,
+          iAmBuyer: m.buyerId === user.id,
+          reservedQuantity: m.reservedQuantity,
+          settlePriceCents: m.settlePriceCents,
+          eventName: m.event.name,
+        }))}
+      />
       <h1 className="font-serif text-3xl mb-1">My matches</h1>
       <p className="text-sm text-muted mb-7">
         When your price meets someone else&apos;s, we match you automatically. Confirm the match to
