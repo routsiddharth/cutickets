@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: theme("colors.paper");
+  color: theme("colors.ink");
+}
+
+/* Tabular figures for prices everywhere they appear. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tiny uppercase label used throughout the UI. */
+.tag {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Honest focus rings for keyboard users. */
+:focus-visible {
+  outline: 2px solid theme("colors.columbia.DEFAULT");
+  outline-offset: 2px;
+}

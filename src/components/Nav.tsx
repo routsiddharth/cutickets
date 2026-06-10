@@ -1,0 +1,41 @@
+import Link from "next/link";
+import type { User } from "@prisma/client";
+import Avatar from "@/components/Avatar";
+import SignOutButton from "@/components/SignOutButton";
+import { schoolAbbrev } from "@/lib/format";
+
+export default function Nav({ user }: { user: User }) {
+  return (
+    <header className="bg-white border-b border-line sticky top-0 z-30">
+      <div className="max-w-5xl mx-auto px-5 sm:px-7 h-14 flex items-center justify-between gap-4">
+        <Link href="/events" className="font-serif text-lg shrink-0">
+          Campus Ticket Board
+        </Link>
+
+        <nav className="hidden sm:flex items-center gap-5 text-sm text-muted ml-2 mr-auto">
+          <Link href="/events" className="hover:text-ink">
+            Events
+          </Link>
+          <Link href="/matches" className="hover:text-ink">
+            My matches
+          </Link>
+          <Link href="/listings/new" className="hover:text-ink">
+            Post
+          </Link>
+        </nav>
+
+        <div className="flex items-center gap-3">
+          {user.school && (
+            <span className="hidden sm:inline-block text-xs bg-columbia-soft text-columbia-deep px-2.5 py-1 rounded-full font-medium">
+              ✓ {schoolAbbrev(user.school, user.classYear)}
+            </span>
+          )}
+          <Link href={`/profile/${user.id}`} aria-label="Your profile">
+            <Avatar name={user.name} email={user.email} image={user.image} size={32} />
+          </Link>
+          <SignOutButton />
+        </div>
+      </div>
+    </header>
+  );
+}

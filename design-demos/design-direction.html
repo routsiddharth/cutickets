@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Campus Ticket Board — Design Direction</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          serif: ['Newsreader', 'Georgia', 'serif'],
+          sans: ['Public Sans', 'system-ui', 'sans-serif'],
+        },
+        colors: {
+          paper:   '#FBFAF7',
+          ink:     '#14233D',
+          muted:   '#5C6B82',
+          line:    '#E7E2D8',
+          columbia:{ DEFAULT: '#5B8FB9', soft: '#E8F0F7', deep: '#3D6E97' },
+          sell:    { DEFAULT: '#1F7A63', soft: '#E6F2ED' },
+          buy:     { DEFAULT: '#A8651A', soft: '#F7ECDB' },
+        },
+      },
+    },
+  };
+</script>
+<style>
+  body { background: #EFece4; }
+  .swatch { height: 64px; border-radius: 10px; }
+  .device { box-shadow: 0 24px 60px -18px rgba(20,35,61,.28), 0 2px 8px rgba(20,35,61,.06); }
+  .tag { font-family: 'Public Sans'; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+</style>
+</head>
+<body class="font-sans text-ink antialiased">
+
+<div class="max-w-[1280px] mx-auto px-8 py-14">
+
+  <!-- HEADER -->
+  <header class="mb-12">
+    <p class="tag text-muted mb-3">Design Direction · v1</p>
+    <h1 class="font-serif text-5xl leading-none mb-3">Campus Ticket Board</h1>
+    <p class="text-muted max-w-2xl text-lg leading-relaxed">A verified student marketplace for event-ticket interest at Columbia &amp; Barnard. Trustworthy, collegiate, modern — a clean board, not a sketchy resale site. Below: the system, then the five key screens.</p>
+  </header>
+
+  <!-- DESIGN SYSTEM -->
+  <section class="bg-paper border border-line rounded-2xl p-8 mb-14">
+    <h2 class="font-serif text-2xl mb-6">The system</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+      <!-- Palette -->
+      <div>
+        <p class="tag text-muted mb-4">Palette</p>
+        <div class="space-y-3">
+          <div><div class="swatch bg-ink"></div><p class="text-xs mt-1.5 text-muted">Ink · #14233D — text, headers</p></div>
+          <div><div class="swatch" style="background:#5B8FB9"></div><p class="text-xs mt-1.5 text-muted">Columbia Blue · #5B8FB9 — brand accent</p></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><div class="swatch bg-sell"></div><p class="text-xs mt-1.5 text-muted">Selling · #1F7A63</p></div>
+            <div><div class="swatch bg-buy"></div><p class="text-xs mt-1.5 text-muted">Buying · #A8651A</p></div>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div><div class="swatch border border-line" style="background:#FBFAF7"></div><p class="text-[11px] mt-1.5 text-muted">Paper</p></div>
+            <div><div class="swatch border border-line" style="background:#E7E2D8"></div><p class="text-[11px] mt-1.5 text-muted">Line</p></div>
+            <div><div class="swatch" style="background:#5C6B82"></div><p class="text-[11px] mt-1.5 text-muted">Muted</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Type -->
+      <div>
+        <p class="tag text-muted mb-4">Typography</p>
+        <p class="font-serif text-4xl leading-none mb-1">Newsreader</p>
+        <p class="text-muted text-sm mb-5">Serif display — collegiate, editorial. Headings &amp; prices.</p>
+        <p class="font-sans text-2xl font-semibold mb-1">Public Sans</p>
+        <p class="text-muted text-sm mb-5">Grotesque body — neutral, legible. UI, labels, copy.</p>
+        <div class="border-t border-line pt-4">
+          <p class="font-serif text-3xl tabular-nums">$35<span class="text-base text-muted font-sans"> / ticket</span></p>
+          <p class="text-xs text-muted mt-1">Prices set in serif + tabular figures for scan-ability.</p>
+        </div>
+      </div>
+
+      <!-- Principles -->
+      <div>
+        <p class="tag text-muted mb-4">Principles</p>
+        <ul class="space-y-3 text-sm leading-relaxed">
+          <li class="flex gap-2.5"><span class="text-columbia mt-px">◆</span><span><b>Two semantic colors.</b> Green = supply (selling), amber = demand (buying). Used consistently everywhere.</span></li>
+          <li class="flex gap-2.5"><span class="text-columbia mt-px">◆</span><span><b>Trust on the surface.</b> Verified badges, school year, reputation, account age shown next to every listing.</span></li>
+          <li class="flex gap-2.5"><span class="text-columbia mt-px">◆</span><span><b>Asking ≠ confirmed.</b> Active asks shown separately from confirmed sales so one $100 troll can't define the market.</span></li>
+          <li class="flex gap-2.5"><span class="text-columbia mt-px">◆</span><span><b>Off-platform honesty.</b> A persistent, calm warning: payment/transfer happen on Posh/Partiful at your own risk.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENS -->
+  <h2 class="font-serif text-2xl mb-6">Key screens</h2>
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-10">
+
+    <!-- 1. SIGN IN -->
+    <div>
+      <p class="tag text-muted mb-3">1 · Sign in</p>
+      <div class="device rounded-2xl overflow-hidden bg-white">
+        <div class="bg-ink text-white px-10 py-14 relative overflow-hidden">
+          <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full" style="background:rgba(91,143,185,.18)"></div>
+          <p class="tag mb-6" style="color:#9FC0DC">Columbia · Barnard</p>
+          <h3 class="font-serif text-4xl leading-tight mb-4">The board for<br>campus tickets.</h3>
+          <p class="text-sm leading-relaxed mb-10" style="color:#B7C3D6">Post what you're buying or selling. See the real market for every event. Match with a verified student and coordinate the transfer yourselves.</p>
+          <div class="bg-white text-ink rounded-xl px-5 py-3.5 flex items-center gap-3 font-medium text-sm shadow-lg w-max">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.57c2.08-1.92 3.27-4.74 3.27-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.76c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.09a6.6 6.6 0 0 1 0-4.18V7.07H2.18a11 11 0 0 0 0 9.86l3.66-2.84z"/><path fill="#EA4335" d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.5 10.5 0 0 0 12 1 11 11 0 0 0 2.18 7.07l3.66 2.84C6.71 6.68 9.14 4.75 12 4.75z"/></svg>
+            Continue with Google
+          </div>
+          <p class="text-xs mt-4" style="color:#8896AD">Only <b>@columbia.edu</b> and <b>@barnard.edu</b> accounts can join.</p>
+        </div>
+        <div class="px-10 py-5 bg-paper border-t border-line flex items-center gap-2 text-xs text-muted">
+          <span class="text-columbia">🛈</span> Transfers &amp; payment happen outside the platform, at your own risk.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. BROWSE EVENTS -->
+    <div>
+      <p class="tag text-muted mb-3">2 · Browse events</p>
+      <div class="device rounded-2xl overflow-hidden bg-paper border border-line">
+        <div class="px-7 py-4 bg-white border-b border-line flex items-center justify-between">
+          <span class="font-serif text-lg">Campus Ticket Board</span>
+          <div class="flex items-center gap-3">
+            <span class="text-xs bg-columbia-soft text-columbia-deep px-2.5 py-1 rounded-full font-medium">✓ Verified · Class of '27</span>
+            <div class="w-8 h-8 rounded-full bg-ink text-white grid place-items-center text-xs font-semibold">SR</div>
+          </div>
+        </div>
+        <div class="p-7">
+          <div class="flex items-center justify-between mb-5">
+            <h3 class="font-serif text-2xl">Events</h3>
+            <div class="bg-ink text-white text-sm px-4 py-2 rounded-lg font-medium">+ Post a listing</div>
+          </div>
+          <div class="flex gap-2 mb-5">
+            <div class="bg-white border border-line rounded-lg px-3 py-2 text-sm text-muted flex-1">🔍 Search events…</div>
+            <div class="bg-columbia text-white text-sm px-3 py-2 rounded-lg">All</div>
+            <div class="bg-white border border-line text-sm px-3 py-2 rounded-lg text-muted">This week</div>
+          </div>
+          <div class="space-y-3">
+            <!-- event row -->
+            <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p class="font-medium">Bacchanal Spring Concert</p>
+                <p class="text-xs text-muted mt-0.5">Apr 26 · Low Plaza</p>
+              </div>
+              <div class="flex items-center gap-5 text-right">
+                <div><p class="font-serif text-lg text-sell tabular-nums">9</p><p class="tag text-muted">selling</p></div>
+                <div><p class="font-serif text-lg text-buy tabular-nums">14</p><p class="tag text-muted">buying</p></div>
+                <div class="border-l border-line pl-5"><p class="text-xs text-muted">last sale</p><p class="font-serif tabular-nums">$38</p></div>
+              </div>
+            </div>
+            <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <p class="font-medium">Barnard Spring Formal</p>
+                <p class="text-xs text-muted mt-0.5">May 3 · The Glasshouse</p>
+              </div>
+              <div class="flex items-center gap-5 text-right">
+                <div><p class="font-serif text-lg text-sell tabular-nums">3</p><p class="tag text-muted">selling</p></div>
+                <div><p class="font-serif text-lg text-buy tabular-nums">6</p><p class="tag text-muted">buying</p></div>
+                <div class="border-l border-line pl-5"><p class="text-xs text-muted">last sale</p><p class="font-serif tabular-nums">$52</p></div>
+              </div>
+            </div>
+            <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between opacity-90">
+              <div>
+                <p class="font-medium">CU Records × 1020 Night</p>
+                <p class="text-xs text-muted mt-0.5">Apr 19 · 1020 Bar</p>
+              </div>
+              <div class="flex items-center gap-5 text-right">
+                <div><p class="font-serif text-lg text-sell tabular-nums">2</p><p class="tag text-muted">selling</p></div>
+                <div><p class="font-serif text-lg text-buy tabular-nums">1</p><p class="tag text-muted">buying</p></div>
+                <div class="border-l border-line pl-5"><p class="text-xs text-muted">last sale</p><p class="font-serif tabular-nums text-muted">—</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. EVENT MINI-MARKET -->
+    <div class="xl:col-span-2">
+      <p class="tag text-muted mb-3">3 · Event page — the mini-market</p>
+      <div class="device rounded-2xl overflow-hidden bg-paper border border-line">
+        <div class="px-8 py-7 bg-ink text-white">
+          <p class="tag mb-2" style="color:#9FC0DC">Apr 26 · Low Plaza · Doors 7pm</p>
+          <h3 class="font-serif text-3xl mb-4">Bacchanal Spring Concert</h3>
+          <div class="flex flex-wrap gap-6 text-sm">
+            <div><span class="font-serif text-2xl text-sell-soft tabular-nums">9</span> <span style="color:#B7C3D6">tickets for sale</span></div>
+            <div><span class="font-serif text-2xl tabular-nums" style="color:#E7C79B">14</span> <span style="color:#B7C3D6">wanted</span></div>
+            <div class="border-l border-white/15 pl-6"><span style="color:#B7C3D6">last confirmed sale</span> <span class="font-serif text-2xl tabular-nums">$38</span></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2">
+
+          <!-- SELLING column -->
+          <div class="p-7 lg:border-r border-line">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="font-serif text-xl text-sell flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-sell"></span> Selling</h4>
+              <span class="tag text-muted">price ascending</span>
+            </div>
+            <div class="space-y-2.5">
+              <div class="bg-sell-soft/60 border border-sell/20 rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-sell text-white grid place-items-center text-xs font-semibold">JM</div>
+                  <div>
+                    <p class="text-sm font-medium">Jordan M. <span class="text-xs text-columbia-deep">· CC '26</span></p>
+                    <p class="text-xs text-muted">★ 4.9 · 7 trades · <span class="text-sell">2 tickets</span></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-serif text-2xl tabular-nums">$35<span class="text-sm text-muted">/ea</span></p>
+                  <div class="text-xs bg-sell text-white px-3 py-1 rounded-md mt-1 font-medium">I'm interested</div>
+                </div>
+              </div>
+              <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-ink text-white grid place-items-center text-xs font-semibold">AP</div>
+                  <div>
+                    <p class="text-sm font-medium">Ava P. <span class="text-xs text-columbia-deep">· BC '27</span></p>
+                    <p class="text-xs text-muted">★ 5.0 · 3 trades · <span class="text-sell">1 ticket</span></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-serif text-2xl tabular-nums">$40<span class="text-sm text-muted">/ea</span></p>
+                  <div class="text-xs border border-line text-ink px-3 py-1 rounded-md mt-1">I'm interested</div>
+                </div>
+              </div>
+              <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-ink text-white grid place-items-center text-xs font-semibold">DK</div>
+                  <div>
+                    <p class="text-sm font-medium">Dev K. <span class="text-xs text-columbia-deep">· SEAS '25</span></p>
+                    <p class="text-xs text-muted">★ 4.7 · 12 trades · <span class="text-sell">4 tickets</span></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-serif text-2xl tabular-nums">$42<span class="text-sm text-muted">/ea</span></p>
+                  <div class="text-xs border border-line text-ink px-3 py-1 rounded-md mt-1">I'm interested</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BUYING column -->
+          <div class="p-7 bg-buy-soft/30">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="font-serif text-xl text-buy flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-buy"></span> Buying</h4>
+              <span class="tag text-muted">bid descending</span>
+            </div>
+            <div class="space-y-2.5">
+              <div class="bg-white border border-buy/25 rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-buy text-white grid place-items-center text-xs font-semibold">RL</div>
+                  <div>
+                    <p class="text-sm font-medium">Riya L. <span class="text-xs text-columbia-deep">· CC '28</span></p>
+                    <p class="text-xs text-muted">★ 4.8 · 5 trades · <span class="text-buy">wants 1</span></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-serif text-2xl tabular-nums">$45<span class="text-sm text-muted">/ea</span></p>
+                  <div class="text-xs bg-buy text-white px-3 py-1 rounded-md mt-1 font-medium">I can sell</div>
+                </div>
+              </div>
+              <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-ink text-white grid place-items-center text-xs font-semibold">TS</div>
+                  <div>
+                    <p class="text-sm font-medium">Theo S. <span class="text-xs text-columbia-deep">· GS '26</span></p>
+                    <p class="text-xs text-muted">★ 4.6 · 9 trades · <span class="text-buy">wants 2</span></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-serif text-2xl tabular-nums">$32<span class="text-sm text-muted">/ea</span></p>
+                  <div class="text-xs border border-line text-ink px-3 py-1 rounded-md mt-1">I can sell</div>
+                </div>
+              </div>
+              <div class="bg-white border border-line rounded-xl p-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-full bg-ink text-white grid place-items-center text-xs font-semibold">MN</div>
+                  <div>
+                    <p class="text-sm font-medium">Mara N. <span class="text-xs text-columbia-deep">· BC '27</span></p>
+                    <p class="text-xs text-muted">new account · <span class="text-buy">wants 1</span></p>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="font-serif text-2xl tabular-nums">$30<span class="text-sm text-muted">/ea</span></p>
+                  <div class="text-xs border border-line text-ink px-3 py-1 rounded-md mt-1">I can sell</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="px-8 py-3.5 bg-white border-t border-line flex items-center gap-2 text-xs text-muted">
+          <span class="text-columbia">🛈</span> Asking prices are set by students and aren't verified. Only <b>confirmed sales</b> reflect real trades. Payment/transfer happen off-platform at your own risk.
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. CREATE LISTING -->
+    <div>
+      <p class="tag text-muted mb-3">4 · Post a listing</p>
+      <div class="device rounded-2xl overflow-hidden bg-white border border-line">
+        <div class="px-7 py-5 border-b border-line">
+          <h3 class="font-serif text-2xl">Post a listing</h3>
+          <p class="text-sm text-muted mt-0.5">Tell the board what you need. No payment is handled here.</p>
+        </div>
+        <div class="p-7 space-y-5">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="border-2 border-sell rounded-xl p-3 bg-sell-soft/50 text-center">
+              <p class="font-serif text-lg text-sell">Selling</p>
+              <p class="text-xs text-muted">I have tickets</p>
+            </div>
+            <div class="border border-line rounded-xl p-3 text-center">
+              <p class="font-serif text-lg text-muted">Buying</p>
+              <p class="text-xs text-muted">I want tickets</p>
+            </div>
+          </div>
+          <div>
+            <label class="tag text-muted">Event</label>
+            <div class="mt-1.5 border border-line rounded-lg px-3 py-2.5 text-sm flex items-center justify-between">Bacchanal Spring Concert <span class="text-muted">▾</span></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="tag text-muted"># Tickets</label>
+              <div class="mt-1.5 border border-line rounded-lg px-3 py-2.5 text-sm">2</div>
+            </div>
+            <div>
+              <label class="tag text-muted">Price / ticket</label>
+              <div class="mt-1.5 border border-line rounded-lg px-3 py-2.5 text-sm">$ 35</div>
+            </div>
+          </div>
+          <div>
+            <label class="tag text-muted">Expires</label>
+            <div class="mt-1.5 border border-line rounded-lg px-3 py-2.5 text-sm flex items-center justify-between">In 3 days · Apr 25 <span class="text-muted">▾</span></div>
+          </div>
+          <div>
+            <label class="tag text-muted">Notes <span class="normal-case tracking-normal">(optional)</span></label>
+            <div class="mt-1.5 border border-line rounded-lg px-3 py-2.5 text-sm text-muted h-16">Face value, can meet on campus. Tickets are on Posh.</div>
+          </div>
+          <div class="bg-ink text-white text-center py-3 rounded-lg font-medium">Post to the board</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. PROFILE -->
+    <div>
+      <p class="tag text-muted mb-3">5 · Profile &amp; reputation</p>
+      <div class="device rounded-2xl overflow-hidden bg-white border border-line">
+        <div class="px-7 py-7 bg-paper border-b border-line flex items-center gap-4">
+          <div class="w-16 h-16 rounded-full bg-ink text-white grid place-items-center text-xl font-serif">JM</div>
+          <div>
+            <p class="font-serif text-2xl">Jordan M.</p>
+            <p class="text-sm text-muted">Columbia College · Class of 2026</p>
+            <span class="inline-block mt-1.5 text-xs bg-columbia-soft text-columbia-deep px-2.5 py-1 rounded-full font-medium">✓ Verified @columbia.edu · joined Sep 2024</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 divide-x divide-line border-b border-line text-center">
+          <div class="py-5"><p class="font-serif text-3xl tabular-nums">4.9</p><p class="tag text-muted mt-1">★ rating</p></div>
+          <div class="py-5"><p class="font-serif text-3xl tabular-nums text-sell">7</p><p class="tag text-muted mt-1">trades done</p></div>
+          <div class="py-5"><p class="font-serif text-3xl tabular-nums">100%</p><p class="tag text-muted mt-1">confirmed</p></div>
+        </div>
+        <div class="p-7">
+          <p class="tag text-muted mb-3">Confirmed trades</p>
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-sm border-b border-line pb-2.5">
+              <div><span class="text-sell font-medium">Sold</span> · Bacchanal Spring Concert</div>
+              <span class="font-serif tabular-nums">$38 <span class="text-muted text-xs">· Apr 2</span></span>
+            </div>
+            <div class="flex items-center justify-between text-sm border-b border-line pb-2.5">
+              <div><span class="text-buy font-medium">Bought</span> · Barnard Spring Formal</div>
+              <span class="font-serif tabular-nums">$50 <span class="text-muted text-xs">· Mar 28</span></span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <div><span class="text-sell font-medium">Sold</span> · CU Records Night</div>
+              <span class="font-serif tabular-nums">$20 <span class="text-muted text-xs">· Mar 15</span></span>
+            </div>
+          </div>
+          <div class="mt-5 flex gap-2">
+            <div class="flex-1 border border-line rounded-lg py-2.5 text-center text-sm text-muted">⚑ Report user</div>
+            <div class="flex-1 bg-ink text-white rounded-lg py-2.5 text-center text-sm font-medium">Message</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="text-center text-xs text-muted mt-14">Campus Ticket Board · design direction · built to be implemented 1:1 in Next.js + Tailwind</p>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,181 @@
+// Campus Ticket Board — data model
+// SQLite for local dev. Note: SQLite has no native enums, so status/type
+// fields are Strings validated in application code (see src/lib/constants.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth.js (NextAuth) models ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Campus Ticket Board profile fields (collected at onboarding)
+  school    String? // e.g. "Columbia College", "Barnard College", "SEAS", "GS"
+  classYear Int? //    graduation year, e.g. 2027
+  bannedAt  DateTime? // set when an admin/automated control bans the account
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  listings        Listing[]
+  matchesStarted  Match[]   @relation("MatchInterested")
+  matchesReceived Match[]   @relation("MatchOwner")
+  reportsMade     Report[]  @relation("Reporter")
+  reportsReceived Report[]  @relation("Reported")
+  ratingsGiven    Rating[]  @relation("RatingAuthor")
+  ratingsReceived Rating[]  @relation("RatingSubject")
+  eventsCreated   Event[]   @relation("EventCreator")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Marketplace models ────────────────────────────────────────────────────
+
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  venue       String?
+  startsAt    DateTime?
+  description String?
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy User      @relation("EventCreator", fields: [createdById], references: [id])
+  listings  Listing[]
+
+  @@index([startsAt])
+}
+
+model Listing {
+  id        String @id @default(cuid())
+  eventId   String
+  userId    String
+  type      String // "SELL" | "BUY"  (see constants)
+  quantity  Int
+  priceCents Int //   asking / bid price per ticket, in cents
+  notes     String?
+  status    String   @default("ACTIVE") // ACTIVE | MATCHED | COMPLETED | CANCELLED | EXPIRED
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches Match[]
+
+  @@index([eventId, type, status])
+  @@index([userId])
+}
+
+// A Match is created when a student clicks "I'm interested" on a listing.
+// Contact (verified email) is revealed to BOTH parties only once the listing
+// owner ACCEPTS — i.e. on mutual interest.
+model Match {
+  id            String @id @default(cuid())
+  listingId     String
+  interestedId  String // the user who clicked "I'm interested"
+  ownerId       String // the listing owner
+  status        String @default("PENDING") // PENDING | ACCEPTED | DECLINED | COMPLETED | CANCELLED
+  message       String?
+
+  // "Successful trade" confirmation — both parties confirm independently.
+  interestedConfirmed Boolean @default(false)
+  ownerConfirmed      Boolean @default(false)
+  agreedPriceCents    Int? //   recorded when the trade is confirmed by both
+  completedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  interested User     @relation("MatchInterested", fields: [interestedId], references: [id], onDelete: Cascade)
+  owner      User     @relation("MatchOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ratings    Rating[]
+
+  // One expression of interest per (listing, interested user).
+  @@unique([listingId, interestedId])
+  @@index([ownerId, status])
+  @@index([interestedId, status])
+}
+
+// A reputation rating left after a completed trade.
+model Rating {
+  id        String   @id @default(cuid())
+  matchId   String
+  authorId  String // who left the rating
+  subjectId String // who is being rated
+  stars     Int //    1..5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  match   Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  author  User  @relation("RatingAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  subject User  @relation("RatingSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+
+  // One rating per author per match.
+  @@unique([matchId, authorId])
+  @@index([subjectId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reportedId String
+  listingId  String?
+  reason     String
+  details    String?
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  reporter User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported User @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([reportedId])
+}
