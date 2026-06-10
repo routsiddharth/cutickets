@@ -3,13 +3,9 @@
 export const LISTING_TYPES = ["SELL", "BUY"] as const;
 export type ListingType = (typeof LISTING_TYPES)[number];
 
-export const LISTING_STATUSES = [
-  "ACTIVE",
-  "MATCHED",
-  "COMPLETED",
-  "CANCELLED",
-  "EXPIRED",
-] as const;
+// EXPIRED is computed at read time (expiresAt < now) rather than stored, so it
+// is intentionally absent here — the only values ever written are these three.
+export const LISTING_STATUSES = ["ACTIVE", "COMPLETED", "CANCELLED"] as const;
 export type ListingStatus = (typeof LISTING_STATUSES)[number];
 
 export const MATCH_STATUSES = [

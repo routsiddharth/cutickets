@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 
-export type ActionState = { error?: string } | undefined;
+import type { ActionState } from "./types";
+export type { ActionState };
 
 const schema = z.object({
   name: z.string().trim().min(2, "Event name is too short").max(120),
@@ -37,11 +38,13 @@ export async function createEvent(
     if (!Number.isNaN(d.getTime())) startsAt = d;
   }
 
-  // Avoid duplicate events with the exact same name (case-insensitive-ish).
-  const existing = await prisma.event.findFirst({
-    where: { name: parsed.data.name },
-    select: { id: true },
-  });
+  // Avoid fragmenting liquidity: if an event with the same name (ignoring case
+  // and surrounding whitespace) already exists, send the user to it instead of
+  // creating a duplicate market. SQLite string compares are case-sensitive, so
+  // we normalize in JS.
+  const normalized = parsed.data.name.toLowerCase();
+  const candidates = await prisma.event.findMany({ select: { id: true, name: true } });
+  const existing = candidates.find((e) => e.name.trim().toLowerCase() === normalized);
   if (existing) {
     redirect(`/events/${existing.id}`);
   }

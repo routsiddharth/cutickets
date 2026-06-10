@@ -6,7 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { REPORT_REASONS } from "@/lib/constants";
 
-export type ActionState = { error?: string; ok?: boolean } | undefined;
+import type { ActionState } from "./types";
+export type { ActionState };
 
 const schema = z.object({
   reportedId: z.string().min(1),
@@ -37,6 +38,19 @@ export async function reportUser(
   });
   if (!reported) return { error: "User not found" };
 
+  // If a listing is attached, it must actually belong to the reported user —
+  // otherwise drop the reference so a report can't be tied to an unrelated one.
+  let listingId: string | null = null;
+  if (parsed.data.listingId) {
+    const listing = await prisma.listing.findUnique({
+      where: { id: parsed.data.listingId },
+      select: { userId: true },
+    });
+    if (listing?.userId === parsed.data.reportedId) {
+      listingId = parsed.data.listingId;
+    }
+  }
+
   // Collapse duplicate open reports from the same reporter about the same user.
   const dupe = await prisma.report.findFirst({
     where: {
@@ -52,7 +66,7 @@ export async function reportUser(
     data: {
       reporterId: user.id,
       reportedId: parsed.data.reportedId,
-      listingId: parsed.data.listingId ?? null,
+      listingId,
       reason: parsed.data.reason,
       details: parsed.data.details ?? null,
     },

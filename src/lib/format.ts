@@ -39,10 +39,10 @@ export function relativeExpiry(expiresAt: Date | string): string {
   const date = typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
   const ms = date.getTime() - Date.now();
   if (ms <= 0) return "expired";
-  const hours = Math.round(ms / 3_600_000);
+  const hours = Math.floor(ms / 3_600_000);
   if (hours < 1) return "expires soon";
   if (hours < 24) return `expires in ${hours}h`;
-  const days = Math.round(hours / 24);
+  const days = Math.floor(hours / 24);
   return `expires in ${days}d`;
 }
 

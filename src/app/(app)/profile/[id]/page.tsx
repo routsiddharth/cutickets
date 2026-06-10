@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
+import { availableListingWhere } from "@/lib/listing";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import { formatPrice, publicName, formatDate } from "@/lib/format";
@@ -32,7 +33,7 @@ export default async function ProfilePage({
       take: 20,
     }),
     prisma.listing.findMany({
-      where: { userId: target.id, status: "ACTIVE", expiresAt: { gt: new Date() } },
+      where: { userId: target.id, ...availableListingWhere() },
       include: { event: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
       take: 20,

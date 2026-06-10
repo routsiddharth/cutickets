@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
+import { isListingAvailable } from "@/lib/listing";
 
-export type ActionState = { error?: string; ok?: boolean } | undefined;
+import type { ActionState } from "./types";
+export type { ActionState };
 
 /** Click "I'm interested" / "I can sell" on a listing. Creates a PENDING match. */
 export async function expressInterest(
@@ -26,7 +28,7 @@ export async function expressInterest(
   });
   if (!listing) return { error: "Listing not found" };
   if (listing.userId === user.id) return { error: "That's your own listing" };
-  if (listing.status !== "ACTIVE" || listing.expiresAt <= new Date()) {
+  if (!isListingAvailable(listing)) {
     return { error: "This listing is no longer active" };
   }
 
@@ -94,22 +96,37 @@ export async function confirmTrade(
 
   const match = await prisma.match.findUnique({
     where: { id: matchId },
-    include: { listing: { select: { id: true, priceCents: true, eventId: true } } },
+    select: {
+      id: true,
+      ownerId: true,
+      interestedId: true,
+      listing: { select: { priceCents: true, eventId: true } },
+    },
   });
   if (!match) return { error: "Match not found" };
 
   const isOwner = match.ownerId === user.id;
   const isInterested = match.interestedId === user.id;
   if (!isOwner && !isInterested) return { error: "Not authorized" };
-  if (match.status !== "ACCEPTED") {
-    return { error: "Only accepted matches can be confirmed" };
-  }
 
-  const ownerConfirmed = isOwner ? true : match.ownerConfirmed;
-  const interestedConfirmed = isInterested ? true : match.interestedConfirmed;
-  const bothConfirmed = ownerConfirmed && interestedConfirmed;
-
+  // Read-and-write inside one transaction so two simultaneous confirms (one
+  // from each party) can't each read the other's flag as false and lose the
+  // completion. We deliberately do NOT mutate the listing here: a match is an
+  // agreement between two people, independent of the listing's lifecycle. This
+  // avoids overwriting a CANCELLED listing and avoids making a multi-ticket
+  // listing vanish after a single buyer. The sale is recorded on the match
+  // (agreedPriceCents) — that's what drives "last confirmed sale" & reputation.
   await prisma.$transaction(async (tx) => {
+    const fresh = await tx.match.findUnique({
+      where: { id: match.id },
+      select: { status: true, ownerConfirmed: true, interestedConfirmed: true },
+    });
+    if (!fresh || fresh.status !== "ACCEPTED") return;
+
+    const ownerConfirmed = isOwner ? true : fresh.ownerConfirmed;
+    const interestedConfirmed = isInterested ? true : fresh.interestedConfirmed;
+    const bothConfirmed = ownerConfirmed && interestedConfirmed;
+
     await tx.match.update({
       where: { id: match.id },
       data: {
@@ -124,12 +141,6 @@ export async function confirmTrade(
           : {}),
       },
     });
-    if (bothConfirmed) {
-      await tx.listing.update({
-        where: { id: match.listing.id },
-        data: { status: "COMPLETED" },
-      });
-    }
   });
 
   revalidatePath("/matches");

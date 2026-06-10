@@ -5,8 +5,9 @@ import CancelListingButton from "@/components/CancelListingButton";
 import { formatPrice, publicName, schoolAbbrev, relativeExpiry } from "@/lib/format";
 import { isNewAccount } from "@/lib/reputation";
 import type { MarketListing } from "@/lib/queries";
+import type { MatchStatus } from "@/lib/constants";
 
-type MatchState = "NONE" | "PENDING" | "ACCEPTED" | "DECLINED" | "COMPLETED" | "CANCELLED";
+type MatchState = "NONE" | MatchStatus;
 
 function RepLine({
   ratingAvg,
@@ -55,19 +56,14 @@ export default function ListingCard({
       : `wants ${listing.quantity}`;
   const actionLabel = variant === "sell" ? "I'm interested" : "I can sell";
 
-  const ringClass =
-    variant === "sell"
-      ? "bg-white border-line"
-      : "bg-white border-line";
-
   return (
-    <div className={`rounded-xl border p-4 flex items-start justify-between gap-3 ${ringClass}`}>
+    <div className="rounded-xl border bg-white border-line p-4 flex items-start justify-between gap-3">
       <div className="flex items-start gap-3 min-w-0">
-        <Avatar name={owner.name} email={owner.email} image={owner.image} size={36} />
+        <Avatar name={owner.name} image={owner.image} size={36} />
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">
             <Link href={`/profile/${owner.id}`} className="hover:underline">
-              {publicName(owner.name, owner.email)}
+              {publicName(owner.name)}
             </Link>{" "}
             <span className="text-xs text-columbia-deep">
               · {schoolAbbrev(owner.school, owner.classYear)}

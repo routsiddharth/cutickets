@@ -15,8 +15,10 @@ import {
   ESTABLISHED_ACTIVE_LISTING_CAP,
 } from "@/lib/constants";
 import { dollarsToCents } from "@/lib/format";
+import { availableListingWhere } from "@/lib/listing";
 
-export type ActionState = { error?: string } | undefined;
+import type { ActionState } from "./types";
+export type { ActionState };
 
 const MAX_EXPIRY_DAYS = 60;
 
@@ -66,7 +68,7 @@ export async function createListing(
 
   // Rate-limit: cap active listings, with a tighter cap for brand-new accounts.
   const activeCount = await prisma.listing.count({
-    where: { userId: user.id, status: "ACTIVE", expiresAt: { gt: new Date() } },
+    where: { userId: user.id, ...availableListingWhere() },
   });
   const cap = isNewAccount(user.createdAt)
     ? NEW_ACCOUNT_ACTIVE_LISTING_CAP
@@ -113,6 +115,6 @@ export async function cancelListing(listingId: string): Promise<ActionState> {
     data: { status: "CANCELLED" },
   });
   revalidatePath(`/events/${listing.eventId}`);
-  revalidatePath("/me");
+  revalidatePath(`/profile/${user.id}`);
   return undefined;
 }

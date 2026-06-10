@@ -6,7 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { SCHOOLS } from "@/lib/constants";
 
-export type ActionState = { error?: string } | undefined;
+import type { ActionState } from "./types";
+export type { ActionState };
 
 const currentYear = new Date().getFullYear();
 

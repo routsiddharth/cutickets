@@ -101,7 +101,7 @@ model Listing {
   quantity  Int
   priceCents Int //   asking / bid price per ticket, in cents
   notes     String?
-  status    String   @default("ACTIVE") // ACTIVE | MATCHED | COMPLETED | CANCELLED | EXPIRED
+  status    String   @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED (EXPIRED is computed from expiresAt)
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
