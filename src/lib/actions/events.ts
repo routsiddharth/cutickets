@@ -11,7 +11,7 @@ export type { ActionState };
 const schema = z.object({
   name: z.string().trim().min(2, "Event name is too short").max(120),
   venue: z.string().trim().max(120).optional(),
-  startsAt: z.string().trim().optional(),
+  startsAt: z.string().trim().min(1, "Pick the event date and time"),
   description: z.string().trim().max(500).optional(),
 });
 
@@ -32,10 +32,14 @@ export async function createEvent(
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
 
-  let startsAt: Date | null = null;
-  if (parsed.data.startsAt) {
-    const d = new Date(parsed.data.startsAt);
-    if (!Number.isNaN(d.getTime())) startsAt = d;
+  // An event date is required and drives listing expiry, so it must be a real,
+  // future date — a past event would make every listing expire immediately.
+  const startsAt = new Date(parsed.data.startsAt);
+  if (Number.isNaN(startsAt.getTime())) {
+    return { error: "Enter a valid date and time" };
+  }
+  if (startsAt.getTime() < Date.now()) {
+    return { error: "Event date must be in the future" };
   }
 
   // Avoid fragmenting liquidity: if an event with the same name (ignoring case

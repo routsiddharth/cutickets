@@ -40,14 +40,18 @@ export default function EventForm() {
         </div>
         <div>
           <label htmlFor="startsAt" className="tag text-muted">
-            Date &amp; time <span className="normal-case tracking-normal">(optional)</span>
+            Date &amp; time
           </label>
           <input
             id="startsAt"
             name="startsAt"
             type="datetime-local"
+            required
             className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
           />
+          <p className="text-xs text-muted mt-1">
+            Sets when listings for this event come down (the day after).
+          </p>
         </div>
       </div>
       <div>
