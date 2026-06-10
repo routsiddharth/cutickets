@@ -53,6 +53,11 @@ export function initials(name: string | null | undefined, email?: string | null)
   return source.slice(0, 2).toUpperCase();
 }
 
+/** A user's first name, for chat events / notifications ("Jordan confirmed…"). */
+export function firstName(user: { name: string | null; email: string }): string {
+  return (user.name ?? user.email.split("@")[0]).split(/\s+/)[0];
+}
+
 /** A privacy-preserving public display name: first name + last initial. */
 export function publicName(name: string | null | undefined, email?: string | null): string {
   const source = (name || email?.split("@")[0] || "Student").trim();

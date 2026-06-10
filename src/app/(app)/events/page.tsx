@@ -22,10 +22,10 @@ export default async function EventsPage({
           </p>
         </div>
         <Link
-          href="/listings/new"
+          href="/events/new"
           className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0 hover:bg-ink/90"
         >
-          + Post a listing
+          + New event
         </Link>
       </div>
 
@@ -95,11 +95,11 @@ export default async function EventsPage({
                   </div>
                   <div className="border-l border-line pl-4 sm:pl-5 hidden xs:block">
                     <p className="text-[11px] text-muted leading-none mb-1">
-                      last sale
+                      around
                     </p>
                     <p className="font-serif tabular-nums leading-none">
-                      {stats.lastSaleCents !== null
-                        ? formatPrice(stats.lastSaleCents)
+                      {stats.aroundPriceCents !== null
+                        ? formatPrice(stats.aroundPriceCents)
                         : "—"}
                     </p>
                   </div>

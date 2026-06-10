@@ -2,12 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { getEventStats, getEventMarket, type MarketListing } from "@/lib/queries";
+import { getEventStats, getMyOrdersForEvent } from "@/lib/queries";
 import { formatDateTime, formatPrice } from "@/lib/format";
-import ListingCard from "@/components/ListingCard";
-import type { MatchStatus } from "@/lib/constants";
-
-type MatchState = "NONE" | MatchStatus;
+import CancelListingButton from "@/components/CancelListingButton";
 
 export default async function EventPage({
   params,
@@ -20,28 +17,36 @@ export default async function EventPage({
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
 
-  const [stats, market, myMatches] = await Promise.all([
+  const [stats, myOrders, myMatches] = await Promise.all([
     getEventStats(id),
-    getEventMarket(id),
+    getMyOrdersForEvent(id, user.id),
     prisma.match.findMany({
-      where: { interestedId: user.id, listing: { eventId: id } },
-      select: { listingId: true, status: true },
+      where: {
+        eventId: id,
+        status: { in: ["RESERVED", "ACCEPTED"] },
+        OR: [{ buyerId: user.id }, { sellerId: user.id }],
+      },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        status: true,
+        buyerId: true,
+        reservedQuantity: true,
+        settlePriceCents: true,
+      },
     }),
   ]);
 
-  const matchByListing = new Map<string, MatchStatus>(
-    myMatches.map((m) => [m.listingId, m.status as MatchStatus]),
-  );
-  const stateFor = (l: MarketListing): MatchState =>
-    matchByListing.get(l.id) ?? "NONE";
+  const buyNow = stats.bestAskCents;
+  const sellNow = stats.bestBidCents;
 
   return (
-    <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
+    <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
       <Link href="/events" className="text-sm text-muted hover:text-ink">
         ← Events
       </Link>
 
-      {/* Header / market summary */}
+      {/* Hero / price anchor */}
       <div className="bg-ink text-white rounded-2xl px-6 sm:px-8 py-7 mt-3">
         <p className="tag mb-2" style={{ color: "#9FC0DC" }}>
           {formatDateTime(event.startsAt)}
@@ -53,104 +58,133 @@ export default async function EventPage({
             {event.description}
           </p>
         )}
-        <div className="flex flex-wrap gap-x-7 gap-y-2 text-sm">
-          <div>
-            <span className="font-serif text-2xl tabular-nums text-sell-soft">
-              {stats.sellTickets}
-            </span>{" "}
-            <span style={{ color: "#B7C3D6" }}>tickets for sale</span>
-          </div>
-          <div>
-            <span className="font-serif text-2xl tabular-nums" style={{ color: "#E7C79B" }}>
-              {stats.buyTickets}
-            </span>{" "}
-            <span style={{ color: "#B7C3D6" }}>wanted</span>
-          </div>
-          <div className="sm:border-l border-white/15 sm:pl-7">
-            <span style={{ color: "#B7C3D6" }}>last confirmed sale </span>
-            <span className="font-serif text-2xl tabular-nums">
-              {stats.lastSaleCents !== null ? formatPrice(stats.lastSaleCents) : "—"}
+        {stats.aroundPriceCents !== null ? (
+          <div className="flex items-baseline gap-2">
+            <span className="font-serif text-3xl tabular-nums">
+              {formatPrice(stats.aroundPriceCents)}
+            </span>
+            <span className="text-sm" style={{ color: "#B7C3D6" }}>
+              tickets are selling around this
             </span>
           </div>
-        </div>
+        ) : (
+          <p className="text-sm" style={{ color: "#B7C3D6" }}>
+            No prices yet — be the first to buy or sell.
+          </p>
+        )}
       </div>
 
-      <div className="flex items-center justify-between mt-6 mb-4">
-        <p className="text-sm text-muted">
-          Asking prices are set by students and aren&apos;t verified — only{" "}
-          <b className="text-ink">confirmed sales</b> reflect real trades.
-        </p>
+      {/* Two big actions */}
+      <div className="grid sm:grid-cols-2 gap-4 mt-5">
         <Link
-          href={`/listings/new?eventId=${event.id}`}
-          className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0 ml-4 hover:bg-ink/90"
+          href={`/events/${id}/order?side=buy`}
+          className="block bg-white border border-line rounded-2xl p-5 hover:border-buy transition-colors group"
         >
-          + Post here
+          <p className="tag text-buy">Want a ticket?</p>
+          <p className="font-serif text-2xl mt-1">Buy a ticket</p>
+          <p className="text-sm text-muted mt-2 leading-relaxed">
+            {buyNow !== null ? (
+              <>
+                <span className="text-ink font-medium">Buy now for {formatPrice(buyNow)}</span> —
+                or set the most you&apos;ll pay and we&apos;ll match you automatically.
+              </>
+            ) : (
+              <>Set the most you&apos;ll pay and we&apos;ll match you the moment someone sells.</>
+            )}
+          </p>
+          <span className="inline-block mt-3 text-sm font-medium text-buy group-hover:underline">
+            Start buying →
+          </span>
+        </Link>
+
+        <Link
+          href={`/events/${id}/order?side=sell`}
+          className="block bg-white border border-line rounded-2xl p-5 hover:border-sell transition-colors group"
+        >
+          <p className="tag text-sell">Have a ticket?</p>
+          <p className="font-serif text-2xl mt-1">Sell a ticket</p>
+          <p className="text-sm text-muted mt-2 leading-relaxed">
+            {sellNow !== null ? (
+              <>
+                <span className="text-ink font-medium">Sell now for {formatPrice(sellNow)}</span> —
+                or set the least you&apos;ll accept and we&apos;ll alert you when it sells.
+              </>
+            ) : (
+              <>Set the least you&apos;ll accept and we&apos;ll alert you when someone wants one.</>
+            )}
+          </p>
+          <span className="inline-block mt-3 text-sm font-medium text-sell group-hover:underline">
+            Start selling →
+          </span>
         </Link>
       </div>
 
-      {/* The two-sided market */}
-      <div className="grid lg:grid-cols-2 gap-5">
-        {/* Selling */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-serif text-xl text-sell flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-sell" /> Selling
-            </h2>
-            <span className="tag text-muted">cheapest first</span>
-          </div>
-          {market.sell.length === 0 ? (
-            <EmptyColumn text="No one is selling yet." eventId={event.id} />
-          ) : (
-            <div className="space-y-2.5">
-              {market.sell.map((l) => (
-                <ListingCard
-                  key={l.id}
-                  listing={l}
-                  variant="sell"
-                  isOwner={l.userId === user.id}
-                  matchState={stateFor(l)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+      {/* Your orders here */}
+      {(myMatches.length > 0 || myOrders.length > 0) && (
+        <div className="mt-7">
+          <p className="tag text-muted mb-3">Your orders here</p>
+          <div className="space-y-2.5">
+            {myMatches.map((m) => {
+              const iAmBuyer = m.buyerId === user.id;
+              const reserved = m.status === "RESERVED";
+              return (
+                <Link
+                  key={m.id}
+                  href={`/matches/${m.id}`}
+                  className="flex items-center justify-between gap-3 bg-columbia-soft border border-columbia/30 rounded-xl px-4 py-3 hover:border-columbia transition-colors"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-columbia-deep">
+                      {reserved ? "You matched! 🎟️" : "Deal in progress"}
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">
+                      {iAmBuyer ? "Buying" : "Selling"} {m.reservedQuantity} ·{" "}
+                      {formatPrice(m.settlePriceCents)}/ea ·{" "}
+                      {reserved ? "confirm within 24h" : "chat & close the deal"}
+                    </p>
+                  </div>
+                  <span className="text-sm font-medium text-columbia-deep shrink-0">
+                    {reserved ? "Confirm →" : "Open →"}
+                  </span>
+                </Link>
+              );
+            })}
 
-        {/* Buying */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-serif text-xl text-buy flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-buy" /> Buying
-            </h2>
-            <span className="tag text-muted">highest bid first</span>
+            {myOrders.map((o) => {
+              const isBuy = o.type === "BUY";
+              return (
+                <div
+                  key={o.id}
+                  className="flex items-center justify-between gap-3 bg-white border border-line rounded-xl px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm">
+                      <span className={`font-medium ${isBuy ? "text-buy" : "text-sell"}`}>
+                        {isBuy ? "Buying" : "Selling"} {o.remainingQuantity}
+                      </span>{" "}
+                      · {isBuy ? "up to" : "at least"}{" "}
+                      <span className="tabular-nums">{formatPrice(o.priceCents)}</span>/ea
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">
+                      Live · we&apos;ll alert you when it matches
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    <CancelListingButton listingId={o.id} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          {market.buy.length === 0 ? (
-            <EmptyColumn text="No one is buying yet." eventId={event.id} />
-          ) : (
-            <div className="space-y-2.5">
-              {market.buy.map((l) => (
-                <ListingCard
-                  key={l.id}
-                  listing={l}
-                  variant="buy"
-                  isOwner={l.userId === user.id}
-                  matchState={stateFor(l)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+        </div>
+      )}
+
+      {/* reassurance */}
+      <p className="text-xs text-muted mt-6 leading-relaxed">
+        Prices are set by students and aren&apos;t verified. Only{" "}
+        <b className="text-ink">confirmed sales</b> reflect real trades — that&apos;s what sets the
+        &ldquo;selling around&rdquo; price.
+      </p>
     </main>
-  );
-}
-
-function EmptyColumn({ text, eventId }: { text: string; eventId: string }) {
-  return (
-    <div className="bg-white border border-dashed border-line rounded-xl p-8 text-center text-sm text-muted">
-      {text}{" "}
-      <Link href={`/listings/new?eventId=${eventId}`} className="text-columbia-deep hover:underline">
-        Be the first.
-      </Link>
-    </div>
   );
 }

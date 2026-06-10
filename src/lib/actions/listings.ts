@@ -16,6 +16,7 @@ import {
 } from "@/lib/constants";
 import { dollarsToCents } from "@/lib/format";
 import { availableListingWhere } from "@/lib/listing";
+import { runMatch, matchOrder } from "@/lib/matching";
 
 import type { ActionState } from "./types";
 export type { ActionState };
@@ -80,45 +81,57 @@ export async function createListing(
     };
   }
 
-  // A ticket is only good until the event happens, so the listing expires the
-  // day after the event — derived from the event, not chosen by the user. Events
+  // A ticket is only good until the event happens, so the order expires the day
+  // after the event — derived from the event, not chosen by the user. Events
   // with no set date fall back to a fixed window.
   const expiresAt = event.startsAt
     ? new Date(event.startsAt.getTime() + 86_400_000)
     : new Date(Date.now() + DEFAULT_EXPIRY_DAYS * 86_400_000);
 
-  await prisma.listing.create({
-    data: {
-      eventId: parsed.data.eventId,
-      userId: user.id,
-      type: parsed.data.type,
-      quantity: parsed.data.quantity,
-      priceCents,
-      notes: parsed.data.notes ?? null,
-      expiresAt,
-    },
+  // Create the order and immediately try to match it against the resting book —
+  // both inside the per-event lock so the new order can't double-reserve tickets
+  // a concurrent order is also claiming.
+  const { matched } = await runMatch(parsed.data.eventId, async (tx) => {
+    const order = await tx.listing.create({
+      data: {
+        eventId: parsed.data.eventId,
+        userId: user.id,
+        type: parsed.data.type,
+        quantity: parsed.data.quantity,
+        remainingQuantity: parsed.data.quantity,
+        priceCents,
+        notes: parsed.data.notes ?? null,
+        expiresAt,
+      },
+    });
+    const matches = await matchOrder(order.id, tx);
+    return { matched: matches.length > 0 };
   });
 
   revalidatePath(`/events/${parsed.data.eventId}`);
-  redirect(`/events/${parsed.data.eventId}`);
+  revalidatePath("/matches");
+  // Matched right away → send them to confirm it. Otherwise the order rests on
+  // the book and we drop them back on the event with their live order showing.
+  redirect(matched ? "/matches" : `/events/${parsed.data.eventId}`);
 }
 
-/** Cancel one of your own active listings. */
+/** Cancel the live remainder of one of your own orders. Any tickets already
+ * reserved in a pending match are unaffected — those reservations play out. */
 export async function cancelListing(listingId: string): Promise<ActionState> {
   const user = await requireUser();
   const listing = await prisma.listing.findUnique({
     where: { id: listingId },
     select: { id: true, userId: true, eventId: true, status: true },
   });
-  if (!listing) return { error: "Listing not found" };
-  if (listing.userId !== user.id) return { error: "Not your listing" };
-  if (listing.status !== "ACTIVE") return { error: "Listing is not active" };
+  if (!listing) return { error: "Order not found" };
+  if (listing.userId !== user.id) return { error: "Not your order" };
+  if (listing.status !== "OPEN") return { error: "Order is no longer live" };
 
   await prisma.listing.update({
     where: { id: listingId },
-    data: { status: "CANCELLED" },
+    data: { status: "CANCELLED", remainingQuantity: 0 },
   });
   revalidatePath(`/events/${listing.eventId}`);
   revalidatePath(`/profile/${user.id}`);
-  return undefined;
+  return { ok: true };
 }

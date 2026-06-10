@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CUTickets — Event page + order sheet (hi-fi)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        paper: "#FBFAF7", ink: "#14233D", muted: "#5C6B82", line: "#E7E2D8",
+        columbia: { DEFAULT: "#5B8FB9", soft: "#E8F0F7", deep: "#3D6E97" },
+        sell: { DEFAULT: "#1F7A63", soft: "#E6F2ED" },
+        buy:  { DEFAULT: "#A8651A", soft: "#F7ECDB" },
+      },
+      fontFamily: {
+        serif: ['Newsreader','Georgia','serif'],
+        sans: ['"Public Sans"','system-ui','sans-serif'],
+      },
+    }},
+  };
+</script>
+<style>
+  body { background:#FBFAF7; color:#14233D; font-family:'Public Sans',system-ui,sans-serif; }
+  .font-serif { font-family:'Newsreader',Georgia,serif; }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .tag { font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; }
+  .demo-label { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:#5C6B82; font-style:italic; }
+</style>
+</head>
+<body class="py-10">
+
+<div class="max-w-6xl mx-auto px-6">
+  <h1 class="font-serif text-2xl mb-1">CUTickets — redesign prototype</h1>
+  <p class="text-sm text-muted mb-8">Plain-outcome event page (no order-book ladder) + the event-scoped buy/sell sheet. Hi-fi, matches app tokens.</p>
+
+  <div class="grid lg:grid-cols-[1fr_390px] gap-10 items-start">
+
+    <!-- ════════════ EVENT PAGE ════════════ -->
+    <div>
+      <p class="demo-label mb-2">1 · Event page</p>
+
+      <a class="text-sm text-muted hover:text-ink">← Events</a>
+
+      <!-- Hero -->
+      <div class="bg-ink text-white rounded-2xl px-6 sm:px-8 py-7 mt-3">
+        <p class="tag mb-2" style="color:#9FC0DC">Apr 18, 8:00 PM · Low Plaza</p>
+        <h2 class="font-serif text-3xl sm:text-4xl mb-4">Bacchanal Spring Concert</h2>
+        <div class="flex items-baseline gap-2">
+          <span class="font-serif text-3xl tabular-nums">$50</span>
+          <span class="text-sm" style="color:#B7C3D6">tickets are selling around this</span>
+        </div>
+      </div>
+
+      <!-- Two big actions -->
+      <div class="grid sm:grid-cols-2 gap-4 mt-5">
+        <!-- BUY -->
+        <button onclick="openSheet('buy')" class="text-left bg-white border border-line rounded-2xl p-5 hover:border-buy transition-colors group">
+          <p class="tag text-buy">Want a ticket?</p>
+          <p class="font-serif text-2xl mt-1">Buy a ticket</p>
+          <p class="text-sm text-muted mt-2 leading-relaxed">
+            <span class="text-ink font-medium">Buy now for $35</span> — or set the most you'll
+            pay and we'll match you automatically.
+          </p>
+          <span class="inline-block mt-3 text-sm font-medium text-buy group-hover:underline">Start buying →</span>
+        </button>
+        <!-- SELL -->
+        <button onclick="openSheet('sell')" class="text-left bg-white border border-line rounded-2xl p-5 hover:border-sell transition-colors group">
+          <p class="tag text-sell">Have a ticket?</p>
+          <p class="font-serif text-2xl mt-1">Sell a ticket</p>
+          <p class="text-sm text-muted mt-2 leading-relaxed">
+            <span class="text-ink font-medium">Sell now for $33</span> — or set the least you'll
+            accept and we'll alert you when it sells.
+          </p>
+          <span class="inline-block mt-3 text-sm font-medium text-sell group-hover:underline">Start selling →</span>
+        </button>
+      </div>
+
+      <!-- Your orders here -->
+      <div class="mt-7">
+        <p class="tag text-muted mb-3">Your orders here</p>
+        <div class="space-y-2.5">
+          <!-- active reservation -->
+          <a class="flex items-center justify-between gap-3 bg-columbia-soft border border-columbia/30 rounded-xl px-4 py-3 hover:border-columbia transition-colors">
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-columbia-deep">You matched! 🎟️</p>
+              <p class="text-xs text-muted mt-0.5">Buying 1 · $35/ea · confirm within 24h</p>
+            </div>
+            <span class="text-sm font-medium text-columbia-deep shrink-0">Confirm →</span>
+          </a>
+          <!-- live resting order -->
+          <div class="flex items-center justify-between gap-3 bg-white border border-line rounded-xl px-4 py-3">
+            <div class="min-w-0">
+              <p class="text-sm"><span class="text-buy font-medium">Buying 2</span> · up to <span class="tabular-nums">$30</span>/ea</p>
+              <p class="text-xs text-muted mt-0.5">Live · we'll alert you when it matches</p>
+            </div>
+            <button class="text-xs text-muted underline underline-offset-2 hover:text-ink shrink-0">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- reassurance -->
+      <p class="text-xs text-muted mt-6 leading-relaxed">
+        Prices are set by students and aren't verified. Only <b class="text-ink">confirmed sales</b>
+        reflect real trades — that's what sets the "selling around" price.
+      </p>
+    </div>
+
+    <!-- ════════════ ORDER SHEET ════════════ -->
+    <div>
+      <p class="demo-label mb-2">2 · Order sheet (buy / sell) — click the cards, or toggle:</p>
+      <div class="inline-flex rounded-lg border border-line overflow-hidden mb-3 text-sm">
+        <button id="tab-buy" onclick="openSheet('buy')" class="px-4 py-1.5 font-medium">Buy</button>
+        <button id="tab-sell" onclick="openSheet('sell')" class="px-4 py-1.5 font-medium border-l border-line">Sell</button>
+      </div>
+      <div id="sheet-host"></div>
+    </div>
+
+  </div>
+</div>
+
+<template id="sheet-tpl">
+  <div class="bg-white border border-line rounded-2xl p-6 shadow-sm">
+    <p class="tag" data-side-tag></p>
+    <h3 class="font-serif text-2xl mt-1 mb-1" data-title></h3>
+    <p class="text-sm text-muted mb-5" data-anchor></p>
+
+    <!-- quantity -->
+    <label class="tag text-muted">How many tickets?</label>
+    <div class="mt-1.5 flex items-center gap-3 mb-5">
+      <button onclick="bump(-1)" class="w-10 h-10 rounded-lg border border-line text-xl leading-none grid place-items-center hover:bg-paper">–</button>
+      <span id="qty" class="font-serif text-2xl tabular-nums w-8 text-center">1</span>
+      <button onclick="bump(1)" class="w-10 h-10 rounded-lg border border-line text-xl leading-none grid place-items-center hover:bg-paper">+</button>
+      <span class="text-xs text-muted ml-1">up to 12</span>
+    </div>
+
+    <!-- price -->
+    <label class="tag text-muted" data-price-label></label>
+    <div class="mt-1.5 flex items-center border border-line rounded-lg bg-white px-3">
+      <span class="text-muted text-sm">$</span>
+      <input inputmode="decimal" placeholder="35" class="w-full px-2 py-2.5 text-sm bg-transparent outline-none" />
+      <span class="text-muted text-sm">/ea</span>
+    </div>
+    <p class="text-xs text-muted mt-1.5" data-price-hint></p>
+
+    <!-- notes -->
+    <label class="tag text-muted mt-5 block">Notes <span class="normal-case tracking-normal">(optional)</span></label>
+    <textarea rows="2" placeholder="Face value, can meet on campus." class="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white resize-none"></textarea>
+    <p class="text-xs text-muted mt-1">Only shown to your match after you connect.</p>
+
+    <button class="w-full text-white text-center py-3 rounded-lg font-medium mt-5" data-cta></button>
+    <p class="text-xs text-muted text-center mt-2" data-microcopy></p>
+  </div>
+</template>
+
+<script>
+  let qty = 1;
+  function bump(d){ qty = Math.min(12, Math.max(1, qty+d)); document.getElementById('qty').textContent = qty; }
+
+  const COPY = {
+    buy: {
+      sideTag: ['Buying','text-buy'],
+      title: 'Buy tickets to Bacchanal',
+      anchor: 'Cheapest available right now: <b class="text-ink">$35</b>.',
+      priceLabel: "The most you'll pay per ticket",
+      priceHint: 'Set it to $35 to buy the cheapest one now. Bid higher and you jump the line — you only ever pay the seller’s price.',
+      cta: 'Place buy order', ctaBg: 'bg-buy',
+      micro: 'If a seller already matches your price, you’ll be connected right away.',
+    },
+    sell: {
+      sideTag: ['Selling','text-sell'],
+      title: 'Sell tickets to Bacchanal',
+      anchor: 'Best offer on the table right now: <b class="text-ink">$33</b>.',
+      priceLabel: "The least you'll accept per ticket",
+      priceHint: 'Set it to $33 to sell to the top buyer now. Ask for more and we’ll hold your ticket until a buyer meets it.',
+      cta: 'Place sell order', ctaBg: 'bg-sell',
+      micro: 'If a buyer already meets your price, you’ll be connected right away.',
+    },
+  };
+
+  function openSheet(side){
+    const c = COPY[side];
+    const host = document.getElementById('sheet-host');
+    const node = document.getElementById('sheet-tpl').content.cloneNode(true);
+    const tag = node.querySelector('[data-side-tag]');
+    tag.textContent = c.sideTag[0]; tag.classList.add(c.sideTag[1]);
+    node.querySelector('[data-title]').textContent = c.title;
+    node.querySelector('[data-anchor]').innerHTML = c.anchor;
+    node.querySelector('[data-price-label]').textContent = c.priceLabel;
+    node.querySelector('[data-price-hint]').innerHTML = c.priceHint;
+    const cta = node.querySelector('[data-cta]');
+    cta.textContent = c.cta; cta.classList.add(c.ctaBg);
+    node.querySelector('[data-microcopy]').textContent = c.micro;
+    host.innerHTML = ''; host.appendChild(node);
+    qty = 1; document.getElementById('qty').textContent = 1;
+    // toggle active tab styling
+    for (const s of ['buy','sell']) {
+      const el = document.getElementById('tab-'+s);
+      const active = s === side;
+      el.className = 'px-4 py-1.5 font-medium ' + (s==='sell'?'border-l border-line ':'') +
+        (active ? (s==='buy'?'bg-buy text-white':'bg-sell text-white') : 'text-muted');
+    }
+  }
+  openSheet('buy');
+</script>
+</body>
+</html>

@@ -39,8 +39,8 @@ model User {
   sessions Session[]
 
   listings        Listing[]
-  matchesStarted  Match[]        @relation("MatchInterested")
-  matchesReceived Match[]        @relation("MatchOwner")
+  matchesAsBuyer  Match[]        @relation("MatchBuyer")
+  matchesAsSeller Match[]        @relation("MatchSeller")
   reportsMade     Report[]       @relation("Reporter")
   reportsReceived Report[]       @relation("Reported")
   ratingsGiven    Rating[]       @relation("RatingAuthor")
@@ -98,62 +98,113 @@ model Event {
 
   createdBy User      @relation("EventCreator", fields: [createdById], references: [id])
   listings  Listing[]
+  matches   Match[]
 
   @@index([startsAt])
 }
 
+// A Listing is an *order* on an event's market: a SELL (ask = the least the
+// lister will accept) or a BUY (bid = the most they'll pay), both per ticket.
+// The matching engine (src/lib/matching.ts) auto-pairs crossing orders.
 model Listing {
   id        String @id @default(cuid())
   eventId   String
   userId    String
-  type      String // "SELL" | "BUY"  (see constants)
-  quantity  Int
-  priceCents Int //   asking / bid price per ticket, in cents
-  notes     String?
-  status    String   @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED (EXPIRED is computed from expiresAt)
+  type      String // "SELL" (ask) | "BUY" (bid)  (see constants)
+  quantity  Int //    original total quantity submitted
+  remainingQuantity Int //  qty still live on the book (not reserved, not filled)
+  priceCents Int //   limit price per ticket, in cents (ask = min accept, bid = max pay)
+  notes     String? // revealed to the counterparty only AFTER a match — never on the book
+  status    String   @default("OPEN") // OPEN | FILLED | CANCELLED (EXPIRED is computed from expiresAt)
+  postedAt  DateTime @default(now()) // immutable FIFO tiebreaker for price-time priority
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   event   Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  matches Match[]
 
-  @@index([eventId, type, status])
+  buyMatches    Match[] @relation("BuyOrder")
+  sellMatches   Match[] @relation("SellOrder")
+  buyExclusions  ReservationExclusion[] @relation("BuyExclusion")
+  sellExclusions ReservationExclusion[] @relation("SellExclusion")
+
+  // Hot path: candidate selection in the matching engine.
+  @@index([eventId, type, status, priceCents, postedAt])
   @@index([userId])
 }
 
-// A Match is created when a student clicks "I'm interested" on a listing.
-// Contact (verified email) is revealed to BOTH parties only once the listing
-// owner ACCEPTS — i.e. on mutual interest.
+// A Match is an auto-generated *reservation* between a buy order and a sell
+// order, created by the matching engine the instant their prices cross. It then
+// becomes a trade once both parties accept and confirm the handoff.
+//
+// Lifecycle: RESERVED → ACCEPTED → COMPLETED, or → DECLINED / EXPIRED / CANCELLED.
+//  • RESERVED  : engine reserved the tickets; both must accept within 24h.
+//  • ACCEPTED  : both accepted → identities + notes revealed, chat opens.
+//  • COMPLETED : both confirmed the in-person handoff (drives last-sale & reputation).
+//  • DECLINED/EXPIRED : freed tickets re-enter the book and re-match the next in queue.
+//
+// Pricing: settlePriceCents = the *resting* (maker) order's limit price — the
+// order that was already on the book when the incoming (taker) order crossed it.
 model Match {
-  id            String @id @default(cuid())
-  listingId     String
-  interestedId  String // the user who clicked "I'm interested"
-  ownerId       String // the listing owner
-  status        String @default("PENDING") // PENDING | ACCEPTED | DECLINED | COMPLETED | CANCELLED
-  message       String?
+  id          String @id @default(cuid())
+  eventId     String // denormalized for cheap per-event queries / last-sale lookups
+  buyOrderId  String
+  sellOrderId String
+  buyerId     String // buyOrder.userId
+  sellerId    String // sellOrder.userId
 
-  // "Successful trade" confirmation — both parties confirm independently.
-  interestedConfirmed Boolean @default(false)
-  ownerConfirmed      Boolean @default(false)
-  agreedPriceCents    Int? //   recorded when the trade is confirmed by both
-  completedAt         DateTime?
+  reservedQuantity Int //  tickets locked by this reservation
+  settlePriceCents Int //  the resting (maker) order's price — the trade price
+  status           String @default("RESERVED")
+
+  // Stage 1 — ACCEPT (RESERVED → ACCEPTED). Both must accept to open the chat.
+  buyerAccepted        Boolean @default(false)
+  sellerAccepted       Boolean @default(false)
+  acceptedAt           DateTime?
+  reservationExpiresAt DateTime // now + 24h; the cron expires reservations past this
+  expiringSoonNotifiedAt DateTime? // idempotency guard for the "expiring soon" nudge
+
+  // Stage 2 — CONFIRM HANDOFF (ACCEPTED → COMPLETED). Both confirm independently.
+  buyerConfirmed   Boolean @default(false)
+  sellerConfirmed  Boolean @default(false)
+  agreedPriceCents Int? //   = settlePriceCents, recorded on completion
+  completedAt      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  listing       Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  interested    User           @relation("MatchInterested", fields: [interestedId], references: [id], onDelete: Cascade)
-  owner         User           @relation("MatchOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  buyOrder      Listing        @relation("BuyOrder", fields: [buyOrderId], references: [id], onDelete: Cascade)
+  sellOrder     Listing        @relation("SellOrder", fields: [sellOrderId], references: [id], onDelete: Cascade)
+  buyer         User           @relation("MatchBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller        User           @relation("MatchSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   ratings       Rating[]
   messages      Message[]
   notifications Notification[]
 
-  // One expression of interest per (listing, interested user).
-  @@unique([listingId, interestedId])
-  @@index([ownerId, status])
-  @@index([interestedId, status])
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+  @@index([eventId, status])
+  @@index([status, reservationExpiresAt]) // cron scan for stale reservations
+}
+
+// Records a buy↔sell order pairing that just failed (declined or timed out), so
+// the matching engine never immediately re-pairs the same two orders — the freed
+// tickets roll to the *next* counterparty in the price-time queue.
+model ReservationExclusion {
+  id          String @id @default(cuid())
+  buyOrderId  String
+  sellOrderId String
+  reason      String // "DECLINED" | "EXPIRED" | "CANCELLED"
+  createdAt   DateTime @default(now())
+
+  buyOrder  Listing @relation("BuyExclusion", fields: [buyOrderId], references: [id], onDelete: Cascade)
+  sellOrder Listing @relation("SellExclusion", fields: [sellOrderId], references: [id], onDelete: Cascade)
+
+  @@unique([buyOrderId, sellOrderId])
+  @@index([buyOrderId])
+  @@index([sellOrderId])
 }
 
 // A message in the on-site chat between the two parties of a Match. The Match IS
@@ -188,7 +239,7 @@ model Message {
 model Notification {
   id        String    @id @default(cuid())
   userId    String //    recipient
-  type      String //    NEW_MESSAGE | OFFER_ACCEPTED | TRADE_CONFIRMED | TRADE_COMPLETED
+  type      String //    MATCH_FOUND | OFFER_ACCEPTED | RESERVATION_EXPIRING | NEW_MESSAGE | TRADE_CONFIRMED | TRADE_COMPLETED
   matchId   String? //   deep-link target (the deal desk), if any
   body      String //    rendered, human-readable line
   readAt    DateTime? // set when the recipient has seen it

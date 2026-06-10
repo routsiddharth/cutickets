@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
-import { availableListingWhere } from "@/lib/listing";
+import { matchableListingWhere } from "@/lib/listing";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import { formatPrice, publicName, formatDate } from "@/lib/format";
@@ -26,18 +26,22 @@ export default async function ProfilePage({
     prisma.match.findMany({
       where: {
         status: "COMPLETED",
-        OR: [{ ownerId: target.id }, { interestedId: target.id }],
+        OR: [{ buyerId: target.id }, { sellerId: target.id }],
       },
-      include: { listing: { include: { event: { select: { id: true, name: true } } } } },
+      include: { event: { select: { id: true, name: true } } },
       orderBy: { completedAt: "desc" },
       take: 20,
     }),
-    prisma.listing.findMany({
-      where: { userId: target.id, ...availableListingWhere() },
-      include: { event: { select: { id: true, name: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
+    // Only YOU can see your own live orders — exposing a named user's open
+    // orders here would re-link identity to the otherwise-anonymous book.
+    isSelf
+      ? prisma.listing.findMany({
+          where: { userId: target.id, ...matchableListingWhere() },
+          include: { event: { select: { id: true, name: true } } },
+          orderBy: { postedAt: "desc" },
+          take: 20,
+        })
+      : Promise.resolve([]),
   ]);
 
   const schoolLine = [target.school, target.classYear ? `Class of ${target.classYear}` : null]
@@ -81,10 +85,7 @@ export default async function ProfilePage({
           ) : (
             <div className="space-y-2.5">
               {completed.map((m) => {
-                const isOwner = m.ownerId === target.id;
-                const sold =
-                  (isOwner && m.listing.type === "SELL") ||
-                  (!isOwner && m.listing.type === "BUY");
+                const sold = m.sellerId === target.id;
                 return (
                   <div
                     key={m.id}
@@ -95,8 +96,8 @@ export default async function ProfilePage({
                         {sold ? "Sold" : "Bought"}
                       </span>{" "}
                       ·{" "}
-                      <Link href={`/events/${m.listing.event.id}`} className="hover:underline">
-                        {m.listing.event.name}
+                      <Link href={`/events/${m.event.id}`} className="hover:underline">
+                        {m.event.name}
                       </Link>
                     </div>
                     <span className="font-serif tabular-nums shrink-0 ml-3">
@@ -110,10 +111,10 @@ export default async function ProfilePage({
           )}
         </div>
 
-        {/* Active listings */}
-        {activeListings.length > 0 && (
+        {/* Your live orders (self only — never expose a named user's open orders) */}
+        {isSelf && activeListings.length > 0 && (
           <div className="px-6 sm:px-7 pb-6 sm:pb-7">
-            <p className="tag text-muted mb-3">Active listings</p>
+            <p className="tag text-muted mb-3">Your live orders</p>
             <div className="space-y-2">
               {activeListings.map((l) => (
                 <Link
@@ -125,7 +126,7 @@ export default async function ProfilePage({
                     <span className={l.type === "SELL" ? "text-sell font-medium" : "text-buy font-medium"}>
                       {l.type === "SELL" ? "Selling" : "Buying"}
                     </span>{" "}
-                    {l.quantity} · {l.event.name}
+                    {l.remainingQuantity} · {l.event.name}
                   </span>
                   <span className="font-serif tabular-nums">{formatPrice(l.priceCents)}/ea</span>
                 </Link>

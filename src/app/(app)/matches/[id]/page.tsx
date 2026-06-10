@@ -4,9 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
 import Avatar from "@/components/Avatar";
-import { ConfirmTradeForm, RatingForm } from "@/components/MatchActions";
+import {
+  AcceptReservationForm,
+  ConfirmTradeForm,
+  RatingForm,
+} from "@/components/MatchActions";
 import DealChat, { type ChatMessage } from "./DealChat";
-import { formatPrice, schoolAbbrev } from "@/lib/format";
+import { formatPrice, formatDateTime, schoolAbbrev, firstName } from "@/lib/format";
 
 export default async function DealDeskPage({
   params,
@@ -19,34 +23,85 @@ export default async function DealDeskPage({
   const match = await prisma.match.findUnique({
     where: { id },
     include: {
-      listing: { include: { event: { select: { id: true, name: true } } } },
-      interested: true,
-      owner: true,
+      event: { select: { id: true, name: true } },
+      buyOrder: { select: { notes: true } },
+      sellOrder: { select: { notes: true } },
+      buyer: true,
+      seller: true,
       messages: { orderBy: { createdAt: "asc" } },
     },
   });
   if (!match) notFound();
 
-  const isOwner = match.ownerId === user.id;
-  const isInterested = match.interestedId === user.id;
-  if (!isOwner && !isInterested) notFound();
+  const isBuyer = match.buyerId === user.id;
+  const isSeller = match.sellerId === user.id;
+  if (!isBuyer && !isSeller) notFound();
 
-  // The desk only exists once there's a match to reveal. Anything earlier (or a
-  // declined/withdrawn request) goes back to the matches index — no reveal.
-  if (match.status !== "ACCEPTED" && match.status !== "COMPLETED") {
+  // Dead reservations (declined / expired / cancelled) have no desk.
+  if (!["RESERVED", "ACCEPTED", "COMPLETED"].includes(match.status)) {
     redirect("/matches");
   }
 
-  const them = isOwner ? match.interested : match.owner;
-  const youConfirmed = isOwner ? match.ownerConfirmed : match.interestedConfirmed;
-  const theyConfirmed = isOwner ? match.interestedConfirmed : match.ownerConfirmed;
-  const completed = match.status === "COMPLETED";
-
-  // Opening the desk = seeing this conversation. Clear its unread notifications.
+  // Opening the desk = seeing this match. Clear its unread notifications.
   await prisma.notification.updateMany({
     where: { userId: user.id, matchId: match.id, readAt: null },
     data: { readAt: new Date() },
   });
+
+  const iAmSelling = isSeller;
+  const sideLabel = iAmSelling ? "Selling" : "Buying";
+  const sideTone = iAmSelling ? "text-sell" : "text-buy";
+
+  // ── Stage 1: RESERVED — confirm the match (still anonymous) ──────────────
+  if (match.status === "RESERVED") {
+    const youAccepted = isBuyer ? match.buyerAccepted : match.sellerAccepted;
+    const theyAccepted = isBuyer ? match.sellerAccepted : match.buyerAccepted;
+
+    return (
+      <main className="max-w-2xl mx-auto px-5 sm:px-7 py-8">
+        <Link href="/matches" className="text-sm text-muted hover:text-ink">
+          ← My matches
+        </Link>
+        <h1 className="font-serif text-3xl mt-2 mb-0.5">You matched 🎟️</h1>
+        <p className="text-sm text-muted mb-5">
+          Someone&apos;s price meets yours. Confirm to reveal who you&apos;re trading with and open a
+          private chat. You both have until{" "}
+          <span className="text-ink">{formatDateTime(match.reservationExpiresAt)}</span> — after that
+          it rolls to the next person in line.
+        </p>
+
+        <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
+          <Stub
+            sideLabel={sideLabel}
+            sideTone={sideTone}
+            quantity={match.reservedQuantity}
+            eventName={match.event.name}
+            priceCents={match.settlePriceCents}
+          />
+
+          <div className="mt-5 pt-5 border-t border-line">
+            <AcceptReservationForm
+              matchId={match.id}
+              youAccepted={youAccepted}
+              theyAccepted={theyAccepted}
+            />
+          </div>
+        </div>
+
+        <p className="text-xs text-muted mt-4 leading-relaxed">
+          Identities and any notes stay hidden until <b className="text-ink">both</b> of you confirm.
+          No payment is handled here — you&apos;ll coordinate the transfer yourselves.
+        </p>
+      </main>
+    );
+  }
+
+  // ── Stage 2: ACCEPTED / COMPLETED — reveal + chat + handoff ──────────────
+  const them = isBuyer ? match.seller : match.buyer;
+  const theirNote = isBuyer ? match.sellOrder.notes : match.buyOrder.notes;
+  const youConfirmed = isBuyer ? match.buyerConfirmed : match.sellerConfirmed;
+  const theyConfirmed = isBuyer ? match.sellerConfirmed : match.buyerConfirmed;
+  const completed = match.status === "COMPLETED";
 
   const [rep, myRating] = await Promise.all([
     getReputation(them.id),
@@ -66,8 +121,7 @@ export default async function DealDeskPage({
     createdAt: m.createdAt.toISOString(),
   }));
 
-  const isSell = match.listing.type === "SELL";
-  const themFirst = (them.name ?? them.email).split(/\s+/)[0];
+  const themFirst = firstName(them);
 
   return (
     <main className="max-w-2xl mx-auto px-5 sm:px-7 py-8">
@@ -76,8 +130,8 @@ export default async function DealDeskPage({
       </Link>
       <h1 className="font-serif text-3xl mt-2 mb-0.5">Deal desk</h1>
       <p className="text-sm text-muted mb-5">
-        You matched — here&apos;s who you&apos;re trading with. Chat to set up the
-        handoff, then both confirm to close.
+        You matched — here&apos;s who you&apos;re trading with. Chat to set up the handoff, then both
+        confirm to close.
       </p>
 
       <div className="flex flex-col gap-3.5">
@@ -104,15 +158,14 @@ export default async function DealDeskPage({
               </div>
             </div>
 
-            {/* perforated ticket stub */}
             <div className="flex items-stretch bg-paper border border-line rounded-xl overflow-hidden">
               <div className="px-3.5 py-2.5 min-w-0">
-                <p className={`tag ${isSell ? "text-sell" : "text-buy"}`}>
-                  {isSell ? "Selling" : "Buying"} · {match.listing.quantity} ticket
-                  {match.listing.quantity === 1 ? "" : "s"}
+                <p className={`tag ${sideTone}`}>
+                  {sideLabel} · {match.reservedQuantity} ticket
+                  {match.reservedQuantity === 1 ? "" : "s"}
                 </p>
                 <p className="font-serif text-base leading-tight mt-0.5 truncate max-w-[200px]">
-                  {match.listing.event.name}
+                  {match.event.name}
                 </p>
               </div>
               <div className="relative border-l border-dashed border-line">
@@ -121,7 +174,7 @@ export default async function DealDeskPage({
               </div>
               <div className="px-4 py-2.5 flex flex-col justify-center items-end">
                 <p className="font-serif text-2xl tabular-nums leading-none">
-                  {formatPrice(match.listing.priceCents)}
+                  {formatPrice(match.settlePriceCents)}
                   <span className="text-xs text-muted">/ea</span>
                 </p>
                 <p className="tag text-muted mt-1">agreed price</p>
@@ -129,7 +182,7 @@ export default async function DealDeskPage({
             </div>
           </div>
 
-          {/* revealed contact — the payoff of matching */}
+          {/* revealed contact + their note — the payoff of matching */}
           <div className="mt-3.5 pt-3.5 border-t border-line flex flex-wrap items-center gap-x-5 gap-y-2">
             <span className="tag text-columbia-deep bg-columbia-soft px-2 py-0.5 rounded">
               ✓ Revealed on match
@@ -149,6 +202,11 @@ export default async function DealDeskPage({
               </a>
             )}
           </div>
+          {theirNote && (
+            <p className="text-sm text-muted mt-3 italic">
+              {themFirst}&apos;s note: &ldquo;{theirNote}&rdquo;
+            </p>
+          )}
         </div>
 
         {/* ── Close the deal ── */}
@@ -164,8 +222,8 @@ export default async function DealDeskPage({
               <p className="tag text-sell">Transaction complete</p>
               <p className="font-serif text-2xl mt-1.5">Both of you confirmed.</p>
               <p className="text-sm text-muted mt-1.5 max-w-md mx-auto">
-                The listing has been taken down and the sale recorded to both of your
-                trade histories. Leave a quick rating to keep the campus honest.
+                The sale is recorded to both of your trade histories. Leave a quick rating to keep
+                the campus honest.
               </p>
               <div className="mt-4 flex justify-center">
                 <RatingForm matchId={match.id} existingStars={myRating?.stars ?? null} />
@@ -179,16 +237,13 @@ export default async function DealDeskPage({
               <span className="tag text-muted">both must confirm</span>
             </div>
             <p className="text-sm text-muted mt-1 mb-4">
-              Once you&apos;ve handed off the ticket in person, both confirm below. The
-              listing comes down only when both have confirmed.
+              Once you&apos;ve handed off the ticket in person, both confirm below. The sale is
+              recorded only when both have confirmed.
             </p>
             <div className="grid grid-cols-2 gap-2.5">
-              {/* You */}
               <div
                 className={`rounded-xl px-3 py-3.5 text-center border ${
-                  youConfirmed
-                    ? "bg-sell-soft border-sell/35"
-                    : "border-dashed border-ink"
+                  youConfirmed ? "bg-sell-soft border-sell/35" : "border-dashed border-ink"
                 }`}
               >
                 <p className="tag text-muted">You</p>
@@ -200,12 +255,9 @@ export default async function DealDeskPage({
                   />
                 </div>
               </div>
-              {/* Them */}
               <div
                 className={`rounded-xl px-3 py-3.5 text-center border ${
-                  theyConfirmed
-                    ? "bg-sell-soft border-sell/35"
-                    : "bg-paper border-dashed border-line"
+                  theyConfirmed ? "bg-sell-soft border-sell/35" : "bg-paper border-dashed border-line"
                 }`}
               >
                 <p className="tag text-muted">{themFirst}</p>
@@ -232,5 +284,43 @@ export default async function DealDeskPage({
         />
       </div>
     </main>
+  );
+}
+
+function Stub({
+  sideLabel,
+  sideTone,
+  quantity,
+  eventName,
+  priceCents,
+}: {
+  sideLabel: string;
+  sideTone: string;
+  quantity: number;
+  eventName: string;
+  priceCents: number;
+}) {
+  return (
+    <div className="flex items-stretch bg-paper border border-line rounded-xl overflow-hidden w-fit">
+      <div className="px-4 py-3 min-w-0">
+        <p className={`tag ${sideTone}`}>
+          {sideLabel} · {quantity} ticket{quantity === 1 ? "" : "s"}
+        </p>
+        <p className="font-serif text-lg leading-tight mt-0.5 truncate max-w-[240px]">
+          {eventName}
+        </p>
+      </div>
+      <div className="relative border-l border-dashed border-line">
+        <span className="absolute -top-1.5 -left-1.5 w-3 h-3 rounded-full bg-paper border border-line" />
+        <span className="absolute -bottom-1.5 -left-1.5 w-3 h-3 rounded-full bg-paper border border-line" />
+      </div>
+      <div className="px-5 py-3 flex flex-col justify-center items-end">
+        <p className="font-serif text-2xl tabular-nums leading-none">
+          {formatPrice(priceCents)}
+          <span className="text-xs text-muted">/ea</span>
+        </p>
+        <p className="tag text-muted mt-1">your price</p>
+      </div>
+    </div>
   );
 }

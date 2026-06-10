@@ -2,8 +2,10 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
 export type NotificationType =
+  | "MATCH_FOUND" //          the engine auto-matched you — confirm to lock it in
+  | "OFFER_ACCEPTED" //       your counterparty confirmed the match
+  | "RESERVATION_EXPIRING" // <4h left to confirm before it rolls to the next person
   | "NEW_MESSAGE"
-  | "OFFER_ACCEPTED"
   | "TRADE_CONFIRMED"
   | "TRADE_COMPLETED";
 

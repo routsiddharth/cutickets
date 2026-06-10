@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import {
-  respondToMatch,
+  acceptReservation,
+  declineReservation,
   confirmTrade,
   rateTrade,
   cancelMatch,
@@ -10,36 +11,65 @@ import {
 } from "@/lib/actions/matches";
 import SubmitButton from "@/components/SubmitButton";
 
-export function RespondForm({ matchId }: { matchId: string }) {
-  const [state, action] = useActionState<ActionState, FormData>(
-    respondToMatch,
+/** Stage 1: confirm or pass on an auto-generated match. */
+export function AcceptReservationForm({
+  matchId,
+  youAccepted,
+  theyAccepted,
+}: {
+  matchId: string;
+  youAccepted: boolean;
+  theyAccepted: boolean;
+}) {
+  const [acceptState, accept] = useActionState<ActionState, FormData>(
+    acceptReservation,
     undefined,
   );
+  const [declineState, decline] = useActionState<ActionState, FormData>(
+    declineReservation,
+    undefined,
+  );
+
+  if (youAccepted) {
+    return (
+      <p className="text-xs text-columbia-deep font-medium">
+        ✓ You confirmed{theyAccepted ? " · all set" : " · waiting on them"}
+      </p>
+    );
+  }
+
   return (
     <div>
       <div className="flex gap-2">
-        <form action={action}>
+        <form action={accept}>
           <input type="hidden" name="matchId" value={matchId} />
-          <input type="hidden" name="decision" value="ACCEPT" />
           <SubmitButton
             pendingText="…"
-            className="text-xs bg-sell text-white px-3.5 py-1.5 rounded-md font-medium disabled:opacity-60"
+            className="text-xs bg-columbia-deep text-white px-3.5 py-1.5 rounded-md font-medium disabled:opacity-60"
           >
-            Accept &amp; open chat
+            Confirm match
           </SubmitButton>
         </form>
-        <form action={action}>
+        <form action={decline}>
           <input type="hidden" name="matchId" value={matchId} />
-          <input type="hidden" name="decision" value="DECLINE" />
           <SubmitButton
             pendingText="…"
             className="text-xs border border-line text-muted px-3.5 py-1.5 rounded-md hover:text-ink disabled:opacity-60"
           >
-            Decline
+            No thanks
           </SubmitButton>
         </form>
       </div>
-      {state?.error && <p className="text-xs text-red-600 mt-1">{state.error}</p>}
+      {theyAccepted && (
+        <p className="text-[11px] text-muted mt-1">
+          They&apos;ve confirmed — confirm to reveal each other &amp; open the chat.
+        </p>
+      )}
+      {(acceptState?.error || declineState?.error) && (
+        <p className="text-xs text-red-600 mt-1">
+          {acceptState?.error ?? declineState?.error}
+        </p>
+      )}
     </div>
   );
 }

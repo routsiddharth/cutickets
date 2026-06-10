@@ -4,8 +4,10 @@ import { requireUser } from "@/lib/session";
 import { formatDateTime } from "@/lib/format";
 
 const ICON: Record<string, string> = {
-  NEW_MESSAGE: "💬",
+  MATCH_FOUND: "🎟️",
   OFFER_ACCEPTED: "🤝",
+  RESERVATION_EXPIRING: "⏳",
+  NEW_MESSAGE: "💬",
   TRADE_CONFIRMED: "✍️",
   TRADE_COMPLETED: "✓",
 };

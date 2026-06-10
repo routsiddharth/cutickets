@@ -26,7 +26,7 @@ export async function countCompletedTrades(userId: string): Promise<number> {
   return prisma.match.count({
     where: {
       status: "COMPLETED",
-      OR: [{ interestedId: userId }, { ownerId: userId }],
+      OR: [{ buyerId: userId }, { sellerId: userId }],
     },
   });
 }

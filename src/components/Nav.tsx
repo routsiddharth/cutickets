@@ -19,9 +19,6 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Link href="/matches" className="hover:text-ink">
             My matches
           </Link>
-          <Link href="/listings/new" className="hover:text-ink">
-            Post
-          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
