@@ -63,8 +63,20 @@ export default function PhoneVerifyForm() {
         recaptchaRef.current,
       );
       setStep("code");
-    } catch {
-      setError("Couldn't send a code to that number. Double-check it and try again.");
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      // Surface the real Firebase reason — invaluable while wiring up the
+      // Firebase project (unauthorized domain, missing keys, provider off…).
+      setError(
+        code
+          ? `Couldn't send the code (${code}). Double-check the number and try again.`
+          : "Couldn't send a code to that number. Double-check it and try again.",
+      );
+      // Reset the reCAPTCHA so a retry gets a fresh token.
+      recaptchaRef.current?.clear();
+      recaptchaRef.current = new RecaptchaVerifier(firebaseAuth, "recaptcha-container", {
+        size: "invisible",
+      });
     } finally {
       setPending(false);
     }
