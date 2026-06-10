@@ -9,7 +9,7 @@ export default function Nav({ user }: { user: User }) {
     <header className="bg-white border-b border-line sticky top-0 z-30">
       <div className="max-w-5xl mx-auto px-5 sm:px-7 h-14 flex items-center justify-between gap-4">
         <Link href="/events" className="font-serif text-lg shrink-0">
-          Campus Ticket Board
+          CUTickets
         </Link>
 
         <nav className="hidden sm:flex items-center gap-5 text-sm text-muted ml-2 mr-auto">

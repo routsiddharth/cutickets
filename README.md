@@ -1,4 +1,4 @@
-# Campus Ticket Board
+# CUTickets
 
 A **verified student marketplace for event-ticket interest** at Columbia &
 Barnard. It centralizes the scattered "anyone selling for X?" posts into a clean,

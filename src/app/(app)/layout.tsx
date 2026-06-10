@@ -25,7 +25,7 @@ export default async function AppLayout({
       <footer className="border-t border-line bg-white">
         <div className="max-w-5xl mx-auto px-5 sm:px-7 py-4 flex items-center gap-2 text-xs text-muted">
           <span className="text-columbia">🛈</span>
-          Campus Ticket Board doesn&apos;t handle payment or guarantee transfer.
+          CUTickets doesn&apos;t handle payment or guarantee transfer.
           Trades happen off-platform (Posh, Partiful, Venmo) at your own risk.
         </div>
       </footer>
