@@ -39,13 +39,15 @@ model User {
   sessions Session[]
 
   listings        Listing[]
-  matchesStarted  Match[]   @relation("MatchInterested")
-  matchesReceived Match[]   @relation("MatchOwner")
-  reportsMade     Report[]  @relation("Reporter")
-  reportsReceived Report[]  @relation("Reported")
-  ratingsGiven    Rating[]  @relation("RatingAuthor")
-  ratingsReceived Rating[]  @relation("RatingSubject")
-  eventsCreated   Event[]   @relation("EventCreator")
+  matchesStarted  Match[]        @relation("MatchInterested")
+  matchesReceived Match[]        @relation("MatchOwner")
+  reportsMade     Report[]       @relation("Reporter")
+  reportsReceived Report[]       @relation("Reported")
+  ratingsGiven    Rating[]       @relation("RatingAuthor")
+  ratingsReceived Rating[]       @relation("RatingSubject")
+  eventsCreated   Event[]        @relation("EventCreator")
+  messagesSent    Message[]      @relation("MessageSender")
+  notifications   Notification[] @relation("UserNotifications")
 }
 
 model Account {
@@ -141,15 +143,61 @@ model Match {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  interested User     @relation("MatchInterested", fields: [interestedId], references: [id], onDelete: Cascade)
-  owner      User     @relation("MatchOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  ratings    Rating[]
+  listing       Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  interested    User           @relation("MatchInterested", fields: [interestedId], references: [id], onDelete: Cascade)
+  owner         User           @relation("MatchOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ratings       Rating[]
+  messages      Message[]
+  notifications Notification[]
 
   // One expression of interest per (listing, interested user).
   @@unique([listingId, interestedId])
   @@index([ownerId, status])
   @@index([interestedId, status])
+}
+
+// A message in the on-site chat between the two parties of a Match. The Match IS
+// the conversation; a chat is "all Messages with this matchId, ordered by time."
+// The chat opens once a match is ACCEPTED — identities are revealed on the deal
+// desk, but the conversation stays on-platform so it survives as a dispute
+// record.
+//
+// RETENTION POLICY (trust & safety): chats are evidence. Accounts are
+// soft-banned (User.bannedAt), never hard-deleted — do NOT add a hard
+// `prisma.user.delete` flow, because `onDelete: Cascade` below would erase the
+// counterparty's messages with them. If account erasure ever becomes a
+// requirement (e.g. GDPR), change `sender` to `onDelete: SetNull` (making
+// senderId nullable) and anonymize rather than delete, so the message bodies
+// survive for moderation.
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  senderId  String
+  body      String
+  kind      String   @default("TEXT") // TEXT (a user message) | EVENT (a system lifecycle event)
+  createdAt DateTime @default(now())
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender User  @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, createdAt])
+}
+
+// An in-app notification for a user — "new message", "offer accepted", etc.
+// Drives the nav unread badge and the notifications page.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String //    recipient
+  type      String //    NEW_MESSAGE | OFFER_ACCEPTED | TRADE_CONFIRMED | TRADE_COMPLETED
+  matchId   String? //   deep-link target (the deal desk), if any
+  body      String //    rendered, human-readable line
+  readAt    DateTime? // set when the recipient has seen it
+  createdAt DateTime  @default(now())
+
+  user  User   @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  match Match? @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
 }
 
 // A reputation rating left after a completed trade.

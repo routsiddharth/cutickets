@@ -6,9 +6,15 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 import { isListingAvailable } from "@/lib/listing";
+import { notify } from "@/lib/notifications";
 
 import type { ActionState } from "./types";
 export type { ActionState };
+
+/** A user's first name for chat events / notifications ("Jordan confirmed…"). */
+function firstName(user: { name: string | null; email: string }): string {
+  return (user.name ?? user.email.split("@")[0]).split(/\s+/)[0];
+}
 
 /** Click "I'm interested" / "I can sell" on a listing. Creates a PENDING match. */
 export async function expressInterest(
@@ -71,17 +77,50 @@ export async function respondToMatch(
 
   const match = await prisma.match.findUnique({
     where: { id: parsed.data.matchId },
-    select: { id: true, ownerId: true, status: true },
+    select: {
+      id: true,
+      ownerId: true,
+      interestedId: true,
+      status: true,
+      listing: { select: { event: { select: { name: true } } } },
+    },
   });
   if (!match) return { error: "Match not found" };
   if (match.ownerId !== user.id) return { error: "Not authorized" };
   if (match.status !== "PENDING") return { error: "Already responded" };
 
-  await prisma.match.update({
-    where: { id: match.id },
-    data: { status: parsed.data.decision === "ACCEPT" ? "ACCEPTED" : "DECLINED" },
+  const accepted = parsed.data.decision === "ACCEPT";
+
+  await prisma.$transaction(async (tx) => {
+    await tx.match.update({
+      where: { id: match.id },
+      data: { status: accepted ? "ACCEPTED" : "DECLINED" },
+    });
+
+    if (accepted) {
+      // Open the chat with a system event, and tell the interested party.
+      await tx.message.create({
+        data: {
+          matchId: match.id,
+          senderId: user.id,
+          kind: "EVENT",
+          body: "Match accepted — the chat is open. Say hi 👋",
+        },
+      });
+      await notify(
+        {
+          userId: match.interestedId,
+          type: "OFFER_ACCEPTED",
+          matchId: match.id,
+          body: `Your offer on ${match.listing.event.name} was accepted — open the chat`,
+        },
+        tx,
+      );
+    }
   });
+
   revalidatePath("/matches");
+  revalidatePath(`/matches/${match.id}`);
   return { ok: true };
 }
 
@@ -100,7 +139,8 @@ export async function confirmTrade(
       id: true,
       ownerId: true,
       interestedId: true,
-      listing: { select: { priceCents: true, eventId: true } },
+      listingId: true,
+      listing: { select: { priceCents: true, eventId: true, event: { select: { name: true } } } },
     },
   });
   if (!match) return { error: "Match not found" };
@@ -108,20 +148,29 @@ export async function confirmTrade(
   const isOwner = match.ownerId === user.id;
   const isInterested = match.interestedId === user.id;
   if (!isOwner && !isInterested) return { error: "Not authorized" };
+  const otherId = isOwner ? match.interestedId : match.ownerId;
+  const me = firstName(user);
+  const eventName = match.listing.event.name;
 
   // Read-and-write inside one transaction so two simultaneous confirms (one
   // from each party) can't each read the other's flag as false and lose the
-  // completion. We deliberately do NOT mutate the listing here: a match is an
-  // agreement between two people, independent of the listing's lifecycle. This
-  // avoids overwriting a CANCELLED listing and avoids making a multi-ticket
-  // listing vanish after a single buyer. The sale is recorded on the match
-  // (agreedPriceCents) — that's what drives "last confirmed sale" & reputation.
+  // completion. When both sides confirm we mark the match COMPLETED *and* take
+  // the listing down (status COMPLETED), so a settled ticket leaves the market.
+  // The sale price is recorded on the match (agreedPriceCents) — that's what
+  // drives "last confirmed sale" & reputation. Note: a multi-ticket listing is
+  // taken down in full on its first completed trade; per-quantity decrement is
+  // a future refinement.
   await prisma.$transaction(async (tx) => {
     const fresh = await tx.match.findUnique({
       where: { id: match.id },
       select: { status: true, ownerConfirmed: true, interestedConfirmed: true },
     });
     if (!fresh || fresh.status !== "ACCEPTED") return;
+
+    // Did *this* click actually flip a flag? Guards against a re-click emitting
+    // duplicate events / notifications.
+    const changed =
+      (isOwner && !fresh.ownerConfirmed) || (isInterested && !fresh.interestedConfirmed);
 
     const ownerConfirmed = isOwner ? true : fresh.ownerConfirmed;
     const interestedConfirmed = isInterested ? true : fresh.interestedConfirmed;
@@ -141,10 +190,109 @@ export async function confirmTrade(
           : {}),
       },
     });
+
+    if (bothConfirmed) {
+      // Take the listing off the market — but only if it's still ACTIVE, so we
+      // never clobber a CANCELLED/already-COMPLETED listing.
+      await tx.listing.updateMany({
+        where: { id: match.listingId, status: "ACTIVE" },
+        data: { status: "COMPLETED" },
+      });
+    }
+
+    if (!changed) return;
+
+    if (bothConfirmed) {
+      await tx.message.create({
+        data: {
+          matchId: match.id,
+          senderId: user.id,
+          kind: "EVENT",
+          body: "Trade complete — the listing has been taken down.",
+        },
+      });
+      // Both sides get a "leave a rating" nudge.
+      for (const uid of [match.ownerId, match.interestedId]) {
+        await notify(
+          {
+            userId: uid,
+            type: "TRADE_COMPLETED",
+            matchId: match.id,
+            body: `Your trade on ${eventName} is complete — leave a rating`,
+          },
+          tx,
+        );
+      }
+    } else {
+      await tx.message.create({
+        data: {
+          matchId: match.id,
+          senderId: user.id,
+          kind: "EVENT",
+          body: `${me} confirmed the trade.`,
+        },
+      });
+      await notify(
+        {
+          userId: otherId,
+          type: "TRADE_CONFIRMED",
+          matchId: match.id,
+          body: `${me} confirmed the trade — confirm on your end to close it`,
+        },
+        tx,
+      );
+    }
   });
 
   revalidatePath("/matches");
+  revalidatePath(`/matches/${match.id}`);
   revalidatePath(`/events/${match.listing.eventId}`);
+  return { ok: true };
+}
+
+const MAX_MESSAGE_LENGTH = 2000;
+
+/** Send a chat message on a match's deal desk. Both parties, once ACCEPTED. */
+export async function sendMessage(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const matchId = String(formData.get("matchId") ?? "");
+  const body = String(formData.get("body") ?? "").trim().slice(0, MAX_MESSAGE_LENGTH);
+  if (!matchId) return { error: "Missing match" };
+  if (!body) return { error: "Write a message first" };
+
+  const match = await prisma.match.findUnique({
+    where: { id: matchId },
+    select: { id: true, ownerId: true, interestedId: true, status: true },
+  });
+  if (!match) return { error: "Match not found" };
+  if (match.ownerId !== user.id && match.interestedId !== user.id) {
+    return { error: "Not authorized" };
+  }
+  // Chat opens on a confirmed match and stays open after completion (so the two
+  // can still coordinate). It's closed for unaccepted / dead matches.
+  if (match.status !== "ACCEPTED" && match.status !== "COMPLETED") {
+    return { error: "Chat opens once your match is accepted" };
+  }
+
+  await prisma.message.create({
+    data: { matchId: match.id, senderId: user.id, body },
+  });
+
+  // Nudge the other party. Collapsed: one unread "new message" per chat, not
+  // one per line — and it resets the 4h idle timer for the nudge email.
+  const otherId = match.ownerId === user.id ? match.interestedId : match.ownerId;
+  await notify({
+    userId: otherId,
+    type: "NEW_MESSAGE",
+    matchId: match.id,
+    body: `New message from ${firstName(user)}`,
+    collapse: true,
+  });
+
+  revalidatePath(`/matches/${match.id}`);
   return { ok: true };
 }
 

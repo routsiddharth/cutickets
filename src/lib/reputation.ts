@@ -31,28 +31,6 @@ export async function countCompletedTrades(userId: string): Promise<number> {
   });
 }
 
-/** Batch form: completed-trade count per user id (for the market view). */
-export async function countCompletedTradesByUser(
-  userIds: string[],
-): Promise<Map<string, number>> {
-  if (userIds.length === 0) return new Map();
-  const ids = new Set(userIds);
-  const matches = await prisma.match.findMany({
-    where: {
-      status: "COMPLETED",
-      OR: [{ interestedId: { in: userIds } }, { ownerId: { in: userIds } }],
-    },
-    select: { interestedId: true, ownerId: true },
-  });
-  const counts = new Map<string, number>();
-  for (const m of matches) {
-    for (const uid of [m.interestedId, m.ownerId]) {
-      if (ids.has(uid)) counts.set(uid, (counts.get(uid) ?? 0) + 1);
-    }
-  }
-  return counts;
-}
-
 /** Aggregate a user's reputation from ratings + completed matches. */
 export async function getReputation(userId: string): Promise<Reputation> {
   const user = await prisma.user.findUnique({

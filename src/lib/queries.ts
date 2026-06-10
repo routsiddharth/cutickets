@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { availableListingWhere } from "@/lib/listing";
-import { PUBLIC_USER_SELECT } from "@/lib/public-profile";
-import { countCompletedTradesByUser } from "@/lib/reputation";
 
 export type EventStats = {
   sellTickets: number;
@@ -65,45 +63,25 @@ export async function getEventsWithStats(query?: string) {
 
 export type MarketListing = Awaited<ReturnType<typeof getEventMarket>>["sell"][number];
 
-/** The two-sided order book for a single event. */
+/**
+ * The two-sided order book for a single event. The market is *anonymous*: a
+ * listing exposes only the ticket terms (type / quantity / price / notes /
+ * expiry) and never the lister's identity or reputation. Who you're dealing
+ * with is revealed only after a match is accepted (see the deal desk). We
+ * deliberately don't even `include` the user here, so identity can't leak.
+ */
 export async function getEventMarket(eventId: string) {
   const now = new Date();
   const listings = await prisma.listing.findMany({
     where: { eventId, ...availableListingWhere(now) },
-    // PUBLIC_USER_SELECT excludes `email` by construction — the market view
-    // never carries a lister's email (revealed only on mutual interest).
-    include: { user: { select: PUBLIC_USER_SELECT } },
-  });
-
-  // Attach lightweight reputation (rating avg + completed-trade count) per owner.
-  const ownerIds = [...new Set(listings.map((l) => l.userId))];
-  const [ratings, completedByUser] = await Promise.all([
-    prisma.rating.groupBy({
-      by: ["subjectId"],
-      where: { subjectId: { in: ownerIds } },
-      _avg: { stars: true },
-      _count: { _all: true },
-    }),
-    countCompletedTradesByUser(ownerIds),
-  ]);
-
-  const ratingMap = new Map(ratings.map((r) => [r.subjectId, r]));
-
-  const decorate = (l: (typeof listings)[number]) => ({
-    ...l,
-    ownerRatingAvg: ratingMap.get(l.userId)?._avg.stars ?? null,
-    ownerRatingCount: ratingMap.get(l.userId)?._count._all ?? 0,
-    ownerTrades: completedByUser.get(l.userId) ?? 0,
   });
 
   const sell = listings
     .filter((l) => l.type === "SELL")
-    .map(decorate)
     .sort((a, b) => a.priceCents - b.priceCents); // cheapest ask first
 
   const buy = listings
     .filter((l) => l.type === "BUY")
-    .map(decorate)
     .sort((a, b) => b.priceCents - a.priceCents); // highest bid first
 
   return { sell, buy };

@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CUTickets · Chat — Deal Desk</title>
+
+<!-- Same type pairing as the live site: Newsreader (serif display) + Public Sans (sans body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<!-- Pinned React + Babel (huashu technical red-line) -->
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.25.6/babel.min.js"></script>
+
+<style>
+  :root{
+    --paper:#FBFAF7; --ink:#14233D; --muted:#5C6B82; --line:#E7E2D8;
+    --col:#5B8FB9; --col-soft:#E8F0F7; --col-deep:#3D6E97;
+    --sell:#1F7A63; --sell-soft:#E6F2ED; --buy:#A8651A; --buy-soft:#F7ECDB;
+  }
+  *{box-sizing:border-box}
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Public Sans", system-ui, sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  .serif{ font-family:"Newsreader", Georgia, serif; }
+  .tabular{ font-variant-numeric:tabular-nums; }
+  .tag{ font-size:11px; letter-spacing:.12em; text-transform:uppercase; font-weight:500; }
+  :focus-visible{ outline:2px solid var(--col); outline-offset:2px; }
+  button{ font-family:inherit; cursor:pointer; }
+  input{ font-family:inherit; }
+  a{ color:inherit; }
+
+  /* ── prototype control rail (NOT part of the design) ── */
+  .rail{
+    position:fixed; top:14px; right:14px; z-index:50;
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px; box-shadow:0 8px 30px rgba(20,35,61,.08);
+    font-size:12px; max-width:240px;
+  }
+  .rail h4{ margin:0 0 8px; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600;}
+  .rail .grp{ margin-bottom:10px; }
+  .rail .grp:last-child{ margin-bottom:0; }
+  .seg{ display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .seg button{ flex:1; border:0; background:#fff; padding:6px 8px; font-size:12px; color:var(--muted); }
+  .seg button.on{ background:var(--ink); color:#fff; font-weight:600; }
+  .rail .step{ display:flex; gap:6px; flex-wrap:wrap; }
+  .rail .step button{ border:1px solid var(--line); background:#fff; border-radius:7px; padding:5px 8px; color:var(--muted); }
+  .rail .step button.on{ border-color:var(--ink); color:var(--ink); font-weight:600; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect } = React;
+
+/* ─────────────────────────────────────────────────────────────────────────
+   DEAL DESK — the on-site chat between two matched students.
+   Design intent (why this isn't an iMessage clone):
+     · A "deal desk" framed like an editorial transaction record, not a phone.
+     · Identity is REVEALED here (the whole point of match) — header is a proper
+       masthead with both parties + a perforated TICKET STUB of what's at stake.
+     · Completion = a two-SIGNATURE receipt. Both must "sign" to close. This is
+       the signature interaction and the centerpiece, not a buried button.
+   Placeholders: avatars are initials-discs (matches the live <Avatar/> fallback).
+   ──────────────────────────────────────────────────────────────────────── */
+
+// ── seed data (stand-ins; real data comes from the Match + revealed Users) ──
+const SELLER = { id:"u_jor", name:"Jordan Mehta", school:"CC", year:"'27", rating:4.8, trades:6, email:"jm4421@columbia.edu", phone:"+1 (917) 555-0142", initials:"JM", tint:"--sell" };
+const BUYER  = { id:"u_ren", name:"Renée Okafor", school:"SEAS", year:"'26", rating:5.0, trades:11, email:"ro2290@columbia.edu", phone:"+1 (646) 555-0188", initials:"RO", tint:"--col" };
+
+const DEAL = { event:"Bacchanal 2026 · Spring Concert", qty:1, priceCents:6500, side:"SELL" };
+
+const THREAD = [
+  { kind:"event", t:"2:40 PM", body:"Match accepted — the chat is open. Say hi 👋" },
+  { from:"u_jor", t:"2:41 PM", body:"Hey! Saw you matched on my Bacchanal ticket — it's the GA wristband, still sealed." },
+  { from:"u_ren", t:"2:43 PM", body:"Amazing. $65 works. I'm in Butler till 5 — could meet by the sundial after?" },
+  { from:"u_jor", t:"2:44 PM", body:"Sundial at 5:15 is perfect. I'll have it on me." },
+  { from:"u_ren", t:"2:45 PM", body:"See you then 🎟️" },
+  { kind:"event", t:"5:20 PM", body:"Jordan confirmed the trade." },
+];
+
+function fmtPrice(c){ const d=c/100; return Number.isInteger(d) ? "$"+d.toLocaleString("en-US") : "$"+d.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// ── small disc avatar (mirrors the live Avatar fallback) ──
+function Disc({u, size=40}){
+  const c = `var(${u.tint})`;
+  return (
+    <div style={{
+      width:size, height:size, borderRadius:"999px", flexShrink:0,
+      background:"var(--ink)", color:"#fff", display:"grid", placeItems:"center",
+      fontWeight:600, fontSize:Math.round(size*0.36), letterSpacing:".02em",
+      boxShadow:`inset 0 0 0 2px ${c}`,
+    }}>{u.initials}</div>
+  );
+}
+
+// ── the perforated TICKET STUB: what's being negotiated, as a physical stub ──
+function TicketStub({deal}){
+  const isSell = deal.side==="SELL";
+  const tone = isSell ? "--sell" : "--buy";
+  return (
+    <div style={{
+      display:"flex", alignItems:"stretch", background:"var(--paper)",
+      border:"1px solid var(--line)", borderRadius:12, overflow:"hidden",
+    }}>
+      <div style={{padding:"10px 14px", minWidth:0}}>
+        <div className="tag" style={{color:`var(${tone})`}}>{isSell?"Selling":"Buying"} · {deal.qty} ticket{deal.qty>1?"s":""}</div>
+        <div className="serif" style={{fontSize:16, lineHeight:1.2, marginTop:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:240}}>{deal.event}</div>
+      </div>
+      {/* perforation */}
+      <div style={{position:"relative", width:1, background:"transparent", borderLeft:"1px dashed var(--line)"}}>
+        <span style={{position:"absolute", top:-6, left:-6, width:12, height:12, borderRadius:"999px", background:"#fff", border:"1px solid var(--line)"}}/>
+        <span style={{position:"absolute", bottom:-6, left:-6, width:12, height:12, borderRadius:"999px", background:"#fff", border:"1px solid var(--line)"}}/>
+      </div>
+      <div style={{padding:"10px 16px 10px 18px", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"flex-end"}}>
+        <div className="serif tabular" style={{fontSize:24, lineHeight:1}}>{fmtPrice(deal.priceCents)}<span style={{fontSize:12, color:"var(--muted)"}}>/ea</span></div>
+        <div className="tag" style={{color:"var(--muted)", marginTop:2}}>agreed price</div>
+      </div>
+    </div>
+  );
+}
+
+// ── revealed-identity header (masthead) ──
+function Masthead({me, them, deal}){
+  return (
+    <div style={{background:"#fff", border:"1px solid var(--line)", borderRadius:16, padding:"16px 18px"}}>
+      <div style={{display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap"}}>
+        <div style={{display:"flex", alignItems:"center", gap:12, minWidth:0}}>
+          <Disc u={them} size={52}/>
+          <div style={{minWidth:0}}>
+            <div className="serif" style={{fontSize:22, lineHeight:1.1}}>{them.name}</div>
+            <div style={{fontSize:13, color:"var(--muted)", marginTop:2}}>
+              {them.school} {them.year} · <span style={{color:"var(--ink)"}}>★ {them.rating.toFixed(1)}</span> · {them.trades} trades
+            </div>
+          </div>
+        </div>
+        <TicketStub deal={deal}/>
+      </div>
+
+      {/* revealed contact — the payoff of matching. Quiet, two-up. */}
+      <div style={{marginTop:14, paddingTop:14, borderTop:"1px solid var(--line)", display:"flex", gap:24, flexWrap:"wrap", alignItems:"center"}}>
+        <span className="tag" style={{color:"var(--col-deep)", background:"var(--col-soft)", padding:"3px 8px", borderRadius:6}}>✓ Revealed on match</span>
+        <a href={"mailto:"+them.email} style={{fontSize:13, color:"var(--col-deep)", textDecoration:"none", borderBottom:"1px solid var(--col)"}}>{them.email}</a>
+        <a href={"tel:"+them.phone.replace(/[^+\d]/g,"")} style={{fontSize:13, color:"var(--col-deep)", textDecoration:"none", borderBottom:"1px solid var(--col)"}}>{them.phone}</a>
+      </div>
+    </div>
+  );
+}
+
+// ── a single message. Editorial bubbles: flat, hairline, one squared corner. ──
+function Bubble({msg, mine, who}){
+  const align = mine ? "flex-end" : "flex-start";
+  const bg = mine ? "var(--ink)" : "#fff";
+  const fg = mine ? "var(--paper)" : "var(--ink)";
+  const border = mine ? "1px solid var(--ink)" : "1px solid var(--line)";
+  // asymmetric corner: the corner nearest the speaker is squared
+  const radius = mine ? "14px 14px 4px 14px" : "14px 14px 14px 4px";
+  return (
+    <div style={{display:"flex", flexDirection:"column", alignItems:align, gap:3}}>
+      <div style={{
+        maxWidth:"76%", background:bg, color:fg, border, borderRadius:radius,
+        padding:"9px 13px", fontSize:14.5, lineHeight:1.45,
+      }}>{msg.body}</div>
+      <div className="tag" style={{color:"var(--muted)", fontSize:10, letterSpacing:".1em"}}>
+        {mine ? "You" : who.name.split(" ")[0]} · {msg.t}
+      </div>
+    </div>
+  );
+}
+
+function DayRule({label}){
+  return (
+    <div style={{display:"flex", alignItems:"center", gap:12, margin:"4px 0"}}>
+      <div style={{flex:1, height:1, background:"var(--line)"}}/>
+      <span className="tag" style={{color:"var(--muted)"}}>{label}</span>
+      <div style={{flex:1, height:1, background:"var(--line)"}}/>
+    </div>
+  );
+}
+
+// ── ONE signature slot in the close-the-deal receipt ──
+function SignSlot({label, signed, isYou, onSign}){
+  if(signed){
+    return (
+      <div style={{
+        flex:1, borderRadius:12, padding:"14px 12px", textAlign:"center",
+        background:"var(--sell-soft)", border:"1px solid color-mix(in srgb, var(--sell) 35%, transparent)",
+      }}>
+        <div className="tag" style={{color:"var(--muted)"}}>{label}</div>
+        {/* hand-signed "stamp" — rotated serif italic, like an ink signature */}
+        <div className="serif" style={{
+          fontStyle:"italic", fontSize:22, color:"var(--sell)", marginTop:4,
+          transform:"rotate(-4deg)", lineHeight:1,
+        }}>confirmed ✓</div>
+        <div className="tag" style={{color:"var(--muted)", marginTop:6, fontSize:10}}>just now</div>
+      </div>
+    );
+  }
+  if(isYou){
+    return (
+      <button onClick={onSign} style={{
+        flex:1, borderRadius:12, padding:"14px 12px", textAlign:"center",
+        background:"#fff", border:"1px dashed var(--ink)", color:"var(--ink)",
+      }}>
+        <div className="tag" style={{color:"var(--muted)"}}>{label}</div>
+        <div className="serif" style={{fontSize:18, marginTop:5, lineHeight:1}}>Sign to confirm</div>
+        <div className="tag" style={{color:"var(--muted)", marginTop:6, fontSize:10}}>tap when you've got the ticket</div>
+      </button>
+    );
+  }
+  return (
+    <div style={{
+      flex:1, borderRadius:12, padding:"14px 12px", textAlign:"center",
+      background:"var(--paper)", border:"1px dashed var(--line)", color:"var(--muted)",
+    }}>
+      <div className="tag" style={{color:"var(--muted)"}}>{label}</div>
+      <div className="serif" style={{fontSize:18, marginTop:5, lineHeight:1, fontStyle:"italic"}}>awaiting…</div>
+      <div className="tag" style={{color:"var(--muted)", marginTop:6, fontSize:10}}>not yet confirmed</div>
+    </div>
+  );
+}
+
+// ── the close-the-deal panel (the centerpiece) ──
+function CloseDeal({me, them, youSigned, theySigned, onSign}){
+  const done = youSigned && theySigned;
+
+  if(done){
+    return (
+      <div style={{
+        background:"#fff", border:"1px solid var(--line)", borderRadius:16, padding:"22px 18px",
+        textAlign:"center", position:"relative", overflow:"hidden",
+      }}>
+        {/* big completed stamp */}
+        <div className="serif" style={{
+          position:"absolute", inset:0, display:"grid", placeItems:"center",
+          fontSize:64, color:"color-mix(in srgb, var(--sell) 12%, transparent)",
+          transform:"rotate(-8deg)", fontStyle:"italic", pointerEvents:"none",
+        }}>SETTLED</div>
+        <div style={{position:"relative"}}>
+          <div className="tag" style={{color:"var(--sell)"}}>Transaction complete</div>
+          <div className="serif" style={{fontSize:22, marginTop:6}}>Both of you signed off.</div>
+          <p style={{fontSize:13.5, color:"var(--muted)", margin:"6px auto 0", maxWidth:420}}>
+            The listing has been taken down and the sale recorded to both of your trade
+            histories. Leave a quick rating to keep the campus honest.
+          </p>
+          <button style={{
+            marginTop:14, background:"var(--ink)", color:"#fff", border:0,
+            borderRadius:9, padding:"9px 16px", fontWeight:600, fontSize:13,
+          }}>Rate this trade →</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{background:"#fff", border:"1px solid var(--line)", borderRadius:16, padding:"16px 18px"}}>
+      <div style={{display:"flex", alignItems:"baseline", justifyContent:"space-between", gap:8}}>
+        <div className="serif" style={{fontSize:18}}>Close the deal</div>
+        <span className="tag" style={{color:"var(--muted)"}}>both must sign</span>
+      </div>
+      <p style={{fontSize:13, color:"var(--muted)", margin:"4px 0 14px"}}>
+        Once you’ve handed off the ticket in person, both sign below. The listing comes
+        down only when both have confirmed.
+      </p>
+      <div style={{display:"flex", gap:10}}>
+        <SignSlot label={"You · "+me.name.split(" ")[0]} signed={youSigned} isYou onSign={onSign}/>
+        <SignSlot label={them.name.split(" ")[0]} signed={theySigned} isYou={false}/>
+      </div>
+      {youSigned && !theySigned && (
+        <p className="tag" style={{color:"var(--muted)", marginTop:12, textAlign:"center"}}>
+          You’ve signed — waiting on {them.name.split(" ")[0]} to confirm on their end.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Composer(){
+  const [val,setVal]=useState("");
+  return (
+    <div style={{
+      background:"#fff", border:"1px solid var(--line)", borderRadius:16, padding:10,
+    }}>
+      <div style={{display:"flex", gap:8, alignItems:"flex-end"}}>
+        <input
+          value={val} onChange={e=>setVal(e.target.value)}
+          placeholder="Message…"
+          style={{
+            flex:1, border:"1px solid var(--line)", background:"var(--paper)",
+            borderRadius:10, padding:"10px 12px", fontSize:14.5, color:"var(--ink)",
+          }}/>
+        <button onClick={()=>setVal("")} style={{
+          background: val.trim()?"var(--ink)":"var(--line)",
+          color: val.trim()?"#fff":"var(--muted)", border:0, borderRadius:10,
+          padding:"10px 16px", fontWeight:600, fontSize:14, transition:"background .15s",
+        }}>Send</button>
+      </div>
+      <p style={{fontSize:11.5, color:"var(--muted)", margin:"8px 4px 2px"}}>
+        🔒 Keep it on CUTickets — never wire money or share payment links. Meet on campus.
+      </p>
+    </div>
+  );
+}
+
+function App(){
+  // prototype controls (not shipped)
+  const [view,setView]=useState("buyer");   // whose eyes we're looking through
+  const [stage,setStage]=useState(0);        // 0 none · 1 you signed · 2 both signed
+
+  const me   = view==="buyer" ? BUYER  : SELLER;
+  const them = view==="buyer" ? SELLER : BUYER;
+
+  const youSigned  = stage>=1;
+  const theySigned = stage>=2;
+
+  const threadRef = useRef(null);
+  useEffect(()=>{ if(threadRef.current){ threadRef.current.scrollTop = threadRef.current.scrollHeight; } });
+
+  return (
+    <React.Fragment>
+      {/* prototype rail */}
+      <div className="rail">
+        <div className="grp">
+          <h4>Viewing as</h4>
+          <div className="seg">
+            <button className={view==="buyer"?"on":""} onClick={()=>setView("buyer")}>Buyer</button>
+            <button className={view==="seller"?"on":""} onClick={()=>setView("seller")}>Seller</button>
+          </div>
+        </div>
+        <div className="grp">
+          <h4>Completion</h4>
+          <div className="step">
+            <button className={stage===0?"on":""} onClick={()=>setStage(0)}>None</button>
+            <button className={stage===1?"on":""} onClick={()=>setStage(1)}>You signed</button>
+            <button className={stage===2?"on":""} onClick={()=>setStage(2)}>Both ✓</button>
+          </div>
+        </div>
+      </div>
+
+      <main style={{maxWidth:720, margin:"0 auto", padding:"28px 20px 40px"}}>
+        <a href="#" style={{fontSize:13, color:"var(--muted)", textDecoration:"none"}}>← My matches</a>
+        <h1 className="serif" style={{fontSize:30, margin:"8px 0 2px"}}>Deal desk</h1>
+        <p style={{fontSize:13.5, color:"var(--muted)", margin:"0 0 18px"}}>
+          You matched — here’s who you’re trading with. Chat to set up the handoff, then both sign to close.
+        </p>
+
+        <div style={{display:"flex", flexDirection:"column", gap:14}}>
+          <Masthead me={me} them={them} deal={DEAL}/>
+
+          <CloseDeal
+            me={me} them={them}
+            youSigned={youSigned} theySigned={theySigned}
+            onSign={()=>setStage(s=> s===0?1: s)}
+          />
+
+          {/* the thread */}
+          <div style={{background:"#fff", border:"1px solid var(--line)", borderRadius:16, padding:"6px 14px 14px"}}>
+            <div ref={threadRef} style={{maxHeight:300, overflowY:"auto", padding:"10px 2px", display:"flex", flexDirection:"column", gap:12}}>
+              <DayRule label="Today"/>
+              {THREAD.map((m,i)=>{
+                if(m.kind==="event"){
+                  return (
+                    <div key={i} style={{display:"flex", alignItems:"center", gap:10, margin:"2px 0"}}>
+                      <div style={{flex:1, height:1, background:"var(--line)"}}/>
+                      <span className="tag" style={{color:"var(--muted)", textTransform:"none", letterSpacing:0, fontSize:11}}>
+                        {m.body} <span style={{opacity:.7}}>· {m.t}</span>
+                      </span>
+                      <div style={{flex:1, height:1, background:"var(--line)"}}/>
+                    </div>
+                  );
+                }
+                const mine = m.from===me.id;
+                const who = m.from===SELLER.id ? SELLER : BUYER;
+                return <Bubble key={i} msg={m} mine={mine} who={who}/>;
+              })}
+            </div>
+          </div>
+
+          <Composer/>
+        </div>
+      </main>
+    </React.Fragment>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

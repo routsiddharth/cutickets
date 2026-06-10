@@ -25,7 +25,7 @@ export function RespondForm({ matchId }: { matchId: string }) {
             pendingText="…"
             className="text-xs bg-sell text-white px-3.5 py-1.5 rounded-md font-medium disabled:opacity-60"
           >
-            Accept &amp; share email
+            Accept &amp; open chat
           </SubmitButton>
         </form>
         <form action={action}>

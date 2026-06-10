@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Nav from "@/components/Nav";
 import { getCurrentUser, isOnboarded, isPhoneVerified } from "@/lib/session";
+import { unreadCount } from "@/lib/notifications";
 
 export default async function AppLayout({
   children,
@@ -26,10 +27,11 @@ export default async function AppLayout({
   }
 
   const fullyOnboarded = phoneVerified && onboarded;
+  const unread = fullyOnboarded ? await unreadCount(user.id) : 0;
 
   return (
     <div className="min-h-screen flex flex-col">
-      {fullyOnboarded && <Nav user={user} />}
+      {fullyOnboarded && <Nav user={user} unread={unread} />}
       <div className="flex-1">{children}</div>
       <footer className="border-t border-line bg-white">
         <div className="max-w-5xl mx-auto px-5 sm:px-7 py-4 flex items-center gap-2 text-xs text-muted">
