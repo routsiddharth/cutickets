@@ -24,6 +24,10 @@ yarn-error.log*
 .env
 .env*.local
 
+# Firebase service-account keys (secrets) — never commit
+*firebase-adminsdk*.json
+*-service-account*.json
+
 # database
 /prisma/*.db
 /prisma/*.db-journal

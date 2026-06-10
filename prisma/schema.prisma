@@ -28,6 +28,10 @@ model User {
   classYear Int? //    graduation year, e.g. 2027
   bannedAt  DateTime? // set when an admin/automated control bans the account
 
+  // Phone verification (Firebase phone OTP, gated before profile setup)
+  phone           String? //   E.164, e.g. "+15551234567"
+  phoneVerifiedAt DateTime? // set once the OTP is confirmed
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

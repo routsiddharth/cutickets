@@ -18,6 +18,8 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
     "@prisma/client": "^6.2.1",
+    "firebase": "^12.14.0",
+    "firebase-admin": "^14.0.0",
     "next": "^15.1.4",
     "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",

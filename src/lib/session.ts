@@ -26,3 +26,7 @@ export async function requireUser(): Promise<User> {
 export function isOnboarded(user: Pick<User, "school" | "classYear">): boolean {
   return !!user.school && !!user.classYear;
 }
+
+export function isPhoneVerified(user: Pick<User, "phoneVerifiedAt">): boolean {
+  return !!user.phoneVerifiedAt;
+}
