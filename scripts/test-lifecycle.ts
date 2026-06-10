@@ -5,7 +5,7 @@
  *     npx tsx scripts/test-lifecycle.ts
  */
 import { PrismaClient } from "@prisma/client";
-import { runMatch, matchOrder, releaseReservation, markFilledIfDone } from "@/lib/matching";
+import { runMatch, matchOrder, releaseReservation, markFilledIfDone, sweepExpiredReservations } from "@/lib/matching";
 import { getLastSaleCents } from "@/lib/queries";
 
 const prisma = new PrismaClient();
@@ -153,6 +153,25 @@ async function main() {
 
     await complete(mB.id, bBid.id, ask.id);
     assert((await prisma.listing.findUnique({ where: { id: ask.id } }))?.status === "FILLED", "ask FILLED once every reservation has settled");
+  }
+
+  // ── E. lazy sweep frees a stale reservation (the on-activity timeout path) ──
+  console.log("E. sweepExpiredReservations frees stale reservations");
+  {
+    const seller = await newUser();
+    const buyer = await newUser();
+    const ev = await newEvent(seller.id);
+    const ask = await order(ev.id, seller.id, "SELL", 1, 30);
+    const bid = await order(ev.id, buyer.id, "BUY", 1, 40);
+    const [m] = await runMatch(ev.id, (tx) => matchOrder(bid.id, tx));
+    await prisma.match.update({
+      where: { id: m.id },
+      data: { reservationExpiresAt: new Date(Date.now() - 60_000) },
+    });
+    const n = await runMatch(ev.id, (tx) => sweepExpiredReservations(tx, ev.id));
+    assert(n === 1, "sweep reports 1 expired");
+    assert((await prisma.match.findUnique({ where: { id: m.id } }))?.status === "EXPIRED", "stale reservation marked EXPIRED by sweep");
+    assert((await prisma.listing.findUnique({ where: { id: ask.id } }))?.remainingQuantity === 1, "freed ask back on the book");
   }
 
   console.log(`\n${pass} passed, ${fail} failed`);

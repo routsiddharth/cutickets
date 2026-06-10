@@ -249,3 +249,47 @@ export async function markFilledIfDone(tx: Tx, orderId: string) {
     await tx.listing.update({ where: { id: orderId }, data: { status: "FILLED" } });
   }
 }
+
+/**
+ * Release every reservation on an event whose 24h accept window has lapsed,
+ * freeing the tickets and rolling them to the next in queue. MUST run inside
+ * `runMatch` (holds the event lock). Called both by the daily cron AND on the
+ * order-placement path, so timeouts are enforced as soon as there's activity on
+ * the event — not only when the once-a-day cron happens to run. Returns the
+ * number of reservations expired.
+ */
+export async function sweepExpiredReservations(
+  tx: Tx,
+  eventId: string,
+  now: Date = new Date(),
+) {
+  const stale = await tx.match.findMany({
+    where: { eventId, status: "RESERVED", reservationExpiresAt: { lt: now } },
+    select: {
+      id: true,
+      buyOrderId: true,
+      sellOrderId: true,
+      reservedQuantity: true,
+      buyerId: true,
+      sellerId: true,
+      event: { select: { name: true } },
+    },
+  });
+
+  for (const m of stale) {
+    await releaseReservation(tx, m, "EXPIRED");
+    for (const uid of [m.buyerId, m.sellerId]) {
+      await notify(
+        {
+          userId: uid,
+          type: "MATCH_FOUND",
+          matchId: m.id,
+          body: `Your ${m.event.name} reservation expired without both of you confirming — we're lining up your next match`,
+        },
+        tx,
+      );
+    }
+  }
+
+  return stale.length;
+}

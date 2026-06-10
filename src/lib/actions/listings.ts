@@ -16,7 +16,7 @@ import {
 } from "@/lib/constants";
 import { dollarsToCents } from "@/lib/format";
 import { availableListingWhere } from "@/lib/listing";
-import { runMatch, matchOrder } from "@/lib/matching";
+import { runMatch, matchOrder, sweepExpiredReservations } from "@/lib/matching";
 
 import type { ActionState } from "./types";
 export type { ActionState };
@@ -92,6 +92,10 @@ export async function createListing(
   // both inside the per-event lock so the new order can't double-reserve tickets
   // a concurrent order is also claiming.
   const { matched } = await runMatch(parsed.data.eventId, async (tx) => {
+    // Enforce the 24h reservation window on activity: free any reservations that
+    // already lapsed so this order can grab those freed tickets. (The daily cron
+    // is only a backstop — Vercel Hobby caps crons at once/day.)
+    await sweepExpiredReservations(tx, parsed.data.eventId);
     const order = await tx.listing.create({
       data: {
         eventId: parsed.data.eventId,

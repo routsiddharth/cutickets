@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { runMatch, releaseReservation } from "@/lib/matching";
+import { runMatch, sweepExpiredReservations } from "@/lib/matching";
 import { notify } from "@/lib/notifications";
 import { RESERVATION_EXPIRING_SOON_MS } from "@/lib/constants";
 
@@ -9,7 +9,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Reservation sweeper — runs on a Vercel Cron schedule (see vercel.json).
+ * Reservation sweeper — runs on a Vercel Cron schedule (see vercel.json). On the
+ * Hobby plan crons run at most once per day, so this is the BACKSTOP: stale
+ * reservations are also swept on the order-placement path (see createListing /
+ * sweepExpiredReservations). This job catches events with no live activity.
  *  1. Expire reservations whose 24h accept window has lapsed without both
  *     parties confirming: free the tickets and roll them to the next in queue.
  *  2. Nudge anyone who still hasn't confirmed a reservation with <4h left.
@@ -28,46 +31,16 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  // ── 1. Expire stale reservations ──────────────────────────────────────────
-  const stale = await prisma.match.findMany({
+  // ── 1. Expire stale reservations (grouped by event, under the event lock) ──
+  const staleEvents = await prisma.match.findMany({
     where: { status: "RESERVED", reservationExpiresAt: { lt: now } },
-    select: {
-      id: true,
-      eventId: true,
-      buyOrderId: true,
-      sellOrderId: true,
-      buyerId: true,
-      sellerId: true,
-      reservedQuantity: true,
-      event: { select: { name: true } },
-    },
+    select: { eventId: true },
+    distinct: ["eventId"],
   });
 
   let expired = 0;
-  for (const m of stale) {
-    await runMatch(m.eventId, async (tx) => {
-      // Re-check under the event lock — a user may have accepted since the scan.
-      const fresh = await tx.match.findUnique({
-        where: { id: m.id },
-        select: { status: true },
-      });
-      if (!fresh || fresh.status !== "RESERVED") return;
-
-      await releaseReservation(tx, m, "EXPIRED");
-      expired++;
-
-      for (const uid of [m.buyerId, m.sellerId]) {
-        await notify(
-          {
-            userId: uid,
-            type: "MATCH_FOUND",
-            matchId: m.id,
-            body: `Your ${m.event.name} reservation expired without both of you confirming — we're lining up your next match`,
-          },
-          tx,
-        );
-      }
-    });
+  for (const { eventId } of staleEvents) {
+    expired += await runMatch(eventId, (tx) => sweepExpiredReservations(tx, eventId, now));
   }
 
   // ── 2. "Expiring soon" nudges ─────────────────────────────────────────────
