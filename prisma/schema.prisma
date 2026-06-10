@@ -1,13 +1,14 @@
 // Campus Ticket Board — data model
-// SQLite for local dev. Note: SQLite has no native enums, so status/type
-// fields are Strings validated in application code (see src/lib/constants.ts).
+// Postgres in every environment (local + Vercel). Note: status/type fields are
+// Strings validated in application code (see src/lib/constants.ts) rather than
+// native enums, to keep migrations cheap.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
