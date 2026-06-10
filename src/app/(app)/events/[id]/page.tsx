@@ -83,20 +83,27 @@ export default async function EventPage({
               </span>
             </div>
             <p className="text-sm mt-1" style={{ color: "#B7C3D6" }}>
-              cheapest ticket on sale right now · no confirmed sales yet
+              no confirmed sales yet
             </p>
           </>
         ) : stats.bestBidCents !== null ? (
+          // Only buyers so far — show the best offer to nudge sellers to list.
           <>
-            <p className="font-serif text-2xl">No tickets for sale yet</p>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm" style={{ color: "#B7C3D6" }}>
+                Buyers offering
+              </span>
+              <span className="font-serif text-4xl tabular-nums">
+                {formatPrice(stats.bestBidCents)}
+              </span>
+            </div>
             <p className="text-sm mt-1" style={{ color: "#B7C3D6" }}>
-              A buyer&apos;s offering {formatPrice(stats.bestBidCents)} — list yours and we&apos;ll
-              match you.
+              no tickets for sale yet — list yours and we&apos;ll match you
             </p>
           </>
         ) : (
           <>
-            <p className="font-serif text-2xl">No sales here yet</p>
+            <p className="font-serif text-2xl">No listings yet</p>
             <p className="text-sm mt-1" style={{ color: "#B7C3D6" }}>
               Pick a price below — we&apos;ll match you automatically the moment a buyer and seller
               meet.
