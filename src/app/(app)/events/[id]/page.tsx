@@ -70,6 +70,30 @@ export default async function EventPage({
               last sold here{salesCount > 1 ? ` · ${salesCount} sold` : ""}
             </span>
           </div>
+        ) : stats.bestAskCents !== null ? (
+          // No sale yet, but tickets are listed — lead with the cheapest one
+          // ("from $X"), the way ticket sites do. It's a real asking price.
+          <>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm" style={{ color: "#B7C3D6" }}>
+                from
+              </span>
+              <span className="font-serif text-4xl tabular-nums">
+                {formatPrice(stats.bestAskCents)}
+              </span>
+            </div>
+            <p className="text-sm mt-1" style={{ color: "#B7C3D6" }}>
+              cheapest ticket on sale right now · no confirmed sales yet
+            </p>
+          </>
+        ) : stats.bestBidCents !== null ? (
+          <>
+            <p className="font-serif text-2xl">No tickets for sale yet</p>
+            <p className="text-sm mt-1" style={{ color: "#B7C3D6" }}>
+              A buyer&apos;s offering {formatPrice(stats.bestBidCents)} — list yours and we&apos;ll
+              match you.
+            </p>
+          </>
         ) : (
           <>
             <p className="font-serif text-2xl">No sales here yet</p>
