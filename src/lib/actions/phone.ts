@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { adminAuth } from "@/lib/firebase/admin";
+import { verifyFirebaseIdToken } from "@/lib/firebase/verify-token";
 
 export type VerifyPhoneResult = { ok: true } | { ok: false; error: string };
 
@@ -21,7 +21,7 @@ export async function verifyPhoneToken(idToken: string): Promise<VerifyPhoneResu
 
   let phone: string | undefined;
   try {
-    const decoded = await adminAuth().verifyIdToken(idToken);
+    const decoded = await verifyFirebaseIdToken(idToken);
     phone = decoded.phone_number;
   } catch {
     return { ok: false, error: "Could not verify that code. Please try again." };
