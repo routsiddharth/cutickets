@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { User } from "@prisma/client";
 import Avatar from "@/components/Avatar";
-import SignOutButton from "@/components/SignOutButton";
 import { schoolAbbrev } from "@/lib/format";
 
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
@@ -42,7 +41,6 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Link href={`/profile/${user.id}`} aria-label="Your profile">
             <Avatar name={user.name} email={user.email} image={user.image} size={32} />
           </Link>
-          <SignOutButton />
         </div>
       </div>
     </header>

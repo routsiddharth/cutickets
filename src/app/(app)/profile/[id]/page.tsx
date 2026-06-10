@@ -6,6 +6,7 @@ import { getReputation } from "@/lib/reputation";
 import { matchableListingWhere } from "@/lib/listing";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
+import SignOutButton from "@/components/SignOutButton";
 import { formatPrice, publicName, formatDate } from "@/lib/format";
 
 export default async function ProfilePage({
@@ -48,6 +49,11 @@ export default async function ProfilePage({
     .filter(Boolean)
     .join(" · ");
 
+  // "Jun '26" — month + two-digit year.
+  const memberSince = `${rep.memberSince.toLocaleDateString("en-US", { month: "short" })} '${String(
+    rep.memberSince.getFullYear(),
+  ).slice(2)}`;
+
   return (
     <main className="max-w-2xl mx-auto px-5 sm:px-7 py-8">
       <Link href="/events" className="text-sm text-muted hover:text-ink">
@@ -74,7 +80,7 @@ export default async function ProfilePage({
             label={`★ rating${rep.ratingCount ? ` (${rep.ratingCount})` : ""}`}
           />
           <Stat value={String(rep.tradesCompleted)} label="trades done" valueClass="text-sell" />
-          <Stat value={`'${String(rep.memberSince.getFullYear()).slice(2)}`} label="member since" />
+          <Stat value={memberSince} label="member since" />
         </div>
 
         {/* Confirmed trades */}
@@ -136,9 +142,17 @@ export default async function ProfilePage({
         )}
 
         {/* Actions */}
-        {!isSelf && (
+        {!isSelf ? (
           <div className="px-6 sm:px-7 pb-6 sm:pb-7">
             <ReportButton reportedId={target.id} />
+          </div>
+        ) : (
+          // Your own account footer — quiet, on-theme, with a clear sign-out.
+          <div className="px-6 sm:px-7 py-4 border-t border-line flex items-center justify-between gap-3">
+            <span className="text-xs text-muted min-w-0 truncate">
+              Signed in as {target.email}
+            </span>
+            <SignOutButton className="shrink-0 text-sm font-medium text-muted border border-line rounded-lg px-4 py-2 hover:text-ink hover:border-muted/50 transition-colors" />
           </div>
         )}
       </div>
