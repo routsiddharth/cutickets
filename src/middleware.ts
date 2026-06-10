@@ -32,6 +32,8 @@ export default auth((req) => {
 });
 
 export const config = {
-  // Run on everything except Next internals, the auth API, and static assets.
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  // Run on everything except Next internals, the auth API, the cron API (which
+  // authenticates itself via CRON_SECRET — a session redirect here would stop
+  // Vercel Cron from ever reaching it), and static assets.
+  matcher: ["/((?!api/auth|api/cron|_next/static|_next/image|favicon.ico).*)"],
 };
