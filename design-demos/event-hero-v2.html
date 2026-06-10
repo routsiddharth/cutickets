@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CUTickets — clearer event hero (v2)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: {
+    colors: { paper:"#FBFAF7", ink:"#14233D", muted:"#5C6B82", line:"#E7E2D8",
+      columbia:{DEFAULT:"#5B8FB9",soft:"#E8F0F7",deep:"#3D6E97"},
+      sell:{DEFAULT:"#1F7A63",soft:"#E6F2ED"}, buy:{DEFAULT:"#A8651A",soft:"#F7ECDB"} },
+    fontFamily:{ serif:['Newsreader','Georgia','serif'], sans:['"Public Sans"','system-ui','sans-serif'] } } } };
+</script>
+<style>
+  body{background:#FBFAF7;color:#14233D;font-family:'Public Sans',system-ui,sans-serif}
+  .font-serif{font-family:'Newsreader',Georgia,serif}.tabular-nums{font-variant-numeric:tabular-nums}
+  .tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}
+  .lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5C6B82;font-style:italic}
+</style>
+</head>
+<body class="py-10">
+<div class="max-w-2xl mx-auto px-6 space-y-10">
+
+  <div>
+    <h1 class="font-serif text-2xl mb-1">Clearer event page — v2</h1>
+    <p class="text-sm text-muted">Hero anchors on the <b>last real sale</b> (or an honest status), not an invented midpoint. The two live prices stay in the action cards. Modeled on StockX / ticket sites.</p>
+  </div>
+
+  <!-- ============ STATE B: no sales yet (your Lambdas Cruise case) ============ -->
+  <div>
+    <p class="lbl mb-2">Your case — no confirmed sales yet (ask $67, bid $35)</p>
+
+    <div class="bg-ink text-white rounded-2xl px-6 sm:px-8 py-7">
+      <p class="tag mb-2" style="color:#9FC0DC">TBD · Boat</p>
+      <h2 class="font-serif text-3xl sm:text-4xl mb-4">Lambdas Cruise</h2>
+      <!-- honest status instead of a fake $51 -->
+      <p class="font-serif text-2xl">No sales here yet</p>
+      <p class="text-sm mt-1" style="color:#B7C3D6">Pick a price below — we&rsquo;ll match you automatically the moment a buyer and seller meet.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4 mt-5">
+      <div class="bg-white border border-line rounded-2xl p-5">
+        <p class="tag text-buy">Want a ticket?</p>
+        <p class="font-serif text-2xl mt-1">Buy a ticket</p>
+        <p class="text-sm text-muted mt-2 leading-relaxed"><span class="text-ink font-medium">Buy now for $67</span> — or set the most you&rsquo;ll pay and we&rsquo;ll match you automatically.</p>
+        <span class="inline-block mt-3 text-sm font-medium text-buy">Start buying →</span>
+      </div>
+      <div class="bg-white border border-line rounded-2xl p-5">
+        <p class="tag text-sell">Have a ticket?</p>
+        <p class="font-serif text-2xl mt-1">Sell a ticket</p>
+        <p class="text-sm text-muted mt-2 leading-relaxed"><span class="text-ink font-medium">Sell now for $35</span> — or set the least you&rsquo;ll accept and we&rsquo;ll alert you when it sells.</p>
+        <span class="inline-block mt-3 text-sm font-medium text-sell">Start selling →</span>
+      </div>
+    </div>
+    <p class="text-xs text-muted mt-4 leading-relaxed">Why no single price? Sellers are asking <b class="text-ink">$67+</b> and buyers are offering <b class="text-ink">up to $35</b> — they haven&rsquo;t met yet, so nothing has sold. The first confirmed sale becomes this event&rsquo;s price.</p>
+  </div>
+
+  <!-- ============ STATE A: has a last sale (StockX-style anchor) ============ -->
+  <div>
+    <p class="lbl mb-2">Once a real trade happens</p>
+    <div class="bg-ink text-white rounded-2xl px-6 sm:px-8 py-7">
+      <p class="tag mb-2" style="color:#9FC0DC">Apr 18, 8:00 PM · Low Plaza</p>
+      <h2 class="font-serif text-3xl sm:text-4xl mb-4">Bacchanal Spring Concert</h2>
+      <div class="flex items-baseline gap-2">
+        <span class="font-serif text-4xl tabular-nums">$48</span>
+        <span class="text-sm" style="color:#B7C3D6">last sold here · 3 sold so far</span>
+      </div>
+    </div>
+    <p class="text-xs text-muted mt-3">Now the hero shows a number a real student actually paid — the honest anchor. Buy/Sell-now prices still live in the cards below.</p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -95,11 +95,11 @@ export default async function EventsPage({
                   </div>
                   <div className="border-l border-line pl-4 sm:pl-5 hidden xs:block">
                     <p className="text-[11px] text-muted leading-none mb-1">
-                      around
+                      last sale
                     </p>
                     <p className="font-serif tabular-nums leading-none">
-                      {stats.aroundPriceCents !== null
-                        ? formatPrice(stats.aroundPriceCents)
+                      {stats.lastSaleCents !== null
+                        ? formatPrice(stats.lastSaleCents)
                         : "—"}
                     </p>
                   </div>

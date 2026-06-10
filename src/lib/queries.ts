@@ -8,8 +8,7 @@ export type EventStats = {
   buyOrders: number; //     number of live bids
   bestAskCents: number | null; // lowest ask → "Buy now for $X"
   bestBidCents: number | null; // highest bid → "Sell now for $X"
-  lastSaleCents: number | null; // most recent completed trade price
-  aroundPriceCents: number | null; // friendly "selling around $X" hint
+  lastSaleCents: number | null; // most recent confirmed sale — the honest anchor
 };
 
 export async function getLastSaleCents(eventId: string): Promise<number | null> {
@@ -41,23 +40,6 @@ export async function getBestBidCents(eventId: string, now: Date = new Date()): 
   return bid?.priceCents ?? null;
 }
 
-/**
- * A single friendly price to anchor the market — "tickets are selling around
- * $X". Prefer the last real sale; otherwise the midpoint of the live spread;
- * otherwise whichever single side exists.
- */
-function aroundPrice(
-  lastSaleCents: number | null,
-  bestBidCents: number | null,
-  bestAskCents: number | null,
-): number | null {
-  if (lastSaleCents !== null) return lastSaleCents;
-  if (bestBidCents !== null && bestAskCents !== null) {
-    return Math.round((bestBidCents + bestAskCents) / 2);
-  }
-  return bestAskCents ?? bestBidCents ?? null;
-}
-
 export async function getEventStats(eventId: string): Promise<EventStats> {
   const now = new Date();
   const [sellAgg, buyAgg, bestAskCents, bestBidCents, lastSaleCents] = await Promise.all([
@@ -84,8 +66,13 @@ export async function getEventStats(eventId: string): Promise<EventStats> {
     bestAskCents,
     bestBidCents,
     lastSaleCents,
-    aroundPriceCents: aroundPrice(lastSaleCents, bestBidCents, bestAskCents),
   };
+}
+
+/** How many trades have settled on this event — credibility for the last-sale
+ * anchor ("$48 last sold · 3 sold"). */
+export async function getSalesCount(eventId: string): Promise<number> {
+  return prisma.match.count({ where: { eventId, status: "COMPLETED" } });
 }
 
 /** Events for the browse page, with summary stats, soonest event first. */

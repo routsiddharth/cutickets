@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { getEventStats, getMyOrdersForEvent } from "@/lib/queries";
+import { getEventStats, getMyOrdersForEvent, getSalesCount } from "@/lib/queries";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import CancelListingButton from "@/components/CancelListingButton";
 
@@ -17,8 +17,9 @@ export default async function EventPage({
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
 
-  const [stats, myOrders, myMatches] = await Promise.all([
+  const [stats, salesCount, myOrders, myMatches] = await Promise.all([
     getEventStats(id),
+    getSalesCount(id),
     getMyOrdersForEvent(id, user.id),
     prisma.match.findMany({
       where: {
@@ -58,19 +59,25 @@ export default async function EventPage({
             {event.description}
           </p>
         )}
-        {stats.aroundPriceCents !== null ? (
+        {stats.lastSaleCents !== null ? (
+          // The honest anchor: a price a real student actually paid (StockX-style
+          // "last sale"), never an invented midpoint.
           <div className="flex items-baseline gap-2">
-            <span className="font-serif text-3xl tabular-nums">
-              {formatPrice(stats.aroundPriceCents)}
+            <span className="font-serif text-4xl tabular-nums">
+              {formatPrice(stats.lastSaleCents)}
             </span>
             <span className="text-sm" style={{ color: "#B7C3D6" }}>
-              tickets are selling around this
+              last sold here{salesCount > 1 ? ` · ${salesCount} sold` : ""}
             </span>
           </div>
         ) : (
-          <p className="text-sm" style={{ color: "#B7C3D6" }}>
-            No prices yet — be the first to buy or sell.
-          </p>
+          <>
+            <p className="font-serif text-2xl">No sales here yet</p>
+            <p className="text-sm mt-1" style={{ color: "#B7C3D6" }}>
+              Pick a price below — we&apos;ll match you automatically the moment a buyer and seller
+              meet.
+            </p>
+          </>
         )}
       </div>
 
@@ -181,9 +188,9 @@ export default async function EventPage({
 
       {/* reassurance */}
       <p className="text-xs text-muted mt-6 leading-relaxed">
-        Prices are set by students and aren&apos;t verified. Only{" "}
-        <b className="text-ink">confirmed sales</b> reflect real trades — that&apos;s what sets the
-        &ldquo;selling around&rdquo; price.
+        Buy-now and sell-now prices are what students are asking right now and aren&apos;t verified.
+        Only <b className="text-ink">confirmed sales</b> reflect real trades — that&apos;s the
+        &ldquo;last sold&rdquo; price up top.
       </p>
     </main>
   );
