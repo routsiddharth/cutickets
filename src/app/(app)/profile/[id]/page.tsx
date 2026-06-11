@@ -80,9 +80,9 @@ export default async function ProfilePage({
           <Stat value={memberSince} label="member since" />
         </div>
 
-        {/* Confirmed trades */}
+        {/* Past trades */}
         <div className="p-6 sm:p-7">
-          <p className="tag text-muted mb-3">Confirmed trades</p>
+          <p className="tag text-muted mb-3">Past trades</p>
           {completed.length === 0 ? (
             <p className="text-sm text-muted">No confirmed trades yet.</p>
           ) : (
