@@ -84,15 +84,13 @@ export default async function MatchesPage() {
                     href={`/matches/${m.id}`}
                     className="text-xs bg-ink text-white px-3.5 py-1.5 rounded-md font-medium hover:bg-ink/90"
                   >
-                    Open deal desk →
+                    Finalize the trade →
                   </Link>
-                  <span className="text-[11px] text-muted">
-                    {youConfirmed
-                      ? theyConfirmed
-                        ? "both confirmed"
-                        : "you confirmed · waiting on them"
-                      : "chat & confirm the handoff →"}
-                  </span>
+                  {youConfirmed && (
+                    <span className="text-[11px] text-muted">
+                      {theyConfirmed ? "both confirmed" : "you confirmed · waiting on them"}
+                    </span>
+                  )}
                 </div>
               </MatchCard>
             );
@@ -110,7 +108,7 @@ export default async function MatchesPage() {
                   href={`/matches/${m.id}`}
                   className="text-xs bg-white border border-line text-muted px-3.5 py-1.5 rounded-md font-medium hover:text-ink"
                 >
-                  View deal desk →
+                  View details →
                 </Link>
               </MatchCard>
             );
@@ -158,15 +156,16 @@ function MatchCard({
     <div className="bg-white border border-line rounded-xl p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm">
-            <span className="font-medium">
-              {iAmBuyer ? "Buying" : "Selling"} {match.reservedQuantity}
-            </span>{" "}
-            ·{" "}
-            <Link href={`/events/${match.event.id}`} className="hover:underline">
-              {match.event.name}
-            </Link>
+          <p className={`tag mb-1 ${iAmBuyer ? "text-buy" : "text-sell"}`}>
+            {iAmBuyer ? "Buying" : "Selling"} {match.reservedQuantity} ticket
+            {match.reservedQuantity === 1 ? "" : "s"}
           </p>
+          <Link
+            href={`/events/${match.event.id}`}
+            className="font-serif text-lg leading-tight hover:underline"
+          >
+            {match.event.name}
+          </Link>
         </div>
         <p className="font-serif text-xl tabular-nums shrink-0">
           {formatPrice(match.settlePriceCents)}

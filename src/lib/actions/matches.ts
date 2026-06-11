@@ -287,7 +287,7 @@ export async function confirmTrade(
 
 const MAX_MESSAGE_LENGTH = 2000;
 
-/** Send a chat message on a match's deal desk. Both parties, once ACCEPTED. */
+/** Send a chat message on a match's trade page. Both parties, once ACCEPTED. */
 export async function sendMessage(
   _prev: ActionState,
   formData: FormData,
@@ -376,7 +376,7 @@ export async function rateTrade(
 }
 
 /**
- * Back out of a match from the deal desk (either party). Same effect as
+ * Back out of a match (either party). Same effect as
  * declining: the tickets return to the book and roll to the next in queue.
  * Completed trades can't be cancelled.
  */

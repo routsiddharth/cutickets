@@ -12,7 +12,7 @@ import {
 import DealChat, { type ChatMessage } from "./DealChat";
 import { formatPrice, formatDateTime, schoolAbbrev, firstName } from "@/lib/format";
 
-export default async function DealDeskPage({
+export default async function FinalizeTradePage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -64,10 +64,10 @@ export default async function DealDeskPage({
         </Link>
         <h1 className="font-serif text-3xl mt-2 mb-0.5">You matched 🎟️</h1>
         <p className="text-sm text-muted mb-5">
-          Someone&apos;s price meets yours. Confirm to reveal who you&apos;re trading with and open a
-          private chat. You both have until{" "}
-          <span className="text-ink">{formatDateTime(match.reservationExpiresAt)}</span> — after that
-          it rolls to the next person in line.
+          Your prices line up. Confirm to see who you&apos;re trading with and start a private chat.
+          You both have until{" "}
+          <span className="text-ink">{formatDateTime(match.reservationExpiresAt)}</span>. After that,
+          the match moves to the next person in line.
         </p>
 
         <div className="bg-white border border-line rounded-2xl p-5 sm:p-6">
@@ -89,8 +89,8 @@ export default async function DealDeskPage({
         </div>
 
         <p className="text-xs text-muted mt-4 leading-relaxed">
-          Identities and any notes stay hidden until <b className="text-ink">both</b> of you confirm.
-          No payment is handled here — you&apos;ll coordinate the transfer yourselves.
+          Names and notes stay hidden until <b className="text-ink">both</b> of you confirm. No
+          payment happens here. You arrange the transfer yourselves.
         </p>
       </main>
     );
@@ -128,10 +128,10 @@ export default async function DealDeskPage({
       <Link href="/matches" className="text-sm text-muted hover:text-ink">
         ← My matches
       </Link>
-      <h1 className="font-serif text-3xl mt-2 mb-0.5">Deal desk</h1>
+      <h1 className="font-serif text-3xl mt-2 mb-0.5">Chat &amp; confirm</h1>
       <p className="text-sm text-muted mb-5">
-        You matched — here&apos;s who you&apos;re trading with. Chat to set up the handoff, then both
-        confirm to close.
+        Here&apos;s who you&apos;re trading with. Message them to arrange the transfer, then both
+        confirm to close the deal.
       </p>
 
       <div className="flex flex-col gap-3.5">
@@ -184,9 +184,6 @@ export default async function DealDeskPage({
 
           {/* revealed contact + their note — the payoff of matching */}
           <div className="mt-3.5 pt-3.5 border-t border-line flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="tag text-columbia-deep bg-columbia-soft px-2 py-0.5 rounded">
-              ✓ Revealed on match
-            </span>
             <a
               href={`mailto:${them.email}`}
               className="text-sm text-columbia-deep border-b border-columbia"
@@ -222,8 +219,8 @@ export default async function DealDeskPage({
               <p className="tag text-sell">Transaction complete</p>
               <p className="font-serif text-2xl mt-1.5">Both of you confirmed.</p>
               <p className="text-sm text-muted mt-1.5 max-w-md mx-auto">
-                The sale is recorded to both of your trade histories. Leave a quick rating to keep
-                the campus honest.
+                The sale is saved to both of your trade histories. Leave a rating to help others know
+                who they&apos;re trading with.
               </p>
               <div className="mt-4 flex justify-center">
                 <RatingForm matchId={match.id} existingStars={myRating?.stars ?? null} />
@@ -237,8 +234,8 @@ export default async function DealDeskPage({
               <span className="tag text-muted">both must confirm</span>
             </div>
             <p className="text-sm text-muted mt-1 mb-4">
-              Once you&apos;ve handed off the ticket in person, both confirm below. The sale is
-              recorded only when both have confirmed.
+              Once the tickets have changed hands, you both confirm below. The sale is recorded only
+              after both of you confirm.
             </p>
             <div className="grid grid-cols-2 gap-2.5">
               <div
@@ -267,7 +264,7 @@ export default async function DealDeskPage({
                   </p>
                 ) : (
                   <p className="font-serif italic text-lg text-muted mt-2 leading-none">
-                    awaiting…
+                    waiting
                   </p>
                 )}
               </div>
