@@ -49,7 +49,7 @@ export default async function FinalizeTradePage({
   });
 
   const iAmSelling = isSeller;
-  const sideLabel = iAmSelling ? "Selling" : "Buying";
+  const sideLabel = iAmSelling ? "You're selling" : "You're buying";
   const sideTone = iAmSelling ? "text-sell" : "text-buy";
 
   // ── Stage 1: RESERVED — confirm the match (still anonymous) ──────────────
@@ -161,7 +161,7 @@ export default async function FinalizeTradePage({
             <div className="flex items-stretch bg-paper border border-line rounded-xl overflow-hidden">
               <div className="px-3.5 py-2.5 min-w-0">
                 <p className={`tag ${sideTone}`}>
-                  {sideLabel} · {match.reservedQuantity} ticket
+                  {sideLabel} {match.reservedQuantity} ticket
                   {match.reservedQuantity === 1 ? "" : "s"}
                 </p>
                 <p className="font-serif text-base leading-tight mt-0.5 truncate max-w-[200px]">
@@ -301,7 +301,7 @@ function Stub({
     <div className="flex items-stretch bg-paper border border-line rounded-xl overflow-hidden w-fit">
       <div className="px-4 py-3 min-w-0">
         <p className={`tag ${sideTone}`}>
-          {sideLabel} · {quantity} ticket{quantity === 1 ? "" : "s"}
+          {sideLabel} {quantity} ticket{quantity === 1 ? "" : "s"}
         </p>
         <p className="font-serif text-lg leading-tight mt-0.5 truncate max-w-[240px]">
           {eventName}
