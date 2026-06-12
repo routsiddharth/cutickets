@@ -158,9 +158,6 @@ export default function DealChat({
           </SubmitButton>
         </div>
         {state?.error && <p className="text-xs text-red-600 mt-1.5">{state.error}</p>}
-        <p className="text-[11px] text-muted mt-2 px-0.5">
-          🔒 Keep it on CUTickets — never wire money or share payment links. Meet on campus.
-        </p>
       </form>
     </div>
   );

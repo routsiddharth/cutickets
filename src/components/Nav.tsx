@@ -11,10 +11,10 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Image
             src="/logo.png"
             alt=""
-            width={28}
-            height={28}
+            width={56}
+            height={56}
             priority
-            className="w-7 h-7"
+            className="w-14 h-14 -my-2"
           />
           <span className="font-serif text-lg text-ink">CUTickets</span>
         </Link>

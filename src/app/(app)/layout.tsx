@@ -33,11 +33,10 @@ export default async function AppLayout({
     <div className="min-h-screen flex flex-col">
       {fullyOnboarded && <Nav user={user} unread={unread} />}
       <div className="flex-1">{children}</div>
-      <footer className="border-t border-line bg-white">
-        <div className="max-w-5xl mx-auto px-5 sm:px-7 py-4 flex items-center gap-2 text-xs text-muted">
-          <span className="text-columbia">🛈</span>
-          CUTickets doesn&apos;t handle payment or guarantee transfer.
-          Trades happen off-platform (Posh, Partiful, Venmo) at your own risk.
+      <footer>
+        <div className="max-w-5xl mx-auto px-5 sm:px-7 py-6 text-center text-xs text-muted">
+          CUTickets doesn&apos;t handle payment or guarantee transfer. Trades happen off-platform
+          (Posh, Partiful, Venmo) at your own risk.
         </div>
       </footer>
     </div>
