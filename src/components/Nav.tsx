@@ -7,15 +7,15 @@ import { isAdmin } from "@/lib/admin";
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
   return (
     <header className="bg-white border-b border-line sticky top-0 z-30">
-      <div className="max-w-5xl mx-auto px-5 sm:px-7 h-14 flex items-center justify-between gap-4">
+      <div className="max-w-5xl mx-auto px-5 sm:px-7 h-24 flex items-center justify-between gap-4">
         <Link href="/events" className="flex items-center gap-2 shrink-0">
           <Image
             src="/logo.png"
             alt=""
-            width={60}
-            height={40}
+            width={80}
+            height={80}
             priority
-            className="h-10 w-auto"
+            className="h-20 w-auto"
           />
           <span className="font-serif text-lg text-ink">CUTickets</span>
         </Link>
