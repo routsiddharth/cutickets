@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CUTickets — sign-out placement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{paper:"#FBFAF7",ink:"#14233D",muted:"#5C6B82",line:"#E7E2D8",columbia:{DEFAULT:"#5B8FB9",soft:"#E8F0F7",deep:"#3D6E97"},sell:{DEFAULT:"#1F7A63",soft:"#E6F2ED"},buy:{DEFAULT:"#A8651A",soft:"#F7ECDB"}},fontFamily:{serif:['Newsreader','Georgia','serif'],sans:['"Public Sans"','system-ui','sans-serif']}}}}</script>
+<style>body{background:#FBFAF7;color:#14233D;font-family:'Public Sans',system-ui,sans-serif}.font-serif{font-family:'Newsreader',Georgia,serif}.tabular-nums{font-variant-numeric:tabular-nums}.tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}.lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5C6B82;font-style:italic}</style>
+</head>
+<body class="py-10">
+<div class="max-w-2xl mx-auto px-6 space-y-9">
+  <div><h1 class="font-serif text-2xl mb-1">Sign-out placement</h1><p class="text-sm text-muted">Bottom of your own profile card — a self-only footer where “Report” sits on others’ profiles. Calm, on-theme, clearly tappable.</p></div>
+
+  <!-- ===== RECOMMENDED ===== -->
+  <div>
+    <p class="lbl mb-2">Recommended — quiet account footer</p>
+    <div class="bg-white border border-line rounded-2xl overflow-hidden">
+      <!-- (stats + a section above, abbreviated) -->
+      <div class="grid grid-cols-3 divide-x divide-line border-b border-line text-center">
+        <div class="py-5"><p class="font-serif text-3xl">—</p><p class="tag text-muted mt-1">★ rating</p></div>
+        <div class="py-5"><p class="font-serif text-3xl text-sell">0</p><p class="tag text-muted mt-1">trades done</p></div>
+        <div class="py-5"><p class="font-serif text-3xl tabular-nums">Jun&nbsp;’26</p><p class="tag text-muted mt-1">member since</p></div>
+      </div>
+      <div class="p-6 sm:p-7"><p class="tag text-muted mb-3">Your live orders</p>
+        <div class="flex items-center justify-between text-sm bg-paper rounded-lg px-3 py-2"><span><span class="text-sell font-medium">Selling</span> 1 · Lambdas Cruise</span><span class="font-serif tabular-nums">$67/ea</span></div>
+      </div>
+      <!-- account footer -->
+      <div class="px-6 sm:px-7 py-4 border-t border-line flex items-center justify-between gap-3">
+        <span class="text-xs text-muted">Signed in as siddharth.rout@columbia.edu</span>
+        <button class="text-sm font-medium text-muted border border-line rounded-lg px-4 py-2 hover:text-ink hover:border-muted/50 transition-colors">Sign out</button>
+      </div>
+    </div>
+    <p class="text-xs text-muted mt-2">Subtle top border separates it as an “account” zone; the email reminds you which account; the button is a quiet ghost outline — tappable but never shouting.</p>
+  </div>
+
+  <!-- ===== ALT ===== -->
+  <div>
+    <p class="lbl mb-2">Alt — full-width row (biggest tap target)</p>
+    <div class="bg-white border border-line rounded-2xl overflow-hidden">
+      <div class="p-6 sm:p-7"><p class="tag text-muted mb-3">Your live orders</p>
+        <div class="flex items-center justify-between text-sm bg-paper rounded-lg px-3 py-2"><span><span class="text-sell font-medium">Selling</span> 1 · Lambdas Cruise</span><span class="font-serif tabular-nums">$67/ea</span></div>
+      </div>
+      <div class="px-6 sm:px-7 pb-6 sm:pb-7 pt-2">
+        <button class="w-full flex items-center justify-between text-sm text-muted border border-line rounded-lg px-4 py-3 hover:text-ink hover:bg-paper transition-colors">
+          <span class="font-medium">Sign out</span><span aria-hidden>→</span>
+        </button>
+      </div>
+    </div>
+    <p class="text-xs text-muted mt-2">Full-width, thumb-friendly. Reads a touch more “settings list” than editorial — slightly heavier than the page needs.</p>
+  </div>
+</div>
+</body>
+</html>
