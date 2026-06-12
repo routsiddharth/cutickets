@@ -141,7 +141,7 @@ function AdCard({ ad }: { ad: AdRow }) {
         </div>
         <div className="flex gap-1.5 shrink-0">
           <button
-            onClick={() => startTransition(() => toggleAd(ad.id))}
+            onClick={() => startTransition(() => void toggleAd(ad.id))}
             className={btnGhost}
           >
             {ad.active ? "Deactivate" : "Activate"}
@@ -151,7 +151,7 @@ function AdCard({ ad }: { ad: AdRow }) {
           </button>
           <button
             onClick={() => {
-              if (confirm("Delete this ad?")) startTransition(() => deleteAd(ad.id));
+              if (confirm("Delete this ad?")) startTransition(() => void deleteAd(ad.id));
             }}
             className={btnDanger}
           >

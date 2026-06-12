@@ -46,7 +46,7 @@ function RevokeButton({ userId }: { userId: string }) {
   return (
     <button
       className={btnDanger}
-      onClick={() => startTransition(() => revokeAdmin(userId))}
+      onClick={() => startTransition(() => void revokeAdmin(userId))}
     >
       Revoke
     </button>
@@ -58,7 +58,7 @@ function CancelInviteButton({ id }: { id: string }) {
   return (
     <button
       className={btnDanger}
-      onClick={() => startTransition(() => cancelAdminInvite(id))}
+      onClick={() => startTransition(() => void cancelAdminInvite(id))}
     >
       Cancel
     </button>
