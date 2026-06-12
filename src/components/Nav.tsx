@@ -34,11 +34,11 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-6">
           <Link
             href="/notifications"
             aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
-            className="relative text-muted hover:text-ink text-lg leading-none"
+            className="relative text-muted hover:text-ink text-2xl leading-none"
           >
             <span aria-hidden>🔔</span>
             {unread > 0 && (
@@ -48,7 +48,7 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
             )}
           </Link>
           <Link href={`/profile/${user.id}`} aria-label="Your profile">
-            <Avatar name={user.name} email={user.email} image={user.image} size={32} />
+            <Avatar name={user.name} email={user.email} image={user.image} size={44} />
           </Link>
         </div>
       </div>
