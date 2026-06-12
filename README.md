@@ -1,4 +1,12 @@
-# CUTickets
+<p align="center">
+  <img src="public/logo.png" alt="CUTickets logo" width="120" height="120" />
+</p>
+
+<h1 align="center">CUTickets</h1>
+
+<p align="center">
+  <a href="https://cutickets.vercel.app"><strong>cutickets.vercel.app →</strong></a>
+</p>
 
 A **verified student marketplace for event tickets** at Columbia & Barnard. It
 turns the scattered "anyone selling for X?" group-chat posts into a clean,
@@ -148,7 +156,7 @@ src/
     (app)/             # authenticated area (Nav + onboarding guard)
       onboarding/      # phone verification, then profile (school + class year)
       events/          # browse, event order book, create event, place orders
-      matches/         # confirm match, deal desk (reveal + chat), complete, rate
+      matches/         # confirm match, chat & confirm (reveal + chat), complete, rate
       profile/[id]/    # reputation + confirmed trades + report
       notifications/   # in-app notifications feed
   components/          # Nav, OrderForm, MatchActions, MatchCelebration, DealChat, …
