@@ -12,6 +12,9 @@ const ICON: Record<string, string> = {
   TRADE_COMPLETED: "✓",
   EVENT_VERIFICATION_REQUEST: "🔔",
   EVENT_VERIFIED: "✓",
+  LISTING_KILLED: "🚫",
+  TRADE_ADMIN_CANCELLED: "🚫",
+  ADMIN_ROLE_GRANTED: "⭐",
 };
 
 export default async function NotificationsPage() {

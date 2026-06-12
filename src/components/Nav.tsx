@@ -27,7 +27,7 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Link href="/matches" className="hover:text-ink">
             My matches
           </Link>
-          {isAdmin(user.email) && (
+          {isAdmin(user) && (
             <Link href="/admin/events" className="hover:text-ink font-medium text-columbia-deep">
               Admin
             </Link>

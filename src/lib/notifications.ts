@@ -9,7 +9,10 @@ export type NotificationType =
   | "TRADE_CONFIRMED"
   | "TRADE_COMPLETED"
   | "EVENT_VERIFICATION_REQUEST" //  admin: a new event needs review
-  | "EVENT_VERIFIED"; //             submitter: your event was verified
+  | "EVENT_VERIFIED" //              submitter: your event was verified
+  | "LISTING_KILLED" //              a moderator removed your listing
+  | "TRADE_ADMIN_CANCELLED" //       a moderator cancelled your active match
+  | "ADMIN_ROLE_GRANTED"; //         you've been granted admin access
 
 /**
  * Create an in-app notification. Pass a `tx` to enlist it in a surrounding

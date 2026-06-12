@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/session";
 import { getEventStats, getMyOrdersForEvent, getSalesCount } from "@/lib/queries";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import CancelListingButton from "@/components/CancelListingButton";
+import AdBanner from "@/components/AdBanner";
 
 export default async function EventPage({
   params,
@@ -237,6 +238,8 @@ export default async function EventPage({
           </div>
         </div>
       )}
+
+      <AdBanner placement="EVENT_PAGE" />
 
       {/* reassurance */}
       <p className="text-xs text-muted mt-6 leading-relaxed">

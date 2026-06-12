@@ -9,7 +9,7 @@ import SubmitButton from "@/components/SubmitButton";
 
 export default async function AdminEventsPage() {
   const user = await requireUser();
-  if (!isAdmin(user.email)) notFound();
+  if (!isAdmin(user)) notFound();
 
   const [pending, verified] = await Promise.all([
     prisma.event.findMany({
@@ -30,15 +30,7 @@ export default async function AdminEventsPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
-      <div className="flex items-center justify-between mb-7">
-        <div>
-          <p className="tag text-muted">Admin</p>
-          <h1 className="font-serif text-3xl mt-0.5">Event Verification</h1>
-        </div>
-        <Link href="/events" className="text-sm text-muted hover:text-ink">
-          ← Events
-        </Link>
-      </div>
+      <h1 className="font-serif text-3xl mb-7">Event Verification</h1>
 
       {/* Pending verification */}
       <section>

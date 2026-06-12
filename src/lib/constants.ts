@@ -59,6 +59,10 @@ export const NEW_ACCOUNT_AGE_DAYS = 3;
 export const NEW_ACCOUNT_ACTIVE_LISTING_CAP = 5;
 export const ESTABLISHED_ACTIVE_LISTING_CAP = 25;
 
+// Ad placement slots.
+export const AD_PLACEMENTS = ["EVENTS_LIST", "EVENT_PAGE"] as const;
+export type AdPlacement = (typeof AD_PLACEMENTS)[number];
+
 // Listing bounds (sanity limits to prevent abuse / overflow).
 export const MAX_TICKETS_PER_LISTING = 12;
 export const MAX_PRICE_CENTS = 100_000_00; // $100,000 absolute ceiling

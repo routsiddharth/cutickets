@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getEventsWithStats } from "@/lib/queries";
 import { formatDate, formatPrice } from "@/lib/format";
+import AdBanner from "@/components/AdBanner";
 
 export default async function EventsPage({
   searchParams,
@@ -48,6 +49,8 @@ export default async function EventsPage({
           </Link>
         )}
       </form>
+
+      <AdBanner placement="EVENTS_LIST" />
 
       {events.length === 0 ? (
         <div className="bg-white border border-line rounded-2xl p-10 text-center">

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 import { notify } from "@/lib/notifications";
-import { ADMIN_EMAILS, isAdmin } from "@/lib/admin";
+import { SUPERADMIN_EMAILS, isAdmin } from "@/lib/admin";
 
 import type { ActionState } from "./types";
 export type { ActionState };
@@ -76,7 +76,7 @@ export async function createEvent(
 
   // Notify admins so they can review and verify the event.
   const adminUsers = await prisma.user.findMany({
-    where: { email: { in: [...ADMIN_EMAILS] } },
+    where: { OR: [{ email: { in: [...SUPERADMIN_EMAILS] } }, { role: "ADMIN" }] },
     select: { id: true },
   });
   await Promise.all(
@@ -94,7 +94,7 @@ export async function createEvent(
 
 export async function verifyEvent(eventId: string, _formData: FormData): Promise<void> {
   const user = await requireUser();
-  if (!isAdmin(user.email)) return;
+  if (!isAdmin(user)) return;
 
   const event = await prisma.event.update({
     where: { id: eventId },
