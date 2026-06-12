@@ -2,12 +2,14 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
 export type NotificationType =
-  | "MATCH_FOUND" //          the engine auto-matched you — confirm to lock it in
-  | "OFFER_ACCEPTED" //       your counterparty confirmed the match
-  | "RESERVATION_EXPIRING" // <4h left to confirm before it rolls to the next person
+  | "MATCH_FOUND" //                 the engine auto-matched you — confirm to lock it in
+  | "OFFER_ACCEPTED" //              your counterparty confirmed the match
+  | "RESERVATION_EXPIRING" //        <4h left to confirm before it rolls to the next person
   | "NEW_MESSAGE"
   | "TRADE_CONFIRMED"
-  | "TRADE_COMPLETED";
+  | "TRADE_COMPLETED"
+  | "EVENT_VERIFICATION_REQUEST" //  admin: a new event needs review
+  | "EVENT_VERIFIED"; //             submitter: your event was verified
 
 /**
  * Create an in-app notification. Pass a `tx` to enlist it in a surrounding

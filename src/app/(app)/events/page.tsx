@@ -74,7 +74,17 @@ export default async function EventsPage({
                 className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-columbia transition-colors"
               >
                 <div className="min-w-0">
-                  <p className="font-medium truncate">{event.name}</p>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <p className="font-medium truncate">{event.name}</p>
+                    {event.verified && (
+                      <span
+                        className="inline-flex items-center shrink-0 text-[10px] font-semibold tracking-wide text-columbia-deep bg-columbia-soft border border-columbia/30 px-1.5 py-0.5 rounded-full"
+                        title="Verified by CUTickets admins"
+                      >
+                        ✓ Verified
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted mt-0.5">
                     {formatDate(event.startsAt)}
                     {event.venue ? ` · ${event.venue}` : ""}

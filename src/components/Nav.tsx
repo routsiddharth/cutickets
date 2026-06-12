@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { User } from "@prisma/client";
 import Avatar from "@/components/Avatar";
+import { isAdmin } from "@/lib/admin";
 
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
   return (
@@ -26,6 +27,11 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Link href="/matches" className="hover:text-ink">
             My matches
           </Link>
+          {isAdmin(user.email) && (
+            <Link href="/admin/events" className="hover:text-ink font-medium text-columbia-deep">
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">

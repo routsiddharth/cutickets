@@ -46,6 +46,7 @@ model User {
   ratingsGiven    Rating[]       @relation("RatingAuthor")
   ratingsReceived Rating[]       @relation("RatingSubject")
   eventsCreated   Event[]        @relation("EventCreator")
+  eventsVerified  Event[]        @relation("EventVerifier")
   messagesSent    Message[]      @relation("MessageSender")
   notifications   Notification[] @relation("UserNotifications")
 }
@@ -97,9 +98,15 @@ model Event {
   createdById String
   createdAt   DateTime @default(now())
 
-  createdBy User      @relation("EventCreator", fields: [createdById], references: [id])
-  listings  Listing[]
-  matches   Match[]
+  // Admin verification
+  verified     Boolean   @default(false)
+  verifiedAt   DateTime?
+  verifiedById String?
+
+  createdBy  User      @relation("EventCreator", fields: [createdById], references: [id])
+  verifiedBy User?     @relation("EventVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  listings   Listing[]
+  matches    Match[]
 
   @@index([startsAt])
 }

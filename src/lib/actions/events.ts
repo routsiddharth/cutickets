@@ -2,8 +2,11 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
+import { notify } from "@/lib/notifications";
+import { ADMIN_EMAILS, isAdmin } from "@/lib/admin";
 
 import type { ActionState } from "./types";
 export type { ActionState };
@@ -13,7 +16,7 @@ const schema = z.object({
   venue: z.string().trim().max(120).optional(),
   startsAt: z.string().trim().min(1, "Pick the event date"),
   description: z.string().trim().max(500).optional(),
-  poshLink: z.string().trim().url("Enter a valid URL (e.g. https://posh.vip/e/…)").max(500).optional(),
+  poshLink: z.string().trim().url("Enter a valid URL (e.g. https://posh.vip/e/your-event)").max(500).optional(),
 });
 
 export async function createEvent(
@@ -71,5 +74,42 @@ export async function createEvent(
     },
   });
 
+  // Notify admins so they can review and verify the event.
+  const adminUsers = await prisma.user.findMany({
+    where: { email: { in: [...ADMIN_EMAILS] } },
+    select: { id: true },
+  });
+  await Promise.all(
+    adminUsers.map((admin) =>
+      notify({
+        userId: admin.id,
+        type: "EVENT_VERIFICATION_REQUEST",
+        body: `New event submitted: "${event.name}" — review in Admin Events`,
+      }),
+    ),
+  );
+
   redirect(`/events/${event.id}`);
+}
+
+export async function verifyEvent(eventId: string, _formData: FormData): Promise<void> {
+  const user = await requireUser();
+  if (!isAdmin(user.email)) return;
+
+  const event = await prisma.event.update({
+    where: { id: eventId },
+    data: { verified: true, verifiedAt: new Date(), verifiedById: user.id },
+    select: { name: true, createdById: true },
+  });
+
+  // Let the submitter know their event was verified.
+  await notify({
+    userId: event.createdById,
+    type: "EVENT_VERIFIED",
+    body: `Your event "${event.name}" has been verified ✓`,
+  });
+
+  revalidatePath("/admin/events");
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/events");
 }

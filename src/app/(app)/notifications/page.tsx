@@ -10,6 +10,8 @@ const ICON: Record<string, string> = {
   NEW_MESSAGE: "💬",
   TRADE_CONFIRMED: "✍️",
   TRADE_COMPLETED: "✓",
+  EVENT_VERIFICATION_REQUEST: "🔔",
+  EVENT_VERIFIED: "✓",
 };
 
 export default async function NotificationsPage() {
@@ -59,8 +61,14 @@ export default async function NotificationsPage() {
                 {wasUnread && <span className="mt-1.5 w-2 h-2 rounded-full bg-columbia-deep shrink-0" />}
               </div>
             );
-            return n.matchId ? (
-              <Link key={n.id} href={`/matches/${n.matchId}`} className="block hover:bg-paper">
+            const href = n.matchId
+              ? `/matches/${n.matchId}`
+              : n.type === "EVENT_VERIFICATION_REQUEST"
+                ? "/admin/events"
+                : null;
+
+            return href ? (
+              <Link key={n.id} href={href} className="block hover:bg-paper">
                 {inner}
               </Link>
             ) : (
