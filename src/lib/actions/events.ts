@@ -13,6 +13,7 @@ const schema = z.object({
   venue: z.string().trim().max(120).optional(),
   startsAt: z.string().trim().min(1, "Pick the event date"),
   description: z.string().trim().max(500).optional(),
+  poshLink: z.string().trim().url("Enter a valid URL (e.g. https://posh.vip/e/…)").max(500).optional(),
 });
 
 export async function createEvent(
@@ -27,6 +28,7 @@ export async function createEvent(
     venue: formData.get("venue") || undefined,
     startsAt: formData.get("startsAt") || undefined,
     description: formData.get("description") || undefined,
+    poshLink: formData.get("poshLink") || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -63,6 +65,7 @@ export async function createEvent(
       name: parsed.data.name,
       venue: parsed.data.venue ?? null,
       description: parsed.data.description ?? null,
+      poshLink: parsed.data.poshLink ?? null,
       startsAt,
       createdById: user.id,
     },

@@ -67,6 +67,19 @@ export default function EventForm() {
           className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white resize-none"
         />
       </div>
+      <div>
+        <label htmlFor="poshLink" className="tag text-muted">
+          Posh page <span className="normal-case tracking-normal">(optional)</span>
+        </label>
+        <input
+          id="poshLink"
+          name="poshLink"
+          type="url"
+          maxLength={500}
+          placeholder="https://posh.vip/e/your-event"
+          className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
+        />
+      </div>
 
       {state?.error && (
         <p className="text-sm text-red-600" role="alert">

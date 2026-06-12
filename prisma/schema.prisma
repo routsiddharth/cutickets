@@ -93,6 +93,7 @@ model Event {
   venue       String?
   startsAt    DateTime?
   description String?
+  poshLink    String?   // optional link to the event's Posh page
   createdById String
   createdAt   DateTime @default(now())
 

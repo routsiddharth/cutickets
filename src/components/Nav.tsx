@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { User } from "@prisma/client";
 import Avatar from "@/components/Avatar";
 
@@ -8,12 +7,11 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
     <header className="bg-white border-b border-line sticky top-0 z-30">
       <div className="max-w-5xl mx-auto px-5 sm:px-7 h-14 flex items-center justify-between gap-4">
         <Link href="/events" className="flex items-center gap-2 shrink-0">
-          <Image
-            src="/logo.png"
+          <img
+            src="/logo.svg"
             alt=""
             width={56}
             height={56}
-            priority
             className="w-14 h-14 -my-2"
           />
           <span className="font-serif text-lg text-ink">CUTickets</span>

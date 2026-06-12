@@ -59,6 +59,17 @@ export default async function EventPage({
             {event.description}
           </p>
         )}
+        {event.poshLink && (
+          <a
+            href={event.poshLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm font-medium mb-4 hover:underline"
+            style={{ color: "#9FC0DC" }}
+          >
+            View on Posh ↗
+          </a>
+        )}
         {stats.lastSaleCents !== null ? (
           // The honest anchor: a price a real student actually paid (StockX-style
           // "last sale"), never an invented midpoint.
