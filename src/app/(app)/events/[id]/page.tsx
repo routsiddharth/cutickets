@@ -56,14 +56,6 @@ export default async function EventPage({
         </p>
         <div className="flex items-start gap-2.5 flex-wrap mb-4">
           <h1 className="font-serif text-3xl sm:text-4xl">{event.name}</h1>
-          {event.verified && (
-            <span
-              className="inline-flex items-center self-center shrink-0 text-[10px] font-semibold tracking-wide text-columbia-deep bg-columbia-soft border border-columbia/30 px-1.5 py-0.5 rounded-full"
-              title="Verified by CUTickets admins"
-            >
-              ✓ Verified
-            </span>
-          )}
         </div>
         {event.description && (
           <p className="text-sm mb-4 max-w-2xl" style={{ color: "#B7C3D6" }}>
@@ -240,13 +232,6 @@ export default async function EventPage({
       )}
 
       <AdBanner placement="EVENT_PAGE" />
-
-      {/* reassurance */}
-      <p className="text-xs text-muted mt-6 leading-relaxed">
-        Buy-now and sell-now prices are what students are asking right now and aren&apos;t verified.
-        Only <b className="text-ink">confirmed sales</b> reflect real trades — that&apos;s the
-        &ldquo;last sold&rdquo; price up top.
-      </p>
     </main>
   );
 }
