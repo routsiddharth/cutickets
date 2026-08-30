@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <AdminTabLink href="/admin/events" label="Events" />
             <AdminTabLink href="/admin/users" label="Users" />
             <AdminTabLink href="/admin/admins" label="Admins" />
-            <AdminTabLink href="/admin/deals" label="Trades" />
+            <AdminTabLink href="/admin/deals" label="Sales" />
             <AdminTabLink href="/admin/moderation" label="Moderation" />
             <AdminTabLink href="/admin/ads" label="Ads" />
           </nav>

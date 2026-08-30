@@ -75,8 +75,8 @@ export async function adminCancelDeal(
   }
 
   const body = reason
-    ? `Your trade for "${deal.event.name}" was cancelled by a moderator: ${reason}`
-    : `Your trade for "${deal.event.name}" was cancelled by a moderator`;
+    ? `Your sale for "${deal.event.name}" was cancelled by a moderator: ${reason}`
+    : `Your sale for "${deal.event.name}" was cancelled by a moderator`;
 
   await prisma.$transaction(async (tx) => {
     const released = await releaseDeal(tx, deal, "CANCELLED");

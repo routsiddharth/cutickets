@@ -58,7 +58,7 @@ export async function cancelDeal(
   redirect("/deals");
 }
 
-export async function confirmTrade(
+export async function confirmSale(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -115,7 +115,7 @@ export async function confirmTrade(
         dealId: deal.id,
         senderId: user.id,
         kind: "EVENT",
-        body: completed ? "Trade complete." : `${firstName(user)} marked the trade complete.`,
+        body: completed ? "Sale complete." : `${firstName(user)} marked the sale complete.`,
       },
     });
 
@@ -126,7 +126,7 @@ export async function confirmTrade(
             userId,
             type: "TRADE_COMPLETED",
             dealId: deal.id,
-            body: `Your ${deal.event.name} trade is complete`,
+            body: `Your ${deal.event.name} sale is complete`,
           },
           tx,
         );
@@ -137,7 +137,7 @@ export async function confirmTrade(
           userId: otherId,
           type: "TRADE_CONFIRMED",
           dealId: deal.id,
-          body: `${firstName(user)} marked the ${deal.event.name} trade complete`,
+          body: `${firstName(user)} marked the ${deal.event.name} sale complete`,
         },
         tx,
       );
@@ -189,7 +189,7 @@ const rateSchema = z.object({
   comment: z.string().trim().max(300).optional(),
 });
 
-export async function rateTrade(
+export async function rateSale(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -206,7 +206,7 @@ export async function rateTrade(
     select: { id: true, buyerId: true, sellerId: true, status: true },
   });
   if (!deal) return { error: "Deal not found" };
-  if (deal.status !== "COMPLETED") return { error: "Complete the trade before rating" };
+  if (deal.status !== "COMPLETED") return { error: "Complete the sale before rating" };
   const { authorized, otherId: subjectId } = dealParty(deal, user.id);
   if (!authorized) return { error: "Not authorized" };
 

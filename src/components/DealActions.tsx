@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { cancelDeal, confirmTrade, rateTrade, type ActionState } from "@/lib/actions/deals";
+import { cancelDeal, confirmSale, rateSale, type ActionState } from "@/lib/actions/deals";
 import SubmitButton from "@/components/SubmitButton";
 
-export function ConfirmTradeForm({
+export function ConfirmSaleForm({
   dealId,
   youConfirmed,
   theyConfirmed,
@@ -13,11 +13,11 @@ export function ConfirmTradeForm({
   youConfirmed: boolean;
   theyConfirmed: boolean;
 }) {
-  const [state, action] = useActionState<ActionState, FormData>(confirmTrade, undefined);
+  const [state, action] = useActionState<ActionState, FormData>(confirmSale, undefined);
   if (youConfirmed) {
     return (
       <p className="text-sm text-sell font-medium">
-        Confirmed{theyConfirmed ? " — trade complete" : " — waiting for them"}
+        Confirmed{theyConfirmed ? " — sale complete" : " — waiting for them"}
       </p>
     );
   }
@@ -29,7 +29,7 @@ export function ConfirmTradeForm({
           pendingText="Saving…"
           className="bg-ink text-white px-4 py-2.5 rounded-lg font-medium text-sm disabled:opacity-60"
         >
-          I completed the trade
+          I completed the sale
         </SubmitButton>
       </form>
       {state?.error && <p className="text-xs text-red-600 mt-2" role="alert">{state.error}</p>}
@@ -62,7 +62,7 @@ export function RatingForm({
   dealId: string;
   existingStars: number | null;
 }) {
-  const [state, action] = useActionState<ActionState, FormData>(rateTrade, undefined);
+  const [state, action] = useActionState<ActionState, FormData>(rateSale, undefined);
   if (existingStars && !state) {
     return <p className="text-sm text-muted">Your rating: {"★".repeat(existingStars)}</p>;
   }

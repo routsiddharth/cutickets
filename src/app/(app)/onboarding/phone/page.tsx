@@ -12,7 +12,7 @@ export default async function PhoneOnboardingPage() {
       <p className="tag text-muted mb-2">Step 1 of 2</p>
       <h1 className="font-serif text-3xl mb-2">Verify your phone</h1>
       <p className="text-sm text-muted mb-8">
-        We verify every student&apos;s number so trades stay trusted. Your number
+        We verify every student&apos;s number so sales stay trusted. Your number
         is private — it&apos;s only shared after someone reserves a listing.
       </p>
       <div className="bg-white border border-line rounded-2xl p-6">

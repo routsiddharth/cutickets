@@ -63,7 +63,7 @@ function KillListingForm({ listingId, onDone }: { listingId: string; onDone: () 
   );
 }
 
-function CancelTradeForm({ dealId, onDone }: { dealId: string; onDone: () => void }) {
+function CancelSaleForm({ dealId, onDone }: { dealId: string; onDone: () => void }) {
   const [reason, setReason] = useState("");
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -150,11 +150,11 @@ function DealRow({ deal }: { deal: DealRow }) {
           onClick={() => setExpanded((v) => !v)}
           className={btnDanger}
         >
-          {expanded ? "Dismiss" : "Cancel trade"}
+          {expanded ? "Dismiss" : "Cancel sale"}
         </button>
       </div>
       {expanded && (
-        <CancelTradeForm dealId={deal.id} onDone={() => setExpanded(false)} />
+        <CancelSaleForm dealId={deal.id} onDone={() => setExpanded(false)} />
       )}
     </div>
   );

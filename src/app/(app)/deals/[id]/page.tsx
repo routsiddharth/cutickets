@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
 import { formatDateTime, formatPrice, publicName, schoolAbbrev } from "@/lib/format";
 import Avatar from "@/components/Avatar";
-import { CancelDealForm, ConfirmTradeForm, RatingForm } from "@/components/DealActions";
+import { CancelDealForm, ConfirmSaleForm, RatingForm } from "@/components/DealActions";
 import DealChat, { type ChatMessage } from "./DealChat";
 
 export default async function DealPage({ params }: { params: Promise<{ id: string }> }) {
@@ -66,7 +66,7 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
           <Avatar name={them.name} email={them.email} image={them.image} size={48} />
           <div className="min-w-0">
             <Link href={`/profile/${them.id}`} className="font-medium text-lg hover:underline">{publicName(them.name, them.email)}</Link>
-            <p className="text-sm text-muted">{schoolAbbrev(them.school, them.classYear)}{reputation.ratingAvg !== null ? ` · ★ ${reputation.ratingAvg.toFixed(1)}` : ""} · {reputation.tradesCompleted} trade{reputation.tradesCompleted === 1 ? "" : "s"}</p>
+            <p className="text-sm text-muted">{schoolAbbrev(them.school, them.classYear)}{reputation.ratingAvg !== null ? ` · ★ ${reputation.ratingAvg.toFixed(1)}` : ""} · {reputation.salesCompleted} sale{reputation.salesCompleted === 1 ? "" : "s"}</p>
           </div>
         </div>
         <div className="text-right text-sm shrink-0">
@@ -90,19 +90,19 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
       <section className="border-t border-line pt-5">
         {deal.status === "COMPLETED" ? (
           <div>
-            <h2 className="font-serif text-2xl">Trade complete</h2>
+            <h2 className="font-serif text-2xl">Sale complete</h2>
             <p className="text-sm text-muted mt-1 mb-4">Both sides confirmed the handoff.</p>
             <RatingForm dealId={deal.id} existingStars={myRating?.stars ?? null} />
           </div>
         ) : (
           <div className="flex items-start justify-between gap-5 flex-wrap">
             <div>
-              <h2 className="font-serif text-2xl">Finish the trade</h2>
+              <h2 className="font-serif text-2xl">Finish the sale</h2>
               <p className="text-sm text-muted mt-1">Confirm after payment and ticket transfer are complete.</p>
               <p className="text-xs text-muted mt-1">Reserved until {formatDateTime(deal.reservationExpiresAt)}</p>
             </div>
             <div className="text-right space-y-3">
-              <ConfirmTradeForm dealId={deal.id} youConfirmed={youConfirmed} theyConfirmed={theyConfirmed} />
+              <ConfirmSaleForm dealId={deal.id} youConfirmed={youConfirmed} theyConfirmed={theyConfirmed} />
               {!youConfirmed && <CancelDealForm dealId={deal.id} />}
             </div>
           </div>

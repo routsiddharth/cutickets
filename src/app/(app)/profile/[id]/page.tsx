@@ -74,15 +74,15 @@ export default async function ProfilePage({
             value={rep.ratingAvg !== null ? rep.ratingAvg.toFixed(1) : "—"}
             label={`★ rating${rep.ratingCount ? ` (${rep.ratingCount})` : ""}`}
           />
-          <Stat value={String(rep.tradesCompleted)} label="trades done" valueClass="text-sell" />
+          <Stat value={String(rep.salesCompleted)} label="sales done" valueClass="text-sell" />
           <Stat value={memberSince} label="member since" />
         </div>
 
-        {/* Past trades */}
+        {/* Past sales */}
         <div className="p-6 sm:p-7">
-          <p className="tag text-muted mb-3">Past trades</p>
+          <p className="tag text-muted mb-3">Past sales</p>
           {completed.length === 0 ? (
-            <p className="text-sm text-muted">No confirmed trades yet.</p>
+            <p className="text-sm text-muted">No confirmed sales yet.</p>
           ) : (
             <div className="space-y-2.5">
               {completed.map((deal) => {

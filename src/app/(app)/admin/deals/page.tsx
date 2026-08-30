@@ -46,12 +46,12 @@ export default async function AdminDealsPage({
 
   return (
     <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
-      <h1 className="font-serif text-3xl">Trade history</h1>
+      <h1 className="font-serif text-3xl">Sale history</h1>
       <p className="text-sm text-muted mt-1 mb-6">{total}{query || status ? " matching" : " total"}</p>
 
       <form action="/admin/deals" className="grid sm:grid-cols-[1fr_160px_auto] gap-2 mb-6">
-        <input type="search" name="q" defaultValue={query ?? ""} placeholder="Search event, name, or email…" aria-label="Search trades" className="min-w-0 bg-white border border-line rounded-lg px-3.5 py-2.5 text-sm" />
-        <select name="status" defaultValue={status ?? ""} aria-label="Trade status" className="bg-white border border-line rounded-lg px-3 py-2.5 text-sm">
+        <input type="search" name="q" defaultValue={query ?? ""} placeholder="Search event, name, or email…" aria-label="Search sales" className="min-w-0 bg-white border border-line rounded-lg px-3.5 py-2.5 text-sm" />
+        <select name="status" defaultValue={status ?? ""} aria-label="Sale status" className="bg-white border border-line rounded-lg px-3 py-2.5 text-sm">
           <option value="">All statuses</option>
           {DEAL_STATUSES.map((value) => <option key={value} value={value}>{statusLabel(value)}</option>)}
         </select>
@@ -62,7 +62,7 @@ export default async function AdminDealsPage({
       </form>
 
       {deals.length === 0 ? (
-        <div className="border-y border-line py-8 text-sm text-muted">No trades match those filters.</div>
+        <div className="border-y border-line py-8 text-sm text-muted">No sales match those filters.</div>
       ) : (
         <div className="divide-y divide-line border-y border-line">
           {deals.map((deal) => (
@@ -92,7 +92,7 @@ export default async function AdminDealsPage({
         </div>
       )}
       {total > PAGE_SIZE && (
-        <nav className="flex items-center justify-between mt-5 text-sm" aria-label="Trade pages">
+        <nav className="flex items-center justify-between mt-5 text-sm" aria-label="Sale pages">
           {page > 1 ? <Link href={dealPageHref(page - 1, query, status)} className="text-columbia-deep hover:underline">← Previous</Link> : <span />}
           <span className="text-muted tabular-nums">Page {page} of {pageCount}</span>
           {page * PAGE_SIZE < total ? <Link href={dealPageHref(page + 1, query, status)} className="text-columbia-deep hover:underline">Next →</Link> : <span />}

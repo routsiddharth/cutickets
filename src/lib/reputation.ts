@@ -4,7 +4,7 @@ import { NEW_ACCOUNT_AGE_DAYS } from "@/lib/constants";
 export type Reputation = {
   ratingAvg: number | null;
   ratingCount: number;
-  tradesCompleted: number;
+  salesCompleted: number;
   memberSince: Date;
   isNewAccount: boolean;
 };
@@ -18,9 +18,9 @@ export function isNewAccount(createdAt: Date): boolean {
 }
 
 /**
- * A completed trade is a deal both buyer and seller confirmed.
+ * A completed sale is a deal both buyer and seller confirmed.
  */
-export async function countCompletedTrades(userId: string): Promise<number> {
+export async function countCompletedSales(userId: string): Promise<number> {
   return prisma.deal.count({
     where: {
       status: "COMPLETED",
@@ -43,12 +43,12 @@ export async function getReputation(userId: string): Promise<Reputation> {
     _count: { _all: true },
   });
 
-  const tradesCompleted = await countCompletedTrades(userId);
+  const salesCompleted = await countCompletedSales(userId);
 
   return {
     ratingAvg: ratingAgg._avg.stars,
     ratingCount: ratingAgg._count._all,
-    tradesCompleted,
+    salesCompleted,
     memberSince: createdAt,
     isNewAccount: isNewAccount(createdAt),
   };

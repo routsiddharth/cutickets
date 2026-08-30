@@ -51,7 +51,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       ) : (
         <div className="border-y border-line divide-y divide-line">
           {users.map((user) => {
-            const trades = user._count.dealsAsBuyer + user._count.dealsAsSeller;
+            const sales = user._count.dealsAsBuyer + user._count.dealsAsSeller;
             return (
               <Link key={user.id} href={`/admin/users/${user.id}`} className="grid sm:grid-cols-[1fr_auto] gap-2 sm:gap-6 py-4 hover:bg-white/60 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
@@ -66,7 +66,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                   </div>
                 </div>
                 <div className="sm:text-right text-xs text-muted tabular-nums">
-                  <p>{trades} trade{trades === 1 ? "" : "s"} · {user._count.listings} listing{user._count.listings === 1 ? "" : "s"}</p>
+                  <p>{sales} sale{sales === 1 ? "" : "s"} · {user._count.listings} listing{user._count.listings === 1 ? "" : "s"}</p>
                   <p className="mt-1">Joined {formatDate(user.createdAt)}</p>
                 </div>
               </Link>

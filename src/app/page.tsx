@@ -99,7 +99,7 @@ export default async function LandingPage({
         <div className="mt-10 rounded-xl border border-line bg-white p-4 max-w-md">
           <p className="text-sm text-ink">
             <b>We don&apos;t touch money.</b> No escrow, no payment, no guaranteed
-            transfer. This is a verified board for finding each other — the trade
+            transfer. This is a verified board for finding each other — the sale
             happens between you two.
           </p>
         </div>

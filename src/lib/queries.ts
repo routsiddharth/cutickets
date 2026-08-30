@@ -9,12 +9,12 @@ export type EventStats = {
 };
 
 export async function getLastSaleCents(eventId: string): Promise<number | null> {
-  const lastTrade = await prisma.deal.findFirst({
+  const lastSale = await prisma.deal.findFirst({
     where: { status: "COMPLETED", eventId },
     orderBy: { completedAt: "desc" },
     select: { unitPriceCents: true },
   });
-  return lastTrade?.unitPriceCents ?? null;
+  return lastSale?.unitPriceCents ?? null;
 }
 
 export async function getEventStats(eventId: string): Promise<EventStats> {

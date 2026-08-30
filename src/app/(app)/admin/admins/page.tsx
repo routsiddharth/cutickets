@@ -28,7 +28,7 @@ export default async function AdminAccountsPage() {
       <p className="text-sm text-muted mt-1 mb-6">The two accounts with admin access.</p>
       <div className="border-y border-line divide-y divide-line">
         {admins.map((admin) => {
-          const trades = admin._count.dealsAsBuyer + admin._count.dealsAsSeller;
+          const sales = admin._count.dealsAsBuyer + admin._count.dealsAsSeller;
           return (
             <div key={admin.id} className="grid sm:grid-cols-[1fr_auto] gap-3 sm:gap-6 py-4">
               <div className="flex items-center gap-3 min-w-0">
@@ -40,7 +40,7 @@ export default async function AdminAccountsPage() {
                 </div>
               </div>
               <div className="sm:text-right text-xs text-muted tabular-nums self-center">
-                <p>{trades} trade{trades === 1 ? "" : "s"} · {admin._count.listings} listing{admin._count.listings === 1 ? "" : "s"}</p>
+                <p>{sales} sale{sales === 1 ? "" : "s"} · {admin._count.listings} listing{admin._count.listings === 1 ? "" : "s"}</p>
                 <p className="mt-1">Joined {formatDate(admin.createdAt)}</p>
                 <Link href={`/profile/${admin.id}`} className="inline-block text-columbia-deep hover:underline mt-2">View profile →</Link>
               </div>

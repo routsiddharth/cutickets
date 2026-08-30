@@ -50,8 +50,8 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
       </header>
 
       <section className="py-7 border-b border-line">
-        <div className="flex items-baseline justify-between mb-3"><h2 className="font-medium">Trade history</h2><span className="text-sm text-muted">{deals.length}</span></div>
-        {deals.length === 0 ? <p className="text-sm text-muted">No trades.</p> : (
+        <div className="flex items-baseline justify-between mb-3"><h2 className="font-medium">Sale history</h2><span className="text-sm text-muted">{deals.length}</span></div>
+        {deals.length === 0 ? <p className="text-sm text-muted">No sales.</p> : (
           <div className="divide-y divide-line border-y border-line">
             {deals.map((deal) => {
               const buying = deal.buyerId === user.id;
