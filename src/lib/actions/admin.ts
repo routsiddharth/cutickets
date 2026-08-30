@@ -39,7 +39,7 @@ export async function inviteAdmin(email: string): Promise<ActionState> {
     await notify({
       userId: target.id,
       type: "ADMIN_ROLE_GRANTED",
-      body: "You've been granted admin access on CUTickets",
+      body: "You've been granted admin access on Morningside Tickets",
     });
     revalidatePath("/admin/users");
     return { ok: true };

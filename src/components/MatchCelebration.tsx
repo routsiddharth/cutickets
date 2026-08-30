@@ -11,7 +11,7 @@ export type CelebrationMatch = {
   eventName: string;
 };
 
-const STORAGE_KEY = "cutickets:celebrated-matches";
+const STORAGE_KEY = "morningside-tickets:celebrated-matches";
 
 function readSeen(): Set<string> {
   try {

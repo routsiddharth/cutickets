@@ -18,7 +18,7 @@ const publicSans = Public_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "CUTickets",
+  title: "Morningside Tickets",
   description:
     "A verified student marketplace for event-ticket interest at Columbia & Barnard.",
 };

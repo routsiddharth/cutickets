@@ -244,7 +244,7 @@ export async function confirmTrade(
           matchId: match.id,
           senderId: user.id,
           kind: "EVENT",
-          body: "Trade complete 🎉 — thanks for using CUTickets.",
+          body: "Trade complete 🎉 — thanks for using Morningside Tickets.",
         },
       });
       for (const uid of [match.buyerId, match.sellerId]) {

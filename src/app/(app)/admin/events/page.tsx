@@ -44,14 +44,12 @@ export default async function AdminEventsPage() {
         </Link>
       </div>
 
-      <section>
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="font-medium">Requests</h2>
-          <span className="text-sm text-muted">{requests.length} pending</span>
-        </div>
-        {requests.length === 0 ? (
-          <p className="border border-dashed border-line rounded-xl p-6 text-sm text-muted">No event requests to review.</p>
-        ) : (
+      {requests.length > 0 && (
+        <section>
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-medium">Requests</h2>
+            <span className="text-sm text-muted">{requests.length} pending</span>
+          </div>
           <div className="bg-white border border-line rounded-xl divide-y divide-line overflow-hidden">
             {requests.map((request) => (
               <div key={request.id} className="p-4">
@@ -77,10 +75,10 @@ export default async function AdminEventsPage() {
               </div>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      <section className="mt-10">
+      <section className={requests.length > 0 ? "mt-10" : undefined}>
         <div className="flex items-baseline justify-between mb-3">
           <h2 className="font-medium">Active events</h2>
           <span className="text-sm text-muted">{activeEvents.length}</span>

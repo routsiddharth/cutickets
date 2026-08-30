@@ -67,7 +67,7 @@ export default async function EventsPage({
               ? "Be the first to start a market for an event."
               : query
                 ? "Request it and an admin will review it."
-                : "CUTickets admins add events as they’re announced."}
+                : "Morningside Tickets admins add events as they’re announced."}
           </p>
           {canCreateEvents && (
             <Link

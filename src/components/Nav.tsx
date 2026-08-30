@@ -7,17 +7,18 @@ import { isAdmin } from "@/lib/admin";
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
   return (
     <header className="bg-white border-b border-line sticky top-0 z-30">
-      <div className="max-w-5xl mx-auto px-5 sm:px-7 h-24 flex items-center justify-between gap-4">
-        <Link href="/events" className="flex items-center gap-2 shrink-0">
+      <div className="max-w-5xl mx-auto px-5 sm:px-7 h-20 sm:h-24 flex items-center justify-between gap-4">
+        <Link href="/events" className="flex items-center gap-2 min-w-0 shrink">
           <Image
             src="/logo.png"
             alt=""
             width={80}
             height={80}
             priority
-            className="h-20 w-auto"
+            unoptimized
+            className="h-14 sm:h-20 w-auto shrink-0"
           />
-          <span className="font-serif text-lg text-ink">CUTickets</span>
+          <span className="font-serif text-sm sm:text-lg text-ink whitespace-nowrap">Morningside Tickets</span>
         </Link>
 
         <nav className="hidden sm:flex items-center gap-5 text-sm text-muted ml-2 mr-auto">
@@ -34,7 +35,7 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           )}
         </nav>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6 shrink-0">
           <Link
             href="/notifications"
             aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}

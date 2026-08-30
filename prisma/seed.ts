@@ -13,7 +13,7 @@ const eveningInDays = (n: number) => {
 };
 
 async function main() {
-  console.log("Seeding CUTickets…");
+  console.log("Seeding Morningside Tickets…");
 
   // ─── Users ────────────────────────────────────────────────────────────────
   const people = [

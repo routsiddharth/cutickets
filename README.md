@@ -1,12 +1,8 @@
 <p align="center">
-  <img src="public/logo.png" alt="CUTickets logo" width="120" height="120" />
+  <img src="public/logo.png" alt="Morningside Tickets logo" width="120" height="120" />
 </p>
 
-<h1 align="center">CUTickets</h1>
-
-<p align="center">
-  <a href="https://cutickets.vercel.app"><strong>cutickets.vercel.app →</strong></a>
-</p>
+<h1 align="center">Morningside Tickets</h1>
 
 A **verified student marketplace for event tickets** at Columbia & Barnard. It
 turns the scattered "anyone selling for X?" group-chat posts into a clean,

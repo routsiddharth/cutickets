@@ -1,4 +1,4 @@
-# CUTickets — full workflow screenshots
+# Morningside Tickets — full workflow screenshots
 
 End-to-end captures of the product, in the order a user moves through it.
 Captured live against the local dev app (retina @2×). Folders follow the journey.

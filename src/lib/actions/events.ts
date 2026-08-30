@@ -56,7 +56,7 @@ export async function createEvent(
 ): Promise<ActionState> {
   const user = await requireUser();
   if (!isOnboarded(user)) redirect("/onboarding");
-  if (!isAdmin(user)) return { error: "Only CUTickets admins can add new events." };
+  if (!isAdmin(user)) return { error: "Only Morningside Tickets admins can add new events." };
 
   const parsed = eventData(formData);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -96,7 +96,7 @@ export async function createEvent(
         await notify({
           userId: request.requesterId,
           type: "EVENT_REQUEST_FULFILLED",
-          body: `The event you requested, “${created.name},” is now on CUTickets.`,
+          body: `The event you requested, “${created.name},” is now on Morningside Tickets.`,
           eventId: created.id,
         }, tx);
       }
@@ -237,7 +237,7 @@ export async function dismissEventRequest(requestId: string): Promise<ActionStat
     await notify({
       userId: request.requesterId,
       type: "EVENT_REQUEST_DISMISSED",
-      body: `Your request for “${request.name}” wasn’t added to CUTickets.`,
+      body: `Your request for “${request.name}” wasn’t added to Morningside Tickets.`,
     }, tx);
   });
   revalidatePath("/admin/events");
