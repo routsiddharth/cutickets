@@ -20,6 +20,7 @@ export default async function NewOrderPage({
 
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
+  if (event.archivedAt) redirect(`/events/${id}`);
 
   const side: "buy" | "sell" = sideParam === "sell" ? "sell" : "buy";
   const [bestAskCents, bestBidCents] = await Promise.all([

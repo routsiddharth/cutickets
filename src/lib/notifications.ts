@@ -8,8 +8,9 @@ export type NotificationType =
   | "NEW_MESSAGE"
   | "TRADE_CONFIRMED"
   | "TRADE_COMPLETED"
-  | "EVENT_VERIFICATION_REQUEST" //  admin: a new event needs review
-  | "EVENT_VERIFIED" //              submitter: your event was verified
+  | "EVENT_REQUEST_FULFILLED" //     a requested event is now live
+  | "EVENT_REQUEST_DISMISSED" //     an event request was declined
+  | "EVENT_ARCHIVED" //              an event and its open orders were archived
   | "LISTING_KILLED" //              a moderator removed your listing
   | "TRADE_ADMIN_CANCELLED" //       a moderator cancelled your active match
   | "ADMIN_ROLE_GRANTED"; //         you've been granted admin access
@@ -30,6 +31,7 @@ export async function notify(
     type: NotificationType;
     body: string;
     matchId?: string;
+    eventId?: string;
     collapse?: boolean;
   },
   client: Prisma.TransactionClient | typeof prisma = prisma,
@@ -54,6 +56,7 @@ export async function notify(
       type: opts.type,
       body: opts.body,
       matchId: opts.matchId ?? null,
+      eventId: opts.eventId ?? null,
     },
   });
 }

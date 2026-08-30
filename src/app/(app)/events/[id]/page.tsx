@@ -126,7 +126,12 @@ export default async function EventPage({
         )}
       </div>
 
-      {/* Two big actions */}
+      {event.archivedAt ? (
+        <div className="mt-5 border border-line bg-white rounded-xl px-5 py-4">
+          <p className="font-medium">This event is archived</p>
+          <p className="text-sm text-muted mt-1">New buy and sell orders are closed. Existing trade records remain available.</p>
+        </div>
+      ) : (
       <div className="grid sm:grid-cols-2 gap-4 mt-5">
         <Link
           href={`/events/${id}/order?side=buy`}
@@ -170,6 +175,7 @@ export default async function EventPage({
           </span>
         </Link>
       </div>
+      )}
 
       {/* Your orders here */}
       {(myMatches.length > 0 || myOrders.length > 0) && (
@@ -232,6 +238,10 @@ export default async function EventPage({
       )}
 
       <AdBanner placement="EVENT_PAGE" />
+
+      <p className="text-xs text-muted mt-6 leading-relaxed">
+        Live prices are offers from students. “Last sold” reflects the most recent completed trade.
+      </p>
     </main>
   );
 }

@@ -11,13 +11,44 @@ import { isAdmin } from "@/lib/admin";
 import type { ActionState } from "./types";
 export type { ActionState };
 
-const schema = z.object({
+const eventSchema = z.object({
   name: z.string().trim().min(2, "Event name is too short").max(120),
   venue: z.string().trim().max(120).optional(),
   startsAt: z.string().trim().min(1, "Pick the event date"),
+  startsTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pick a valid start time"),
   description: z.string().trim().max(500).optional(),
   poshLink: z.string().trim().url("Enter a valid URL (e.g. https://posh.vip/e/your-event)").max(500).optional(),
 });
+
+const requestSchema = z.object({
+  name: z.string().trim().min(2, "Event name is too short").max(120),
+  venue: z.string().trim().max(120).optional(),
+  startsAt: z.string().trim().optional(),
+  details: z.string().trim().max(500).optional(),
+});
+
+function parseDate(raw: string, required: boolean): Date | null | undefined {
+  if (!raw) return required ? undefined : null;
+  const value = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
+  return Number.isNaN(value.getTime()) ? undefined : value;
+}
+
+function isPastDate(value: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return value.getTime() < today.getTime();
+}
+
+function eventData(formData: FormData) {
+  return eventSchema.safeParse({
+    name: formData.get("name"),
+    venue: formData.get("venue") || undefined,
+    startsAt: formData.get("startsAt") || undefined,
+    startsTime: formData.get("startsTime") || undefined,
+    description: formData.get("description") || undefined,
+    poshLink: formData.get("poshLink") || undefined,
+  });
+}
 
 export async function createEvent(
   _prev: ActionState,
@@ -27,80 +58,202 @@ export async function createEvent(
   if (!isOnboarded(user)) redirect("/onboarding");
   if (!isAdmin(user)) return { error: "Only CUTickets admins can add new events." };
 
-  const parsed = schema.safeParse({
-    name: formData.get("name"),
-    venue: formData.get("venue") || undefined,
-    startsAt: formData.get("startsAt") || undefined,
-    description: formData.get("description") || undefined,
-    poshLink: formData.get("poshLink") || undefined,
+  const parsed = eventData(formData);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const startsAt = parseDate(`${parsed.data.startsAt}T${parsed.data.startsTime}:00`, true);
+  if (!startsAt) return { error: "Enter a valid date" };
+  if (isPastDate(startsAt)) return { error: "Event date must be in the future" };
+
+  const existing = await prisma.event.findFirst({
+    where: { name: { equals: parsed.data.name, mode: "insensitive" }, archivedAt: null },
+    select: { id: true },
   });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
-  }
+  if (existing) redirect(`/events/${existing.id}`);
 
-  // An event date is required and drives listing expiry, so it must be a real,
-  // future date — a past event would make every listing expire immediately.
-  // The form sends a date-only value ("YYYY-MM-DD"); treat it as local midnight
-  // of that calendar day rather than UTC midnight.
-  const raw = parsed.data.startsAt;
-  const startsAt = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
-  if (Number.isNaN(startsAt.getTime())) {
-    return { error: "Enter a valid date" };
-  }
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-  if (startsAt.getTime() < startOfToday.getTime()) {
-    return { error: "Event date must be in the future" };
-  }
+  const requestId = z.string().min(1).safeParse(formData.get("requestId"));
+  const event = await prisma.$transaction(async (tx) => {
+    const created = await tx.event.create({
+      data: {
+        name: parsed.data.name,
+        venue: parsed.data.venue ?? null,
+        description: parsed.data.description ?? null,
+        poshLink: parsed.data.poshLink ?? null,
+        startsAt,
+        createdById: user.id,
+      },
+    });
 
-  // Avoid fragmenting liquidity: if an event with the same name (ignoring case
-  // and surrounding whitespace) already exists, send the user to it instead of
-  // creating a duplicate market. SQLite string compares are case-sensitive, so
-  // we normalize in JS.
-  const normalized = parsed.data.name.toLowerCase();
-  const candidates = await prisma.event.findMany({ select: { id: true, name: true } });
-  const existing = candidates.find((e) => e.name.trim().toLowerCase() === normalized);
-  if (existing) {
-    redirect(`/events/${existing.id}`);
-  }
-
-  // Only admins can reach this point, so the event is trustworthy by
-  // construction — skip the pending-review step and verify immediately.
-  const event = await prisma.event.create({
-    data: {
-      name: parsed.data.name,
-      venue: parsed.data.venue ?? null,
-      description: parsed.data.description ?? null,
-      poshLink: parsed.data.poshLink ?? null,
-      startsAt,
-      createdById: user.id,
-      verified: true,
-      verifiedAt: new Date(),
-      verifiedById: user.id,
-    },
+    if (requestId.success) {
+      const request = await tx.eventRequest.findFirst({
+        where: { id: requestId.data, status: "PENDING" },
+        select: { id: true, requesterId: true },
+      });
+      if (request) {
+        await tx.eventRequest.update({
+          where: { id: request.id },
+          data: { status: "FULFILLED", eventId: created.id, resolvedById: user.id, resolvedAt: new Date() },
+        });
+        await notify({
+          userId: request.requesterId,
+          type: "EVENT_REQUEST_FULFILLED",
+          body: `The event you requested, “${created.name},” is now on CUTickets.`,
+          eventId: created.id,
+        }, tx);
+      }
+    }
+    return created;
   });
 
   redirect(`/events/${event.id}`);
 }
 
-export async function verifyEvent(eventId: string, _formData: FormData): Promise<void> {
+export async function updateEvent(
+  eventId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
   const user = await requireUser();
-  if (!isAdmin(user)) return;
+  if (!isAdmin(user)) return { error: "Not authorized" };
+  const parsed = eventData(formData);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const startsAt = parseDate(`${parsed.data.startsAt}T${parsed.data.startsTime}:00`, true);
+  if (!startsAt) return { error: "Enter a valid date" };
 
-  const event = await prisma.event.update({
+  const event = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
+  if (!event) return { error: "Event not found" };
+  await prisma.event.update({
     where: { id: eventId },
-    data: { verified: true, verifiedAt: new Date(), verifiedById: user.id },
-    select: { name: true, createdById: true },
+    data: {
+      name: parsed.data.name,
+      venue: parsed.data.venue ?? null,
+      startsAt,
+      description: parsed.data.description ?? null,
+      poshLink: parsed.data.poshLink ?? null,
+    },
   });
-
-  // Let the submitter know their event was verified.
-  await notify({
-    userId: event.createdById,
-    type: "EVENT_VERIFIED",
-    body: `Your event "${event.name}" has been verified ✓`,
-  });
-
-  revalidatePath("/admin/events");
-  revalidatePath(`/events/${eventId}`);
   revalidatePath("/events");
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin/events");
+  return { ok: true };
+}
+
+export async function archiveEvent(eventId: string): Promise<ActionState> {
+  const user = await requireUser();
+  if (!isAdmin(user)) return { error: "Not authorized" };
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: { id: true, name: true, archivedAt: true, listings: { where: { status: "OPEN" }, select: { userId: true } } },
+  });
+  if (!event) return { error: "Event not found" };
+  if (event.archivedAt) return { error: "Event is already archived" };
+
+  await prisma.$transaction(async (tx) => {
+    await tx.event.update({ where: { id: eventId }, data: { archivedAt: new Date() } });
+    await tx.listing.updateMany({ where: { eventId, status: "OPEN" }, data: { status: "CANCELLED", remainingQuantity: 0 } });
+    const affectedUsers = [...new Set(event.listings.map((listing) => listing.userId))];
+    await Promise.all(affectedUsers.map((userId) => notify({
+      userId,
+      type: "EVENT_ARCHIVED",
+      body: `“${event.name}” was archived, so your open order was cancelled.`,
+      eventId,
+    }, tx)));
+  });
+  revalidatePath("/events");
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin/events");
+  return { ok: true };
+}
+
+export async function restoreEvent(eventId: string): Promise<ActionState> {
+  const user = await requireUser();
+  if (!isAdmin(user)) return { error: "Not authorized" };
+  const result = await prisma.event.updateMany({ where: { id: eventId, archivedAt: { not: null } }, data: { archivedAt: null } });
+  if (result.count === 0) return { error: "Archived event not found" };
+  revalidatePath("/events");
+  revalidatePath(`/events/${eventId}`);
+  revalidatePath("/admin/events");
+  return { ok: true };
+}
+
+export async function requestEvent(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  if (!isOnboarded(user)) redirect("/onboarding");
+  const parsed = requestSchema.safeParse({
+    name: formData.get("name"),
+    venue: formData.get("venue") || undefined,
+    startsAt: formData.get("startsAt") || undefined,
+    details: formData.get("details") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  const startsAt = parseDate(parsed.data.startsAt ?? "", false);
+  if (startsAt === undefined) return { error: "Enter a valid date" };
+  if (startsAt && isPastDate(startsAt)) return { error: "Event date must be in the future" };
+
+  const existingEvent = await prisma.event.findFirst({
+    where: { name: { equals: parsed.data.name, mode: "insensitive" }, archivedAt: null },
+    select: { id: true },
+  });
+  if (existingEvent) redirect(`/events/${existingEvent.id}`);
+
+  const [duplicate, pendingCount] = await Promise.all([
+    prisma.eventRequest.findFirst({
+      where: { requesterId: user.id, status: "PENDING", name: { equals: parsed.data.name, mode: "insensitive" } },
+      select: { id: true },
+    }),
+    prisma.eventRequest.count({ where: { requesterId: user.id, status: "PENDING" } }),
+  ]);
+  if (duplicate) return { error: "You already requested this event." };
+  if (pendingCount >= 5) return { error: "You can have up to 5 pending event requests." };
+
+  await prisma.eventRequest.create({
+    data: {
+      requesterId: user.id,
+      name: parsed.data.name,
+      venue: parsed.data.venue ?? null,
+      startsAt,
+      details: parsed.data.details ?? null,
+    },
+  });
+  revalidatePath("/admin/events");
+  return { ok: true };
+}
+
+export async function dismissEventRequest(requestId: string): Promise<ActionState> {
+  const user = await requireUser();
+  if (!isAdmin(user)) return { error: "Not authorized" };
+  const request = await prisma.eventRequest.findFirst({
+    where: { id: requestId, status: "PENDING" },
+    select: { id: true, requesterId: true, name: true },
+  });
+  if (!request) return { error: "Pending request not found" };
+  await prisma.$transaction(async (tx) => {
+    await tx.eventRequest.update({
+      where: { id: request.id },
+      data: { status: "DISMISSED", resolvedById: user.id, resolvedAt: new Date() },
+    });
+    await notify({
+      userId: request.requesterId,
+      type: "EVENT_REQUEST_DISMISSED",
+      body: `Your request for “${request.name}” wasn’t added to CUTickets.`,
+    }, tx);
+  });
+  revalidatePath("/admin/events");
+  return { ok: true };
+}
+
+// Form-friendly adapters for progressive-enhancement controls that remain on
+// the admin page and do not need to render action state.
+export async function archiveEventForm(eventId: string, _formData: FormData): Promise<void> {
+  await archiveEvent(eventId);
+}
+
+export async function restoreEventForm(eventId: string, _formData: FormData): Promise<void> {
+  await restoreEvent(eventId);
+}
+
+export async function dismissEventRequestForm(requestId: string, _formData: FormData): Promise<void> {
+  await dismissEventRequest(requestId);
 }

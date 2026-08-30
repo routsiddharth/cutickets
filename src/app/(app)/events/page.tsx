@@ -65,7 +65,9 @@ export default async function EventsPage({
           <p className="text-sm text-muted mb-5">
             {canCreateEvents
               ? "Be the first to start a market for an event."
-              : "Check back soon — CUTickets admins add events as they're announced."}
+              : query
+                ? "Request it and an admin will review it."
+                : "CUTickets admins add events as they’re announced."}
           </p>
           {canCreateEvents && (
             <Link
@@ -73,6 +75,14 @@ export default async function EventsPage({
               className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
             >
               Add an event
+            </Link>
+          )}
+          {!canCreateEvents && (
+            <Link
+              href={`/events/request${query ? `?name=${encodeURIComponent(query)}` : ""}`}
+              className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
+            >
+              Request an event
             </Link>
           )}
         </div>
@@ -128,6 +138,13 @@ export default async function EventsPage({
                 className="text-sm text-columbia-deep hover:underline"
               >
                 Don&apos;t see your event? Add it →
+              </Link>
+            </div>
+          )}
+          {!canCreateEvents && (
+            <div className="mt-6 text-center">
+              <Link href="/events/request" className="text-sm text-columbia-deep hover:underline">
+                Don&apos;t see your event? Request it →
               </Link>
             </div>
           )}

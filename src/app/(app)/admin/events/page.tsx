@@ -3,97 +3,106 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
-import { verifyEvent } from "@/lib/actions/events";
 import { formatDateTime } from "@/lib/format";
-import SubmitButton from "@/components/SubmitButton";
+import AdminEventAction from "./AdminEventAction";
 
 export default async function AdminEventsPage() {
   const user = await requireUser();
   if (!isAdmin(user)) notFound();
 
-  const [pending, verified] = await Promise.all([
-    prisma.event.findMany({
-      where: { verified: false },
-      orderBy: { createdAt: "desc" },
-      include: { createdBy: { select: { name: true, email: true } } },
+  const [requests, activeEvents, archivedEvents] = await Promise.all([
+    prisma.eventRequest.findMany({
+      where: { status: "PENDING" },
+      orderBy: { createdAt: "asc" },
+      include: { requester: { select: { name: true, email: true } } },
     }),
     prisma.event.findMany({
-      where: { verified: true },
-      orderBy: { verifiedAt: "desc" },
-      take: 30,
+      where: { archivedAt: null },
+      orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
       include: {
         createdBy: { select: { name: true } },
-        verifiedBy: { select: { name: true } },
+        _count: { select: { listings: true, matches: true } },
       },
+    }),
+    prisma.event.findMany({
+      where: { archivedAt: { not: null } },
+      orderBy: { archivedAt: "desc" },
+      take: 30,
+      include: { createdBy: { select: { name: true } } },
     }),
   ]);
 
   return (
     <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
-      <h1 className="font-serif text-3xl mb-7">Event Verification</h1>
+      <div className="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="font-serif text-3xl">Events</h1>
+          <p className="text-sm text-muted mt-1">Manage markets and review student requests.</p>
+        </div>
+        <Link href="/events/new" className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0">
+          Add event
+        </Link>
+      </div>
 
-      {/* Pending verification */}
       <section>
-        <p className="tag text-muted mb-3">
-          Pending{pending.length > 0 ? ` · ${pending.length}` : ""}
-        </p>
-
-        {pending.length === 0 ? (
-          <div className="bg-white border border-dashed border-line rounded-xl p-8 text-center text-sm text-muted">
-            All caught up — no events awaiting verification.
-          </div>
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="font-medium">Requests</h2>
+          <span className="text-sm text-muted">{requests.length} pending</span>
+        </div>
+        {requests.length === 0 ? (
+          <p className="border border-dashed border-line rounded-xl p-6 text-sm text-muted">No event requests to review.</p>
         ) : (
-          <div className="space-y-4">
-            {pending.map((event) => (
-              <div key={event.id} className="bg-white border border-line rounded-2xl p-5">
+          <div className="bg-white border border-line rounded-xl divide-y divide-line overflow-hidden">
+            {requests.map((request) => (
+              <div key={request.id} className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="font-medium text-lg leading-snug">{event.name}</p>
+                    <p className="font-medium break-words">{request.name}</p>
                     <p className="text-xs text-muted mt-0.5">
-                      {formatDateTime(event.startsAt)}
-                      {event.venue ? ` · ${event.venue}` : ""}
+                      {request.startsAt ? formatDateTime(request.startsAt) : "Date unknown"}
+                      {request.venue ? ` · ${request.venue}` : ""}
+                    </p>
+                    <p className="text-xs text-muted mt-1">
+                      Requested by {request.requester.name ?? request.requester.email}
                     </p>
                   </div>
-                  <form action={verifyEvent.bind(null, event.id)} className="shrink-0">
-                    <SubmitButton
-                      pendingText="Verifying…"
-                      className="bg-columbia text-white text-sm px-4 py-2 rounded-lg font-medium hover:bg-columbia-deep transition-colors disabled:opacity-60"
-                    >
-                      Verify ✓
-                    </SubmitButton>
-                  </form>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Link href={`/events/new?requestId=${request.id}`} className="text-sm font-medium text-columbia-deep hover:underline">
+                      Add
+                    </Link>
+                    <AdminEventAction kind="dismiss-request" id={request.id} />
+                  </div>
                 </div>
+                {request.details && <p className="text-sm text-muted mt-3 break-words">{request.details}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
-                <div className="mt-3 pt-3 border-t border-line space-y-1.5 text-sm">
-                  <p className="text-muted">
-                    <span className="font-medium text-ink">Submitted by</span>{" "}
-                    {event.createdBy.name} · {event.createdBy.email}
+      <section className="mt-10">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="font-medium">Active events</h2>
+          <span className="text-sm text-muted">{activeEvents.length}</span>
+        </div>
+        {activeEvents.length === 0 ? (
+          <p className="border border-dashed border-line rounded-xl p-6 text-sm text-muted">No active events.</p>
+        ) : (
+          <div className="bg-white border border-line rounded-xl divide-y divide-line overflow-hidden">
+            {activeEvents.map((event) => (
+              <div key={event.id} className="flex items-center justify-between gap-4 px-4 py-3.5">
+                <div className="min-w-0">
+                  <Link href={`/events/${event.id}`} className="text-sm font-medium hover:underline break-words">{event.name}</Link>
+                  <p className="text-xs text-muted mt-0.5">
+                    {formatDateTime(event.startsAt)}{event.venue ? ` · ${event.venue}` : ""}
                   </p>
-                  {event.description && (
-                    <p className="text-muted">
-                      <span className="font-medium text-ink">Notes</span>{" "}
-                      {event.description}
-                    </p>
-                  )}
-                  {event.poshLink && (
-                    <p className="text-muted">
-                      <span className="font-medium text-ink">Event page</span>{" "}
-                      <a
-                        href={event.poshLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-columbia-deep hover:underline break-all"
-                      >
-                        {event.poshLink}
-                      </a>
-                    </p>
-                  )}
-                  <Link
-                    href={`/events/${event.id}`}
-                    className="inline-block text-columbia-deep hover:underline"
-                  >
-                    View event page →
-                  </Link>
+                  <p className="text-xs text-muted mt-0.5">
+                    {event._count.listings} orders · {event._count.matches} matches · added by {event.createdBy.name ?? "Admin"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <Link href={`/admin/events/${event.id}/edit`} className="text-sm text-columbia-deep hover:underline">Edit</Link>
+                  <AdminEventAction kind="archive" id={event.id} />
                 </div>
               </div>
             ))}
@@ -101,27 +110,21 @@ export default async function AdminEventsPage() {
         )}
       </section>
 
-      {/* Already verified */}
-      {verified.length > 0 && (
+      {archivedEvents.length > 0 && (
         <section className="mt-10">
-          <p className="tag text-muted mb-3">Verified · {verified.length}</p>
-          <div className="bg-white border border-line rounded-2xl divide-y divide-line overflow-hidden">
-            {verified.map((event) => (
-              <Link
-                key={event.id}
-                href={`/events/${event.id}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-paper"
-              >
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="font-medium">Archived</h2>
+            <span className="text-sm text-muted">{archivedEvents.length}</span>
+          </div>
+          <div className="bg-white border border-line rounded-xl divide-y divide-line overflow-hidden">
+            {archivedEvents.map((event) => (
+              <div key={event.id} className="flex items-center justify-between gap-4 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{event.name}</p>
-                  <p className="text-xs text-muted mt-0.5">
-                    {formatDateTime(event.startsAt)}
-                    {event.venue ? ` · ${event.venue}` : ""}
-                    {" · by "}{event.createdBy.name}
-                  </p>
+                  <Link href={`/events/${event.id}`} className="text-sm font-medium text-muted hover:text-ink hover:underline break-words">{event.name}</Link>
+                  <p className="text-xs text-muted mt-0.5">Archived {formatDateTime(event.archivedAt)}</p>
                 </div>
-                <span className="text-columbia-deep text-sm shrink-0 font-medium">✓</span>
-              </Link>
+                <AdminEventAction kind="restore" id={event.id} />
+              </div>
             ))}
           </div>
         </section>

@@ -4,7 +4,21 @@ import { useActionState } from "react";
 import { createEvent, type ActionState } from "@/lib/actions/events";
 import SubmitButton from "@/components/SubmitButton";
 
-export default function EventForm() {
+type EventDefaults = {
+  name?: string;
+  venue?: string;
+  startsAt?: string;
+  startsTime?: string;
+  description?: string;
+};
+
+export default function EventForm({
+  defaults,
+  requestId,
+}: {
+  defaults?: EventDefaults;
+  requestId?: string;
+}) {
   const [state, action] = useActionState<ActionState, FormData>(
     createEvent,
     undefined,
@@ -12,6 +26,7 @@ export default function EventForm() {
 
   return (
     <form action={action} className="space-y-5">
+      {requestId && <input type="hidden" name="requestId" value={requestId} />}
       <div>
         <label htmlFor="name" className="tag text-muted">
           Event name
@@ -21,11 +36,12 @@ export default function EventForm() {
           name="name"
           required
           maxLength={120}
+          defaultValue={defaults?.name}
           placeholder="Bacchanal Spring Concert"
           className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
         />
       </div>
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4">
         <div>
           <label htmlFor="venue" className="tag text-muted">
             Venue <span className="normal-case tracking-normal">(optional)</span>
@@ -34,6 +50,7 @@ export default function EventForm() {
             id="venue"
             name="venue"
             maxLength={120}
+            defaultValue={defaults?.venue}
             placeholder="Low Plaza"
             className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
           />
@@ -47,11 +64,23 @@ export default function EventForm() {
             name="startsAt"
             type="date"
             required
+            defaultValue={defaults?.startsAt}
             className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
           />
           <p className="text-xs text-muted mt-1">
             Sets when listings for this event come down (the day after).
           </p>
+        </div>
+        <div>
+          <label htmlFor="startsTime" className="tag text-muted">Start time</label>
+          <input
+            id="startsTime"
+            name="startsTime"
+            type="time"
+            required
+            defaultValue={defaults?.startsTime}
+            className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
+          />
         </div>
       </div>
       <div>
@@ -62,6 +91,7 @@ export default function EventForm() {
           id="description"
           name="description"
           maxLength={500}
+          defaultValue={defaults?.description}
           rows={3}
           placeholder="Anything students should know about this event."
           className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white resize-none"

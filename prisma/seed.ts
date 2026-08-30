@@ -29,7 +29,12 @@ async function main() {
   for (const p of people) {
     const u = await prisma.user.upsert({
       where: { email: p.email },
-      update: { name: p.name, school: p.school, classYear: p.classYear },
+      update: {
+        name: p.name,
+        school: p.school,
+        classYear: p.classYear,
+        role: p.email === "dev@columbia.edu" ? "ADMIN" : "USER",
+      },
       create: {
         email: p.email,
         name: p.name,
@@ -37,6 +42,7 @@ async function main() {
         classYear: p.classYear,
         emailVerified: daysAgo(p.joined),
         createdAt: daysAgo(p.joined),
+        role: p.email === "dev@columbia.edu" ? "ADMIN" : "USER",
       },
     });
     users[p.email] = { id: u.id };
@@ -50,8 +56,8 @@ async function main() {
   const createEvent = (name: string, venue: string, startsAt: Date, createdBy: string) =>
     prisma.event.create({ data: { name, venue, startsAt, createdById: createdBy } });
 
-  const bacchanal = await createEvent("Bacchanal Spring Concert", "Low Plaza", eveningInDays(16), users["jordan@columbia.edu"].id);
-  const formal = await createEvent("Barnard Spring Formal", "The Glasshouse", eveningInDays(23), users["ava@barnard.edu"].id);
+  const bacchanal = await createEvent("Bacchanal Spring Concert", "Low Plaza", eveningInDays(16), users["dev@columbia.edu"].id);
+  const formal = await createEvent("Barnard Spring Formal", "The Glasshouse", eveningInDays(23), users["dev@columbia.edu"].id);
   const records = await createEvent("CU Records × 1020 Night", "1020 Bar", eveningInDays(9), users["dev@columbia.edu"].id);
 
   // ─── Orders (the resting book) ──────────────────────────────────────────────

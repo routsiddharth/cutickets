@@ -62,9 +62,10 @@ export async function createListing(
   // The event must exist.
   const event = await prisma.event.findUnique({
     where: { id: parsed.data.eventId },
-    select: { id: true, startsAt: true },
+    select: { id: true, startsAt: true, archivedAt: true },
   });
   if (!event) return { error: "That event no longer exists" };
+  if (event.archivedAt) return { error: "This event is archived and no longer accepts orders" };
 
   // Rate-limit: cap active listings, with a tighter cap for brand-new accounts.
   const activeCount = await prisma.listing.count({

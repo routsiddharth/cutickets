@@ -78,7 +78,10 @@ export async function getSalesCount(eventId: string): Promise<number> {
 /** Events for the browse page, with summary stats, soonest event first. */
 export async function getEventsWithStats(query?: string) {
   const events = await prisma.event.findMany({
-    where: query ? { name: { contains: query } } : undefined,
+    where: {
+      archivedAt: null,
+      ...(query ? { name: { contains: query, mode: "insensitive" as const } } : {}),
+    },
     orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
     take: 100,
   });

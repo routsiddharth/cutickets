@@ -2,11 +2,20 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
+import { prisma } from "@/lib/prisma";
 import EventForm from "./EventForm";
 
-export default async function NewEventPage() {
+export default async function NewEventPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ requestId?: string }>;
+}) {
   const user = await requireUser();
   if (!isAdmin(user)) notFound();
+  const { requestId } = await searchParams;
+  const request = requestId
+    ? await prisma.eventRequest.findFirst({ where: { id: requestId, status: "PENDING" } })
+    : null;
 
   return (
     <main className="max-w-lg mx-auto px-5 py-10">
@@ -19,7 +28,18 @@ export default async function NewEventPage() {
         it.
       </p>
       <div className="bg-white border border-line rounded-2xl p-6">
-        <EventForm />
+        <EventForm
+          requestId={request?.id}
+          defaults={request ? {
+            name: request.name,
+            venue: request.venue ?? undefined,
+            startsAt: request.startsAt?.toISOString().slice(0, 10),
+            startsTime: request.startsAt
+              ? `${String(request.startsAt.getHours()).padStart(2, "0")}:${String(request.startsAt.getMinutes()).padStart(2, "0")}`
+              : undefined,
+            description: request.details ?? undefined,
+          } : undefined}
+        />
       </div>
     </main>
   );

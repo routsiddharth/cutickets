@@ -10,8 +10,9 @@ const ICON: Record<string, string> = {
   NEW_MESSAGE: "💬",
   TRADE_CONFIRMED: "✍️",
   TRADE_COMPLETED: "✓",
-  EVENT_VERIFICATION_REQUEST: "🔔",
-  EVENT_VERIFIED: "✓",
+  EVENT_REQUEST_FULFILLED: "✓",
+  EVENT_REQUEST_DISMISSED: "—",
+  EVENT_ARCHIVED: "✕",
   LISTING_KILLED: "🚫",
   TRADE_ADMIN_CANCELLED: "🚫",
   ADMIN_ROLE_GRANTED: "⭐",
@@ -66,8 +67,8 @@ export default async function NotificationsPage() {
             );
             const href = n.matchId
               ? `/matches/${n.matchId}`
-              : n.type === "EVENT_VERIFICATION_REQUEST"
-                ? "/admin/events"
+              : n.eventId
+                ? `/events/${n.eventId}`
                 : null;
 
             return href ? (

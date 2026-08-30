@@ -155,7 +155,7 @@ src/
     api/cron/reservations/  # daily reservation-expiry sweep (Bearer CRON_SECRET)
     (app)/             # authenticated area (Nav + onboarding guard)
       onboarding/      # phone verification, then profile (school + class year)
-      events/          # browse, event order book, create event, place orders
+      events/          # browse/order book, request events, admin creation, place orders
       matches/         # confirm match, chat & confirm (reveal + chat), complete, rate
       profile/[id]/    # reputation + confirmed trades + report
       notifications/   # in-app notifications feed
