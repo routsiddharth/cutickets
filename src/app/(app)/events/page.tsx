@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getEventsWithStats } from "@/lib/queries";
 import { formatDate, formatPrice } from "@/lib/format";
 import AdBanner from "@/components/AdBanner";
+import { getCurrentUser } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
 
 export default async function EventsPage({
   searchParams,
@@ -10,7 +12,8 @@ export default async function EventsPage({
 }) {
   const { q } = await searchParams;
   const query = q?.trim() || undefined;
-  const events = await getEventsWithStats(query);
+  const [events, user] = await Promise.all([getEventsWithStats(query), getCurrentUser()]);
+  const canCreateEvents = !!user && isAdmin(user);
 
   return (
     <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
@@ -22,12 +25,14 @@ export default async function EventsPage({
             selling.
           </p>
         </div>
-        <Link
-          href="/events/new"
-          className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0 hover:bg-ink/90"
-        >
-          + New event
-        </Link>
+        {canCreateEvents && (
+          <Link
+            href="/events/new"
+            className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0 hover:bg-ink/90"
+          >
+            + New event
+          </Link>
+        )}
       </div>
 
       <form className="flex gap-2 mb-6" action="/events">
@@ -58,14 +63,18 @@ export default async function EventsPage({
             {query ? "No events match that search." : "No events yet."}
           </p>
           <p className="text-sm text-muted mb-5">
-            Be the first to start a market for an event.
+            {canCreateEvents
+              ? "Be the first to start a market for an event."
+              : "Check back soon — CUTickets admins add events as they're announced."}
           </p>
-          <Link
-            href="/events/new"
-            className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
-          >
-            Add an event
-          </Link>
+          {canCreateEvents && (
+            <Link
+              href="/events/new"
+              className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
+            >
+              Add an event
+            </Link>
+          )}
         </div>
       ) : (
         <>
@@ -120,14 +129,16 @@ export default async function EventsPage({
               </Link>
             ))}
           </div>
-          <div className="mt-6 text-center">
-            <Link
-              href="/events/new"
-              className="text-sm text-columbia-deep hover:underline"
-            >
-              Don&apos;t see your event? Add it →
-            </Link>
-          </div>
+          {canCreateEvents && (
+            <div className="mt-6 text-center">
+              <Link
+                href="/events/new"
+                className="text-sm text-columbia-deep hover:underline"
+              >
+                Don&apos;t see your event? Add it →
+              </Link>
+            </div>
+          )}
         </>
       )}
     </main>

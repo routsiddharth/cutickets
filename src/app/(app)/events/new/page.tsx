@@ -1,7 +1,13 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireUser } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
 import EventForm from "./EventForm";
 
-export default function NewEventPage() {
+export default async function NewEventPage() {
+  const user = await requireUser();
+  if (!isAdmin(user)) notFound();
+
   return (
     <main className="max-w-lg mx-auto px-5 py-10">
       <Link href="/events" className="text-sm text-muted hover:text-ink">

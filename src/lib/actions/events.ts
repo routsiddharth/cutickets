@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 import { notify } from "@/lib/notifications";
-import { SUPERADMIN_EMAILS, isAdmin } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 
 import type { ActionState } from "./types";
 export type { ActionState };
@@ -25,6 +25,7 @@ export async function createEvent(
 ): Promise<ActionState> {
   const user = await requireUser();
   if (!isOnboarded(user)) redirect("/onboarding");
+  if (!isAdmin(user)) return { error: "Only CUTickets admins can add new events." };
 
   const parsed = schema.safeParse({
     name: formData.get("name"),
@@ -63,6 +64,8 @@ export async function createEvent(
     redirect(`/events/${existing.id}`);
   }
 
+  // Only admins can reach this point, so the event is trustworthy by
+  // construction — skip the pending-review step and verify immediately.
   const event = await prisma.event.create({
     data: {
       name: parsed.data.name,
@@ -71,23 +74,11 @@ export async function createEvent(
       poshLink: parsed.data.poshLink ?? null,
       startsAt,
       createdById: user.id,
+      verified: true,
+      verifiedAt: new Date(),
+      verifiedById: user.id,
     },
   });
-
-  // Notify admins so they can review and verify the event.
-  const adminUsers = await prisma.user.findMany({
-    where: { OR: [{ email: { in: [...SUPERADMIN_EMAILS] } }, { role: "ADMIN" }] },
-    select: { id: true },
-  });
-  await Promise.all(
-    adminUsers.map((admin) =>
-      notify({
-        userId: admin.id,
-        type: "EVENT_VERIFICATION_REQUEST",
-        body: `New event submitted: "${event.name}" — review in Admin Events`,
-      }),
-    ),
-  );
 
   redirect(`/events/${event.id}`);
 }
