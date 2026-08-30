@@ -21,7 +21,7 @@ export default async function AdminEventsPage() {
       orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
       include: {
         createdBy: { select: { name: true } },
-        _count: { select: { listings: true, matches: true } },
+        _count: { select: { listings: true, deals: true } },
       },
     }),
     prisma.event.findMany({
@@ -37,7 +37,7 @@ export default async function AdminEventsPage() {
       <div className="flex items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-serif text-3xl">Events</h1>
-          <p className="text-sm text-muted mt-1">Manage markets and review student requests.</p>
+          <p className="text-sm text-muted mt-1">Manage listings and review student requests.</p>
         </div>
         <Link href="/events/new" className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0">
           Add event
@@ -95,7 +95,7 @@ export default async function AdminEventsPage() {
                     {formatDateTime(event.startsAt)}{event.venue ? ` · ${event.venue}` : ""}
                   </p>
                   <p className="text-xs text-muted mt-0.5">
-                    {event._count.listings} orders · {event._count.matches} matches · added by {event.createdBy.name ?? "Admin"}
+                    {event._count.listings} listings · {event._count.deals} deals · added by {event.createdBy.name ?? "Admin"}
                   </p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">

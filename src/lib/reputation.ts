@@ -18,12 +18,10 @@ export function isNewAccount(createdAt: Date): boolean {
 }
 
 /**
- * The single definition of "a completed trade": a COMPLETED match where the
- * user is on either side. `getReputation` and the event-market view both read
- * trade counts from here so a user's profile and listing badges can't drift.
+ * A completed trade is a deal both buyer and seller confirmed.
  */
 export async function countCompletedTrades(userId: string): Promise<number> {
-  return prisma.match.count({
+  return prisma.deal.count({
     where: {
       status: "COMPLETED",
       OR: [{ buyerId: userId }, { sellerId: userId }],
@@ -31,7 +29,7 @@ export async function countCompletedTrades(userId: string): Promise<number> {
   });
 }
 
-/** Aggregate a user's reputation from ratings + completed matches. */
+/** Aggregate a user's reputation from ratings + completed deals. */
 export async function getReputation(userId: string): Promise<Reputation> {
   const user = await prisma.user.findUnique({
     where: { id: userId },

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { isAdmin, isSuperAdmin, SUPERADMIN_EMAILS } from "@/lib/admin";
 import { notify } from "@/lib/notifications";
-import { runMatch, releaseReservation } from "@/lib/matching";
+import { releaseDeal } from "@/lib/deals";
 import { isAllowedEmail } from "@/lib/domains";
 import type { ActionState } from "./types";
 
@@ -94,7 +94,7 @@ export async function adminKillListing(
     where: { id: listingId },
     select: {
       id: true,
-      userId: true,
+      sellerId: true,
       eventId: true,
       status: true,
       event: { select: { name: true } },
@@ -105,63 +105,58 @@ export async function adminKillListing(
 
   await prisma.listing.update({
     where: { id: listingId },
-    data: { status: "CANCELLED", remainingQuantity: 0 },
+    data: { status: "CANCELLED", availableQuantity: 0 },
   });
 
   const body = reason
     ? `Your listing for "${listing.event.name}" was removed by a moderator: ${reason}`
     : `Your listing for "${listing.event.name}" was removed by a moderator`;
 
-  await notify({ userId: listing.userId, type: "LISTING_KILLED", body });
+  await notify({ userId: listing.sellerId, type: "LISTING_KILLED", body });
 
   revalidatePath(`/events/${listing.eventId}`);
   revalidatePath("/admin/moderation");
   return { ok: true };
 }
 
-export async function adminCancelTrade(
-  matchId: string,
+export async function adminCancelDeal(
+  dealId: string,
   reason?: string,
 ): Promise<ActionState> {
   const user = await requireUser();
   if (!isAdmin(user)) return { error: "Not authorized" };
 
-  const match = await prisma.match.findUnique({
-    where: { id: matchId },
+  const deal = await prisma.deal.findUnique({
+    where: { id: dealId },
     select: {
       id: true,
       eventId: true,
-      buyOrderId: true,
-      sellOrderId: true,
+      listingId: true,
       buyerId: true,
       sellerId: true,
-      reservedQuantity: true,
+      quantity: true,
       status: true,
       event: { select: { name: true } },
     },
   });
-  if (!match) return { error: "Match not found" };
-  if (match.status !== "RESERVED" && match.status !== "ACCEPTED") {
-    return { error: "Match is not active" };
+  if (!deal) return { error: "Deal not found" };
+  if (deal.status !== "RESERVED") {
+    return { error: "Deal is not active" };
   }
 
   const body = reason
-    ? `Your trade for "${match.event.name}" was cancelled by a moderator: ${reason}`
-    : `Your trade for "${match.event.name}" was cancelled by a moderator`;
+    ? `Your trade for "${deal.event.name}" was cancelled by a moderator: ${reason}`
+    : `Your trade for "${deal.event.name}" was cancelled by a moderator`;
 
-  await runMatch(match.eventId, async (tx) => {
-    const fresh = await tx.match.findUnique({
-      where: { id: match.id },
-      select: { status: true },
-    });
-    if (!fresh || (fresh.status !== "RESERVED" && fresh.status !== "ACCEPTED")) return;
-    await releaseReservation(tx, match, "CANCELLED");
-    await notify({ userId: match.buyerId, type: "TRADE_ADMIN_CANCELLED", body, matchId: match.id }, tx);
-    await notify({ userId: match.sellerId, type: "TRADE_ADMIN_CANCELLED", body, matchId: match.id }, tx);
+  await prisma.$transaction(async (tx) => {
+    const released = await releaseDeal(tx, deal, "CANCELLED");
+    if (!released) return;
+    await notify({ userId: deal.buyerId, type: "TRADE_ADMIN_CANCELLED", body, dealId: deal.id }, tx);
+    await notify({ userId: deal.sellerId, type: "TRADE_ADMIN_CANCELLED", body, dealId: deal.id }, tx);
   });
 
   revalidatePath("/admin/moderation");
-  revalidatePath("/matches");
+  revalidatePath("/deals");
   return { ok: true };
 }
 

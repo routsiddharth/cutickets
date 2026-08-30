@@ -1,86 +1,64 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { runMatch, sweepExpiredReservations } from "@/lib/matching";
+import { releaseDeal } from "@/lib/deals";
 import { notify } from "@/lib/notifications";
 import { RESERVATION_EXPIRING_SOON_MS } from "@/lib/constants";
 
-// Prisma needs the Node runtime; never cache a job route.
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Reservation sweeper — runs on a Vercel Cron schedule (see vercel.json). On the
- * Hobby plan crons run at most once per day, so this is the BACKSTOP: stale
- * reservations are also swept on the order-placement path (see createListing /
- * sweepExpiredReservations). This job catches events with no live activity.
- *  1. Expire reservations whose 24h accept window has lapsed without both
- *     parties confirming: free the tickets and roll them to the next in queue.
- *  2. Nudge anyone who still hasn't confirmed a reservation with <4h left.
- *
- * Secured by CRON_SECRET: Vercel Cron sends `Authorization: Bearer $CRON_SECRET`
- * automatically when the env var is set. Idempotent — safe to run on overlap.
- */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-  }
+  if (!secret) return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
   if (request.headers.get("authorization") !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const now = new Date();
-
-  // ── 1. Expire stale reservations (grouped by event, under the event lock) ──
-  const staleEvents = await prisma.match.findMany({
+  const stale = await prisma.deal.findMany({
     where: { status: "RESERVED", reservationExpiresAt: { lt: now } },
-    select: { eventId: true },
-    distinct: ["eventId"],
+    select: {
+      id: true,
+      listingId: true,
+      quantity: true,
+      buyerId: true,
+      sellerId: true,
+      event: { select: { name: true } },
+    },
   });
 
   let expired = 0;
-  for (const { eventId } of staleEvents) {
-    expired += await runMatch(eventId, (tx) => sweepExpiredReservations(tx, eventId, now));
+  for (const deal of stale) {
+    await prisma.$transaction(async (tx) => {
+      const released = await releaseDeal(tx, deal, "EXPIRED");
+      if (!released) return;
+      expired++;
+      for (const userId of [deal.buyerId, deal.sellerId]) {
+        await notify({ userId, type: "DEAL_CANCELLED", dealId: deal.id, body: `The ${deal.event.name} reservation expired` }, tx);
+      }
+    });
   }
 
-  // ── 2. "Expiring soon" nudges ─────────────────────────────────────────────
-  const soon = await prisma.match.findMany({
+  const soon = await prisma.deal.findMany({
     where: {
       status: "RESERVED",
       reservationExpiresAt: { gt: now, lt: new Date(now.getTime() + RESERVATION_EXPIRING_SOON_MS) },
       expiringSoonNotifiedAt: null,
     },
-    select: {
-      id: true,
-      buyerId: true,
-      sellerId: true,
-      buyerAccepted: true,
-      sellerAccepted: true,
-      event: { select: { name: true } },
-    },
+    select: { id: true, buyerId: true, sellerId: true, event: { select: { name: true } } },
   });
-
-  let nudged = 0;
-  for (const m of soon) {
-    // Only nudge the side(s) that haven't confirmed yet.
-    const targets: string[] = [];
-    if (!m.buyerAccepted) targets.push(m.buyerId);
-    if (!m.sellerAccepted) targets.push(m.sellerId);
-    for (const uid of targets) {
-      await notify({
-        userId: uid,
-        type: "RESERVATION_EXPIRING",
-        matchId: m.id,
-        body: `Less than 4 hours left to confirm your ${m.event.name} match before it rolls to the next person`,
-        collapse: true,
+  for (const deal of soon) {
+    await prisma.$transaction(async (tx) => {
+      const marked = await tx.deal.updateMany({
+        where: { id: deal.id, status: "RESERVED", expiringSoonNotifiedAt: null },
+        data: { expiringSoonNotifiedAt: now },
       });
-    }
-    await prisma.match.update({
-      where: { id: m.id },
-      data: { expiringSoonNotifiedAt: now },
+      if (!marked.count) return;
+      for (const userId of [deal.buyerId, deal.sellerId]) {
+        await notify({ userId, type: "RESERVATION_EXPIRING", dealId: deal.id, body: `The ${deal.event.name} reservation expires in under 4 hours`, collapse: true }, tx);
+      }
     });
-    if (targets.length) nudged++;
   }
 
-  return NextResponse.json({ ok: true, expired, nudged });
+  return NextResponse.json({ ok: true, expired, nudged: soon.length });
 }

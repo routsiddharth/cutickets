@@ -35,8 +35,7 @@ export default async function AppLayout({
       <div className="flex-1">{children}</div>
       <footer>
         <div className="max-w-5xl mx-auto px-5 sm:px-7 py-6 text-center text-xs text-muted">
-          Morningside Tickets doesn&apos;t handle payment or guarantee transfer. Trades happen off-platform
-          (Posh, Partiful, Venmo) at your own risk.
+          Payment and ticket transfer happen directly between buyer and seller.
         </div>
       </footer>
     </div>

@@ -1,5 +1,5 @@
-// One-off cleanup: delete every Event, cascading to Listings, Matches,
-// Messages, Ratings, Notifications (matchId-linked), and ReservationExclusions.
+// One-off cleanup: delete every Event, cascading to listings, deals, messages,
+// ratings, and deal-linked notifications.
 // Users, accounts, ads, and admin invites are left untouched.
 //
 // Usage:
@@ -13,7 +13,7 @@ async function main() {
     prisma.event.count(),
     prisma.listing.count(),
   ]);
-  console.log(`About to delete ${eventCount} event(s) and ${listingCount} listing(s) (cascades matches/messages/ratings).`);
+  console.log(`About to delete ${eventCount} event(s) and ${listingCount} listing(s) (cascades deals/messages/ratings).`);
 
   const { count } = await prisma.event.deleteMany({});
   console.log(`Deleted ${count} event(s).`);

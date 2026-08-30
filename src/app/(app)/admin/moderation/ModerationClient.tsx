@@ -2,23 +2,22 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { adminKillListing, adminCancelTrade } from "@/lib/actions/admin";
+import { adminKillListing, adminCancelDeal } from "@/lib/actions/admin";
 
 type ListingRow = {
   id: string;
-  type: string;
   priceFmt: string;
-  remainingQuantity: number;
+  availableQuantity: number;
   createdAt: string;
-  user: { name: string | null; email: string };
+  seller: { name: string | null; email: string };
   event: { id: string; name: string };
 };
 
-type MatchRow = {
+type DealRow = {
   id: string;
   status: string;
   priceFmt: string;
-  reservedQuantity: number;
+  quantity: number;
   createdAt: string;
   event: { name: string };
   buyer: { name: string | null; email: string };
@@ -64,14 +63,14 @@ function KillListingForm({ listingId, onDone }: { listingId: string; onDone: () 
   );
 }
 
-function CancelTradeForm({ matchId, onDone }: { matchId: string; onDone: () => void }) {
+function CancelTradeForm({ dealId, onDone }: { dealId: string; onDone: () => void }) {
   const [reason, setReason] = useState("");
   const [, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function submit() {
     startTransition(async () => {
-      const result = await adminCancelTrade(matchId, reason.trim() || undefined);
+      const result = await adminCancelDeal(dealId, reason.trim() || undefined);
       if (result?.error) setError(result.error);
       else onDone();
     });
@@ -110,11 +109,11 @@ function ListingRow({ listing }: { listing: ListingRow }) {
               {listing.event.name}
             </Link>
             <span className="ml-2 text-xs text-muted font-normal">
-              {listing.type === "SELL" ? "Ask" : "Bid"} · {listing.priceFmt} · {listing.remainingQuantity} left
+              {listing.priceFmt} · {listing.availableQuantity} available
             </span>
           </p>
           <p className="text-xs text-muted mt-0.5">
-            {listing.user.name ?? listing.user.email} · {listing.user.email}
+            {listing.seller.name ?? listing.seller.email} · {listing.seller.email}
           </p>
         </div>
         <button
@@ -131,20 +130,20 @@ function ListingRow({ listing }: { listing: ListingRow }) {
   );
 }
 
-function MatchRow({ match }: { match: MatchRow }) {
+function DealRow({ deal }: { deal: DealRow }) {
   const [expanded, setExpanded] = useState(false);
   return (
     <div className="px-4 py-3.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium">
-            {match.event.name}
+            {deal.event.name}
             <span className="ml-2 text-xs text-muted font-normal">
-              {match.status} · {match.priceFmt} · {match.reservedQuantity} ticket{match.reservedQuantity !== 1 ? "s" : ""}
+              {deal.status} · {deal.priceFmt} · {deal.quantity} ticket{deal.quantity !== 1 ? "s" : ""}
             </span>
           </p>
           <p className="text-xs text-muted mt-0.5">
-            Buyer: {match.buyer.name ?? match.buyer.email} · Seller: {match.seller.name ?? match.seller.email}
+            Buyer: {deal.buyer.name ?? deal.buyer.email} · Seller: {deal.seller.name ?? deal.seller.email}
           </p>
         </div>
         <button
@@ -155,7 +154,7 @@ function MatchRow({ match }: { match: MatchRow }) {
         </button>
       </div>
       {expanded && (
-        <CancelTradeForm matchId={match.id} onDone={() => setExpanded(false)} />
+        <CancelTradeForm dealId={deal.id} onDone={() => setExpanded(false)} />
       )}
     </div>
   );
@@ -163,10 +162,10 @@ function MatchRow({ match }: { match: MatchRow }) {
 
 export default function ModerationClient({
   listings,
-  matches,
+  deals,
 }: {
   listings: ListingRow[];
-  matches: MatchRow[];
+  deals: DealRow[];
 }) {
   const [filter, setFilter] = useState("");
   const q = filter.toLowerCase();
@@ -175,11 +174,11 @@ export default function ModerationClient({
     (l) =>
       !q ||
       l.event.name.toLowerCase().includes(q) ||
-      (l.user.name ?? "").toLowerCase().includes(q) ||
-      l.user.email.toLowerCase().includes(q),
+      (l.seller.name ?? "").toLowerCase().includes(q) ||
+      l.seller.email.toLowerCase().includes(q),
   );
 
-  const filteredMatches = matches.filter(
+  const filteredDeals = deals.filter(
     (m) =>
       !q ||
       m.event.name.toLowerCase().includes(q) ||
@@ -217,19 +216,19 @@ export default function ModerationClient({
         )}
       </section>
 
-      {/* Active matches */}
+      {/* Active deals */}
       <section>
         <p className="tag text-muted mb-3">
-          Active matches{filteredMatches.length > 0 ? ` · ${filteredMatches.length}` : ""}
+          Active deals{filteredDeals.length > 0 ? ` · ${filteredDeals.length}` : ""}
         </p>
-        {filteredMatches.length === 0 ? (
+        {filteredDeals.length === 0 ? (
           <div className="bg-white border border-dashed border-line rounded-xl p-6 text-center text-sm text-muted">
-            {filter ? "No matches match this filter." : "No active matches."}
+            {filter ? "No deals match this filter." : "No active deals."}
           </div>
         ) : (
           <div className="bg-white border border-line rounded-2xl divide-y divide-line overflow-hidden">
-            {filteredMatches.map((m) => (
-              <MatchRow key={m.id} match={m} />
+            {filteredDeals.map((deal) => (
+              <DealRow key={deal.id} deal={deal} />
             ))}
           </div>
         )}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
-import { matchableListingWhere } from "@/lib/listing";
+import { purchasableListingWhere } from "@/lib/listing";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import SignOutButton from "@/components/SignOutButton";
@@ -24,7 +24,7 @@ export default async function ProfilePage({
 
   const [rep, completed, activeListings] = await Promise.all([
     getReputation(target.id),
-    prisma.match.findMany({
+    prisma.deal.findMany({
       where: {
         status: "COMPLETED",
         OR: [{ buyerId: target.id }, { sellerId: target.id }],
@@ -33,11 +33,9 @@ export default async function ProfilePage({
       orderBy: { completedAt: "desc" },
       take: 20,
     }),
-    // Only YOU can see your own live orders — exposing a named user's open
-    // orders here would re-link identity to the otherwise-anonymous book.
     isSelf
       ? prisma.listing.findMany({
-          where: { userId: target.id, ...matchableListingWhere() },
+          where: { sellerId: target.id, ...purchasableListingWhere() },
           include: { event: { select: { id: true, name: true } } },
           orderBy: { postedAt: "desc" },
           take: 20,
@@ -87,11 +85,11 @@ export default async function ProfilePage({
             <p className="text-sm text-muted">No confirmed trades yet.</p>
           ) : (
             <div className="space-y-2.5">
-              {completed.map((m) => {
-                const sold = m.sellerId === target.id;
+              {completed.map((deal) => {
+                const sold = deal.sellerId === target.id;
                 return (
                   <div
-                    key={m.id}
+                    key={deal.id}
                     className="flex items-center justify-between text-sm border-b border-line last:border-0 pb-2.5 last:pb-0"
                   >
                     <div className="min-w-0">
@@ -99,13 +97,13 @@ export default async function ProfilePage({
                         {sold ? "Sold" : "Bought"}
                       </span>{" "}
                       ·{" "}
-                      <Link href={`/events/${m.event.id}`} className="hover:underline">
-                        {m.event.name}
+                      <Link href={`/events/${deal.event.id}`} className="hover:underline">
+                        {deal.event.name}
                       </Link>
                     </div>
                     <span className="font-serif tabular-nums shrink-0 ml-3">
-                      {m.agreedPriceCents !== null ? formatPrice(m.agreedPriceCents) : "—"}{" "}
-                      <span className="text-muted text-xs">· {formatDate(m.completedAt)}</span>
+                      {formatPrice(deal.unitPriceCents)}{" "}
+                      <span className="text-muted text-xs">· {formatDate(deal.completedAt)}</span>
                     </span>
                   </div>
                 );
@@ -114,10 +112,10 @@ export default async function ProfilePage({
           )}
         </div>
 
-        {/* Your live orders (self only — never expose a named user's open orders) */}
+        {/* Current user's live listings. */}
         {isSelf && activeListings.length > 0 && (
           <div className="px-6 sm:px-7 pb-6 sm:pb-7">
-            <p className="tag text-muted mb-3">Your live orders</p>
+            <p className="tag text-muted mb-3">Your listings</p>
             <div className="space-y-2">
               {activeListings.map((l) => (
                 <Link
@@ -126,10 +124,8 @@ export default async function ProfilePage({
                   className="flex items-center justify-between text-sm bg-paper rounded-lg px-3 py-2 hover:bg-columbia-soft/40"
                 >
                   <span>
-                    <span className={l.type === "SELL" ? "text-sell font-medium" : "text-buy font-medium"}>
-                      {l.type === "SELL" ? "Selling" : "Buying"}
-                    </span>{" "}
-                    {l.remainingQuantity} · {l.event.name}
+                    <span className="text-sell font-medium">Selling</span>{" "}
+                    {l.availableQuantity} · {l.event.name}
                   </span>
                   <span className="font-serif tabular-nums">{formatPrice(l.priceCents)}/ea</span>
                 </Link>

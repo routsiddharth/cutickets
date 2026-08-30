@@ -44,9 +44,9 @@ export async function reportUser(
   if (parsed.data.listingId) {
     const listing = await prisma.listing.findUnique({
       where: { id: parsed.data.listingId },
-      select: { userId: true },
+      select: { sellerId: true },
     });
-    if (listing?.userId === parsed.data.reportedId) {
+    if (listing?.sellerId === parsed.data.reportedId) {
       listingId = parsed.data.listingId;
     }
   }

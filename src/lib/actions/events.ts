@@ -142,15 +142,15 @@ export async function archiveEvent(eventId: string): Promise<ActionState> {
   if (!isAdmin(user)) return { error: "Not authorized" };
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    select: { id: true, name: true, archivedAt: true, listings: { where: { status: "OPEN" }, select: { userId: true } } },
+    select: { id: true, name: true, archivedAt: true, listings: { where: { status: "OPEN" }, select: { sellerId: true } } },
   });
   if (!event) return { error: "Event not found" };
   if (event.archivedAt) return { error: "Event is already archived" };
 
   await prisma.$transaction(async (tx) => {
     await tx.event.update({ where: { id: eventId }, data: { archivedAt: new Date() } });
-    await tx.listing.updateMany({ where: { eventId, status: "OPEN" }, data: { status: "CANCELLED", remainingQuantity: 0 } });
-    const affectedUsers = [...new Set(event.listings.map((listing) => listing.userId))];
+    await tx.listing.updateMany({ where: { eventId, status: "OPEN" }, data: { status: "CANCELLED", availableQuantity: 0 } });
+    const affectedUsers = [...new Set(event.listings.map((listing) => listing.sellerId))];
     await Promise.all(affectedUsers.map((userId) => notify({
       userId,
       type: "EVENT_ARCHIVED",

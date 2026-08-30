@@ -3,8 +3,7 @@ import type { User } from "@prisma/client";
 /**
  * The public shape of a student: everything safe to show to anyone, and — by
  * construction — NOT their email. A listing owner's email is PII that is only
- * revealed to a counterparty on mutual interest (see the matches page, which
- * deliberately selects email separately and gates rendering on match status).
+ * revealed only inside a deal between the buyer and seller.
  *
  * Centralizing this select makes "don't leak email in the market/profile views"
  * a property of the type system rather than a thing each query must remember:

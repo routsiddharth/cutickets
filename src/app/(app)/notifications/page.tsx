@@ -4,8 +4,8 @@ import { requireUser } from "@/lib/session";
 import { formatDateTime } from "@/lib/format";
 
 const ICON: Record<string, string> = {
-  MATCH_FOUND: "🎟️",
-  OFFER_ACCEPTED: "🤝",
+  DEAL_STARTED: "🎟️",
+  DEAL_CANCELLED: "×",
   RESERVATION_EXPIRING: "⏳",
   NEW_MESSAGE: "💬",
   TRADE_CONFIRMED: "✍️",
@@ -40,7 +40,7 @@ export default async function NotificationsPage() {
   return (
     <main className="max-w-2xl mx-auto px-5 sm:px-7 py-8">
       <h1 className="font-serif text-3xl mb-1">Notifications</h1>
-      <p className="text-sm text-muted mb-6">Activity on your matches and listings.</p>
+      <p className="text-sm text-muted mb-6">Reservations, messages, and listing updates.</p>
 
       {items.length === 0 ? (
         <div className="bg-white border border-dashed border-line rounded-xl p-8 text-center text-sm text-muted">
@@ -65,8 +65,8 @@ export default async function NotificationsPage() {
                 {wasUnread && <span className="mt-1.5 w-2 h-2 rounded-full bg-columbia-deep shrink-0" />}
               </div>
             );
-            const href = n.matchId
-              ? `/matches/${n.matchId}`
+            const href = n.dealId
+              ? `/deals/${n.dealId}`
               : n.eventId
                 ? `/events/${n.eventId}`
                 : null;

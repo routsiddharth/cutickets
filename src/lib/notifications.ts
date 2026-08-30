@@ -2,9 +2,9 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 
 export type NotificationType =
-  | "MATCH_FOUND" //                 the engine auto-matched you — confirm to lock it in
-  | "OFFER_ACCEPTED" //              your counterparty confirmed the match
-  | "RESERVATION_EXPIRING" //        <4h left to confirm before it rolls to the next person
+  | "DEAL_STARTED"
+  | "DEAL_CANCELLED"
+  | "RESERVATION_EXPIRING"
   | "NEW_MESSAGE"
   | "TRADE_CONFIRMED"
   | "TRADE_COMPLETED"
@@ -12,7 +12,7 @@ export type NotificationType =
   | "EVENT_REQUEST_DISMISSED" //     an event request was declined
   | "EVENT_ARCHIVED" //              an event and its open orders were archived
   | "LISTING_KILLED" //              a moderator removed your listing
-  | "TRADE_ADMIN_CANCELLED" //       a moderator cancelled your active match
+  | "TRADE_ADMIN_CANCELLED" //       a moderator cancelled your active deal
   | "ADMIN_ROLE_GRANTED"; //         you've been granted admin access
 
 /**
@@ -21,7 +21,7 @@ export type NotificationType =
  * rolled back).
  *
  * `collapse` (for chatter-y types like NEW_MESSAGE): if an unread notification
- * of the same type already exists for this (user, match), refresh it in place
+ * of the same type already exists for this (user, deal), refresh it in place
  * instead of stacking a new row. This keeps the badge at "1 unread chat", not
  * "1 per message".
  */
@@ -30,15 +30,15 @@ export async function notify(
     userId: string;
     type: NotificationType;
     body: string;
-    matchId?: string;
+    dealId?: string;
     eventId?: string;
     collapse?: boolean;
   },
   client: Prisma.TransactionClient | typeof prisma = prisma,
 ): Promise<void> {
-  if (opts.collapse && opts.matchId) {
+  if (opts.collapse && opts.dealId) {
     const existing = await client.notification.findFirst({
-      where: { userId: opts.userId, type: opts.type, matchId: opts.matchId, readAt: null },
+      where: { userId: opts.userId, type: opts.type, dealId: opts.dealId, readAt: null },
       select: { id: true },
     });
     if (existing) {
@@ -55,7 +55,7 @@ export async function notify(
       userId: opts.userId,
       type: opts.type,
       body: opts.body,
-      matchId: opts.matchId ?? null,
+      dealId: opts.dealId ?? null,
       eventId: opts.eventId ?? null,
     },
   });

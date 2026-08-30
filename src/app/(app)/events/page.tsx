@@ -21,8 +21,7 @@ export default async function EventsPage({
         <div>
           <h1 className="font-serif text-3xl">Events</h1>
           <p className="text-sm text-muted mt-0.5">
-            Every event is a mini-market. Pick one to see who&apos;s buying and
-            selling.
+            Browse tickets from verified Columbia and Barnard students.
           </p>
         </div>
         {canCreateEvents && (
@@ -106,26 +105,12 @@ export default async function EventsPage({
                 </div>
                 <div className="flex items-center gap-4 sm:gap-5 text-right shrink-0 ml-4">
                   <div>
-                    <p className="font-serif text-lg text-sell tabular-nums leading-none">
-                      {stats.sellTickets}
-                    </p>
-                    <p className="tag text-muted">selling</p>
+                    <p className="font-serif text-lg text-sell tabular-nums leading-none">{stats.ticketsAvailable}</p>
+                    <p className="text-[11px] text-muted mt-1">available</p>
                   </div>
-                  <div>
-                    <p className="font-serif text-lg text-buy tabular-nums leading-none">
-                      {stats.buyTickets}
-                    </p>
-                    <p className="tag text-muted">buying</p>
-                  </div>
-                  <div className="border-l border-line pl-4 sm:pl-5 hidden xs:block">
-                    <p className="text-[11px] text-muted leading-none mb-1">
-                      last sale
-                    </p>
-                    <p className="font-serif tabular-nums leading-none">
-                      {stats.lastSaleCents !== null
-                        ? formatPrice(stats.lastSaleCents)
-                        : "—"}
-                    </p>
+                  <div className="border-l border-line pl-4 sm:pl-5">
+                    <p className="text-[11px] text-muted leading-none mb-1">from</p>
+                    <p className="font-serif tabular-nums leading-none">{stats.lowestPriceCents !== null ? formatPrice(stats.lowestPriceCents) : "—"}</p>
                   </div>
                 </div>
               </Link>

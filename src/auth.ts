@@ -29,7 +29,7 @@ const devProvider = Credentials({
     const name =
       String(creds?.name ?? "").trim().slice(0, 80) || email.split("@")[0];
 
-    // Upsert a real, persisted user so foreign keys (listings, matches) work.
+    // Upsert a real, persisted user so marketplace foreign keys work.
     const user = await prisma.user.upsert({
       where: { email },
       update: {},

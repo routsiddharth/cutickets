@@ -43,9 +43,8 @@ export default async function LandingPage({
             campus tickets.
           </h1>
           <p className="text-[15px] leading-relaxed mb-9" style={{ color: "#B7C3D6" }}>
-            Post what you&apos;re buying or selling. See the real market for
-            every event. Match with a verified student and coordinate the
-            transfer yourselves — on Posh, Partiful, wherever your ticket lives.
+            List tickets at your price, or reserve one from a verified student.
+            Chat privately and handle the transfer wherever the ticket lives.
           </p>
           <SignInPanel
             hasGoogle={hasGoogle}
@@ -72,18 +71,18 @@ export default async function LandingPage({
             },
             {
               n: "2",
-              t: "Post a listing",
-              d: "Buying or selling, how many, your price, when it expires. Tied to a specific event.",
+              t: "List a ticket",
+              d: "Sellers choose the quantity and a fixed price for a specific event.",
             },
             {
               n: "3",
-              t: "See the mini-market",
-              d: "Every event shows asks and bids side by side — plus the last confirmed sale, so prices stay honest.",
+              t: "Choose a listing",
+              d: "Buyers compare available tickets, seller history, and price.",
             },
             {
               n: "4",
-              t: "Match & coordinate",
-              d: "Tap “I'm interested.” On mutual interest you exchange verified emails and handle the transfer yourselves.",
+              t: "Reserve and chat",
+              d: "Your tickets are held for 24 hours while you arrange payment and transfer with the seller.",
             },
           ].map((s) => (
             <li key={s.n} className="flex gap-4">

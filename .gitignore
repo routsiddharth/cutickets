@@ -41,4 +41,5 @@ yarn-error.log*
 /design-demos/preview.png
 /design-demos/e2e-*.png
 /test-results/
+/.impeccable/review/
 .vercel

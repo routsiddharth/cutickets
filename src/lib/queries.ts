@@ -1,81 +1,64 @@
 import { prisma } from "@/lib/prisma";
-import { matchableListingWhere } from "@/lib/listing";
+import { purchasableListingWhere } from "@/lib/listing";
+import { PUBLIC_USER_SELECT } from "@/lib/public-profile";
+import { getReputation } from "@/lib/reputation";
 
 export type EventStats = {
-  sellTickets: number; //   live tickets available to buy (sum of remaining asks)
-  buyTickets: number; //    live tickets wanted (sum of remaining bids)
-  sellOrders: number; //    number of live asks
-  buyOrders: number; //     number of live bids
-  bestAskCents: number | null; // lowest ask → "Buy now for $X"
-  bestBidCents: number | null; // highest bid → "Sell now for $X"
-  lastSaleCents: number | null; // most recent confirmed sale — the honest anchor
+  ticketsAvailable: number;
+  listingCount: number;
+  lowestPriceCents: number | null;
+  lastSaleCents: number | null;
 };
 
 export async function getLastSaleCents(eventId: string): Promise<number | null> {
-  const lastTrade = await prisma.match.findFirst({
-    where: { status: "COMPLETED", agreedPriceCents: { not: null }, eventId },
+  const lastTrade = await prisma.deal.findFirst({
+    where: { status: "COMPLETED", eventId },
     orderBy: { completedAt: "desc" },
-    select: { agreedPriceCents: true },
+    select: { unitPriceCents: true },
   });
-  return lastTrade?.agreedPriceCents ?? null;
-}
-
-/** The best (cheapest) live ask price — what someone can buy for right now. */
-export async function getBestAskCents(eventId: string, now: Date = new Date()): Promise<number | null> {
-  const ask = await prisma.listing.findFirst({
-    where: { eventId, type: "SELL", ...matchableListingWhere(now) },
-    orderBy: [{ priceCents: "asc" }, { postedAt: "asc" }],
-    select: { priceCents: true },
-  });
-  return ask?.priceCents ?? null;
-}
-
-/** The best (highest) live bid price — what someone can sell for right now. */
-export async function getBestBidCents(eventId: string, now: Date = new Date()): Promise<number | null> {
-  const bid = await prisma.listing.findFirst({
-    where: { eventId, type: "BUY", ...matchableListingWhere(now) },
-    orderBy: [{ priceCents: "desc" }, { postedAt: "asc" }],
-    select: { priceCents: true },
-  });
-  return bid?.priceCents ?? null;
+  return lastTrade?.unitPriceCents ?? null;
 }
 
 export async function getEventStats(eventId: string): Promise<EventStats> {
-  const now = new Date();
-  const [sellAgg, buyAgg, bestAskCents, bestBidCents, lastSaleCents] = await Promise.all([
+  const where = { eventId, ...purchasableListingWhere() };
+  const [inventory, lowest, lastSaleCents] = await Promise.all([
     prisma.listing.aggregate({
-      where: { eventId, type: "SELL", ...matchableListingWhere(now) },
-      _sum: { remainingQuantity: true },
+      where,
+      _sum: { availableQuantity: true },
       _count: { _all: true },
     }),
-    prisma.listing.aggregate({
-      where: { eventId, type: "BUY", ...matchableListingWhere(now) },
-      _sum: { remainingQuantity: true },
-      _count: { _all: true },
+    prisma.listing.findFirst({
+      where,
+      orderBy: [{ priceCents: "asc" }, { postedAt: "asc" }],
+      select: { priceCents: true },
     }),
-    getBestAskCents(eventId, now),
-    getBestBidCents(eventId, now),
     getLastSaleCents(eventId),
   ]);
-
   return {
-    sellTickets: sellAgg._sum.remainingQuantity ?? 0,
-    buyTickets: buyAgg._sum.remainingQuantity ?? 0,
-    sellOrders: sellAgg._count._all,
-    buyOrders: buyAgg._count._all,
-    bestAskCents,
-    bestBidCents,
+    ticketsAvailable: inventory._sum.availableQuantity ?? 0,
+    listingCount: inventory._count._all,
+    lowestPriceCents: lowest?.priceCents ?? null,
     lastSaleCents,
   };
 }
 
-/** How many trades have settled on this event — credibility for the last-sale
- * anchor ("$48 last sold · 3 sold"). */
-export async function getSalesCount(eventId: string): Promise<number> {
-  return prisma.match.count({ where: { eventId, status: "COMPLETED" } });
+export async function getListingsForEvent(eventId: string) {
+  const listings = await prisma.listing.findMany({
+    where: { eventId, ...purchasableListingWhere() },
+    orderBy: [{ priceCents: "asc" }, { postedAt: "asc" }],
+    select: {
+      id: true,
+      sellerId: true,
+      availableQuantity: true,
+      priceCents: true,
+      postedAt: true,
+      seller: { select: PUBLIC_USER_SELECT },
+    },
+  });
+  const reputations = await Promise.all(listings.map((listing) => getReputation(listing.sellerId)));
+  return listings.map((listing, index) => ({ ...listing, reputation: reputations[index] }));
 }
 
-/** Events for the browse page, with summary stats, soonest event first. */
 export async function getEventsWithStats(query?: string) {
   const events = await prisma.event.findMany({
     where: {
@@ -85,20 +68,17 @@ export async function getEventsWithStats(query?: string) {
     orderBy: [{ startsAt: "asc" }, { createdAt: "desc" }],
     take: 100,
   });
-
-  const stats = await Promise.all(events.map((e) => getEventStats(e.id)));
-  return events.map((event, i) => ({ event, stats: stats[i] }));
+  const stats = await Promise.all(events.map((event) => getEventStats(event.id)));
+  return events.map((event, index) => ({ event, stats: stats[index] }));
 }
 
-/**
- * The live orders a given user has on one event (for the "your orders" strip on
- * the event page) that still have tickets on the book. Uses `matchableListingWhere`
- * so a fully-reserved order (remainingQuantity 0, still OPEN) isn't shown as
- * "0 · live" — it appears in the "you matched" strip instead.
- */
-export async function getMyOrdersForEvent(eventId: string, userId: string) {
+export function getSalesCount(eventId: string): Promise<number> {
+  return prisma.deal.count({ where: { eventId, status: "COMPLETED" } });
+}
+
+export function getMyListingsForEvent(eventId: string, sellerId: string) {
   return prisma.listing.findMany({
-    where: { eventId, userId, ...matchableListingWhere() },
+    where: { eventId, sellerId, ...purchasableListingWhere() },
     orderBy: { postedAt: "desc" },
   });
 }

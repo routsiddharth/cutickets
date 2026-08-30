@@ -25,8 +25,8 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Link href="/events" className="hover:text-ink">
             Events
           </Link>
-          <Link href="/matches" className="hover:text-ink">
-            My matches
+          <Link href="/deals" className="hover:text-ink">
+            My deals
           </Link>
           {isAdmin(user) && (
             <Link href="/admin/events" className="hover:text-ink font-medium text-columbia-deep">
@@ -39,9 +39,12 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           <Link
             href="/notifications"
             aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
-            className="relative text-muted hover:text-ink text-2xl leading-none"
+            className="relative text-muted hover:text-ink leading-none"
           >
-            <span aria-hidden>🔔</span>
+            <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" className="w-5 h-5">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" />
+              <path d="M10 21h4" />
+            </svg>
             {unread > 0 && (
               <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 grid place-items-center rounded-full bg-columbia-deep text-white text-[10px] font-semibold tabular-nums">
                 {unread > 9 ? "9+" : unread}
@@ -53,6 +56,10 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
           </Link>
         </div>
       </div>
+      <nav className="sm:hidden h-11 border-t border-line flex items-center gap-6 px-5 text-sm text-muted">
+        <Link href="/events" className="hover:text-ink">Events</Link>
+        <Link href="/deals" className="hover:text-ink">My deals</Link>
+      </nav>
     </header>
   );
 }

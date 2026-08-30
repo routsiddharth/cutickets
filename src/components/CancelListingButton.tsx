@@ -21,7 +21,7 @@ export default function CancelListingButton({ listingId }: { listingId: string }
       >
         {pending ? "Removing…" : "Remove"}
       </button>
-      {error && <p className="text-[11px] text-red-600 mt-1">{error}</p>}
+      {error && <p className="text-[11px] text-red-600 mt-1" role="alert">{error}</p>}
     </span>
   );
 }

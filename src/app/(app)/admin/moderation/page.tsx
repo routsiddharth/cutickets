@@ -9,30 +9,29 @@ export default async function AdminModerationPage() {
   const user = await requireUser();
   if (!isAdmin(user)) notFound();
 
-  const [listings, matches] = await Promise.all([
+  const [listings, deals] = await Promise.all([
     prisma.listing.findMany({
       where: { status: "OPEN" },
       orderBy: { createdAt: "desc" },
       take: 50,
       select: {
         id: true,
-        type: true,
         priceCents: true,
-        remainingQuantity: true,
+        availableQuantity: true,
         createdAt: true,
-        user: { select: { name: true, email: true } },
+        seller: { select: { name: true, email: true } },
         event: { select: { id: true, name: true } },
       },
     }),
-    prisma.match.findMany({
-      where: { status: { in: ["RESERVED", "ACCEPTED"] } },
+    prisma.deal.findMany({
+      where: { status: "RESERVED" },
       orderBy: { createdAt: "desc" },
       take: 50,
       select: {
         id: true,
         status: true,
-        reservedQuantity: true,
-        settlePriceCents: true,
+        quantity: true,
+        unitPriceCents: true,
         createdAt: true,
         event: { select: { name: true } },
         buyer: { select: { name: true, email: true } },
@@ -47,16 +46,16 @@ export default async function AdminModerationPage() {
     createdAt: l.createdAt.toISOString(),
   }));
 
-  const matchRows = matches.map((m) => ({
-    ...m,
-    priceFmt: formatPrice(m.settlePriceCents),
-    createdAt: m.createdAt.toISOString(),
+  const dealRows = deals.map((deal) => ({
+    ...deal,
+    priceFmt: formatPrice(deal.unitPriceCents),
+    createdAt: deal.createdAt.toISOString(),
   }));
 
   return (
     <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
       <h1 className="font-serif text-3xl mb-7">Moderation</h1>
-      <ModerationClient listings={listingRows} matches={matchRows} />
+      <ModerationClient listings={listingRows} deals={dealRows} />
     </main>
   );
 }

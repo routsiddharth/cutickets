@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-30T10:54:38.000Z",
+  "title": "Design System: Morningside Tickets",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#FBFAF7",
+        "tonalRamp": ["oklch(15% 0.008 85)", "oklch(27% 0.008 85)", "oklch(39% 0.008 85)", "oklch(52% 0.008 85)", "oklch(65% 0.008 85)", "oklch(77% 0.008 85)", "oklch(88% 0.008 85)", "oklch(98% 0.008 85)"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface White",
+        "canonical": "#FFFFFF",
+        "tonalRamp": ["oklch(15% 0 0)", "oklch(27% 0 0)", "oklch(39% 0 0)", "oklch(52% 0 0)", "oklch(65% 0 0)", "oklch(77% 0 0)", "oklch(89% 0 0)", "oklch(100% 0 0)"]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Campus Ink",
+        "canonical": "#14233D",
+        "tonalRamp": ["oklch(15% 0.045 258)", "oklch(27% 0.045 258)", "oklch(39% 0.045 258)", "oklch(52% 0.045 258)", "oklch(65% 0.045 258)", "oklch(77% 0.045 258)", "oklch(88% 0.045 258)", "oklch(95% 0.045 258)"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate Copy",
+        "canonical": "#5C6B82",
+        "tonalRamp": ["oklch(15% 0.03 255)", "oklch(27% 0.03 255)", "oklch(39% 0.03 255)", "oklch(52% 0.03 255)", "oklch(65% 0.03 255)", "oklch(77% 0.03 255)", "oklch(88% 0.03 255)", "oklch(95% 0.03 255)"]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Warm Rule",
+        "canonical": "#E7E2D8",
+        "tonalRamp": ["oklch(15% 0.012 80)", "oklch(27% 0.012 80)", "oklch(39% 0.012 80)", "oklch(52% 0.012 80)", "oklch(65% 0.012 80)", "oklch(77% 0.012 80)", "oklch(88% 0.012 80)", "oklch(95% 0.012 80)"]
+      },
+      "columbia": {
+        "role": "primary",
+        "displayName": "Columbia Blue",
+        "canonical": "#5B8FB9",
+        "tonalRamp": ["oklch(15% 0.08 240)", "oklch(27% 0.08 240)", "oklch(39% 0.08 240)", "oklch(52% 0.08 240)", "oklch(65% 0.08 240)", "oklch(77% 0.08 240)", "oklch(88% 0.08 240)", "oklch(95% 0.08 240)"]
+      },
+      "columbia-soft": {
+        "role": "primary",
+        "displayName": "Columbia Wash",
+        "canonical": "#E8F0F7",
+        "tonalRamp": ["oklch(15% 0.025 240)", "oklch(27% 0.025 240)", "oklch(39% 0.025 240)", "oklch(52% 0.025 240)", "oklch(65% 0.025 240)", "oklch(77% 0.025 240)", "oklch(88% 0.025 240)", "oklch(95% 0.025 240)"]
+      },
+      "columbia-deep": {
+        "role": "primary",
+        "displayName": "Deep Columbia",
+        "canonical": "#3D6E97",
+        "tonalRamp": ["oklch(15% 0.075 240)", "oklch(27% 0.075 240)", "oklch(39% 0.075 240)", "oklch(52% 0.075 240)", "oklch(65% 0.075 240)", "oklch(77% 0.075 240)", "oklch(88% 0.075 240)", "oklch(95% 0.075 240)"]
+      },
+      "seller": {
+        "role": "secondary",
+        "displayName": "Seller Green",
+        "canonical": "#1F7A63",
+        "tonalRamp": ["oklch(15% 0.08 165)", "oklch(27% 0.08 165)", "oklch(39% 0.08 165)", "oklch(52% 0.08 165)", "oklch(65% 0.08 165)", "oklch(77% 0.08 165)", "oklch(88% 0.08 165)", "oklch(95% 0.08 165)"]
+      },
+      "seller-soft": {
+        "role": "secondary",
+        "displayName": "Seller Wash",
+        "canonical": "#E6F2ED",
+        "tonalRamp": ["oklch(15% 0.025 165)", "oklch(27% 0.025 165)", "oklch(39% 0.025 165)", "oklch(52% 0.025 165)", "oklch(65% 0.025 165)", "oklch(77% 0.025 165)", "oklch(88% 0.025 165)", "oklch(95% 0.025 165)"]
+      },
+      "buyer": {
+        "role": "tertiary",
+        "displayName": "Buyer Amber",
+        "canonical": "#A8651A",
+        "tonalRamp": ["oklch(15% 0.09 65)", "oklch(27% 0.09 65)", "oklch(39% 0.09 65)", "oklch(52% 0.09 65)", "oklch(65% 0.09 65)", "oklch(77% 0.09 65)", "oklch(88% 0.09 65)", "oklch(95% 0.09 65)"]
+      },
+      "buyer-soft": {
+        "role": "tertiary",
+        "displayName": "Buyer Wash",
+        "canonical": "#F7ECDB",
+        "tonalRamp": ["oklch(15% 0.03 65)", "oklch(27% 0.03 65)", "oklch(39% 0.03 65)", "oklch(52% 0.03 65)", "oklch(65% 0.03 65)", "oklch(77% 0.03 65)", "oklch(88% 0.03 65)", "oklch(95% 0.03 65)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Landing statement and rare top-level brand moments." },
+      "headline": { "displayName": "Headline", "purpose": "Large event and screen headings." },
+      "title": { "displayName": "Title", "purpose": "Section headings and empty-state titles." },
+      "body": { "displayName": "Body", "purpose": "Operational copy, metadata, controls, and forms." },
+      "label": { "displayName": "Label", "purpose": "Short uppercase eyebrows and compact form labels." }
+    },
+    "shadows": [
+      { "name": "sign-in-lift", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "purpose": "Exceptional elevation for the Google sign-in control on the dark landing field." },
+      { "name": "sign-in-hover-lift", "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)", "purpose": "Hover response for the elevated sign-in control only." }
+    ],
+    "motion": [
+      { "name": "state-color", "value": "color 150ms ease, background-color 150ms ease, border-color 150ms ease", "purpose": "Quiet hover and active-state feedback on links, rows, tabs, and controls." },
+      { "name": "state-shadow", "value": "box-shadow 150ms ease", "purpose": "Landing sign-in elevation change only." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The decisive neutral action for reserving, confirming, saving, and sending.",
+      "html": "<button class=\"ds-btn-primary\">Reserve · $40.00</button>",
+      "css": ".ds-btn-primary { background:#14233D; color:#FFFFFF; border:0; border-radius:8px; padding:10px 16px; font:500 14px/1.25 'Public Sans',system-ui,sans-serif; cursor:pointer; transition:background-color 150ms ease; } .ds-btn-primary:hover { background:#101c31; } .ds-btn-primary:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; } .ds-btn-primary:active { background:#0c1728; } .ds-btn-primary:disabled { opacity:.6; cursor:not-allowed; }"
+    },
+    {
+      "name": "Seller Button",
+      "kind": "button",
+      "refersTo": "button-seller",
+      "description": "The semantic action for initiating or publishing a ticket sale.",
+      "html": "<button class=\"ds-btn-seller\">Sell tickets</button>",
+      "css": ".ds-btn-seller { background:#1F7A63; color:#FFFFFF; border:0; border-radius:8px; padding:10px 16px; font:500 14px/1.25 'Public Sans',system-ui,sans-serif; cursor:pointer; transition:background-color 150ms ease; } .ds-btn-seller:hover { background:#1b6d59; } .ds-btn-seller:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; } .ds-btn-seller:active { background:#175e4d; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A quiet bordered action for clearing, canceling, signing out, or other secondary choices.",
+      "html": "<button class=\"ds-btn-secondary\">Clear</button>",
+      "css": ".ds-btn-secondary { background:#FFFFFF; color:#5C6B82; border:1px solid #E7E2D8; border-radius:8px; padding:10px 16px; font:400 14px/1.25 'Public Sans',system-ui,sans-serif; cursor:pointer; transition:color 150ms ease,border-color 150ms ease; } .ds-btn-secondary:hover { color:#14233D; border-color:#b9b3a8; } .ds-btn-secondary:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; } .ds-btn-secondary:active { background:#FBFAF7; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "The standard white marketplace text field with a warm border and Columbia focus.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-search\">Search events</label><input class=\"ds-field\" id=\"ds-search\" placeholder=\"Search events…\">",
+      "css": ".ds-field-label { display:block; margin-bottom:6px; color:#5C6B82; font:500 11px/1.25 'Public Sans',system-ui,sans-serif; letter-spacing:.12em; text-transform:uppercase; } .ds-field { width:100%; background:#FFFFFF; color:#14233D; border:1px solid #E7E2D8; border-radius:8px; padding:10px 12px; font:400 14px/1.5 'Public Sans',system-ui,sans-serif; } .ds-field::placeholder { color:#5C6B82; } .ds-field:hover { border-color:#c9c3b8; } .ds-field:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; }"
+    },
+    {
+      "name": "Marketplace Row",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A compact comparable event row with context leading and price or availability trailing.",
+      "html": "<a class=\"ds-market-row\" href=\"#\"><span class=\"ds-market-main\"><strong>Spring Concert</strong><small>Apr 18 · Roone Arledge Auditorium</small></span><span class=\"ds-market-stat\"><strong>4</strong><small>available</small></span><span class=\"ds-market-price\"><small>from</small><strong>$35</strong></span></a>",
+      "css": ".ds-market-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:20px; padding:16px; background:#FFFFFF; color:#14233D; border:1px solid #E7E2D8; border-radius:12px; text-decoration:none; font-family:'Public Sans',system-ui,sans-serif; transition:border-color 150ms ease; } .ds-market-row:hover { border-color:#5B8FB9; } .ds-market-row:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; } .ds-market-main { min-width:0; } .ds-market-main strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:500; } .ds-market-row small { display:block; margin-top:3px; color:#5C6B82; font-size:11px; } .ds-market-stat,.ds-market-price { text-align:right; font-variant-numeric:tabular-nums; } .ds-market-stat strong { color:#1F7A63; font:400 18px/1 'Newsreader',Georgia,serif; } .ds-market-price { border-left:1px solid #E7E2D8; padding-left:20px; } .ds-market-price strong { font:400 16px/1 'Newsreader',Georgia,serif; }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "description": "A terse low-emphasis role or state marker, shown here in Columbia blue.",
+      "html": "<span class=\"ds-chip\">Admin</span>",
+      "css": ".ds-chip { display:inline-flex; align-items:center; background:rgb(91 143 185 / .1); color:#3D6E97; border-radius:9999px; padding:2px 8px; font:500 12px/1.4 'Public Sans',system-ui,sans-serif; } .ds-chip:hover { background:rgb(91 143 185 / .16); } .ds-chip:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; }"
+    },
+    {
+      "name": "Primary Navigation",
+      "kind": "nav",
+      "description": "A flat white, border-led header with an editorial wordmark and quiet operational links.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Primary\"><a class=\"ds-wordmark\" href=\"#\">Morningside Tickets</a><span class=\"ds-nav-links\"><a class=\"ds-nav-active\" href=\"#\">Events</a><a href=\"#\">My deals</a></span><span class=\"ds-avatar\">SR</span></nav>",
+      "css": ".ds-nav { display:flex; align-items:center; gap:20px; min-height:72px; padding:0 24px; background:#FFFFFF; color:#14233D; border-bottom:1px solid #E7E2D8; font-family:'Public Sans',system-ui,sans-serif; } .ds-wordmark { color:#14233D; font:400 18px/1.2 'Newsreader',Georgia,serif; text-decoration:none; } .ds-nav-links { display:flex; gap:20px; margin-right:auto; } .ds-nav-links a { color:#5C6B82; font-size:14px; text-decoration:none; } .ds-nav-links a:hover,.ds-nav-links .ds-nav-active { color:#14233D; } .ds-nav a:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; } .ds-avatar { width:36px; height:36px; display:grid; place-items:center; border-radius:9999px; background:#14233D; color:#FFFFFF; font-size:13px; font-weight:600; }"
+    },
+    {
+      "name": "Chat Bubbles",
+      "kind": "custom",
+      "description": "Directional deal-chat messages using ink for outgoing and warm paper for incoming.",
+      "html": "<div class=\"ds-chat\"><p class=\"ds-bubble ds-bubble-in\">I can transfer after 5.</p><p class=\"ds-bubble ds-bubble-out\">Perfect — I’ll message you then.</p></div>",
+      "css": ".ds-chat { display:flex; flex-direction:column; gap:12px; padding:16px; background:#FFFFFF; border:1px solid #E7E2D8; border-radius:12px; font:400 14px/1.5 'Public Sans',system-ui,sans-serif; } .ds-bubble { max-width:78%; margin:0; padding:8px 14px; border-radius:12px; } .ds-bubble-in { align-self:flex-start; background:#FBFAF7; color:#14233D; border:1px solid #E7E2D8; border-bottom-left-radius:4px; } .ds-bubble-out { align-self:flex-end; background:#14233D; color:#FFFFFF; border-bottom-right-radius:4px; } .ds-bubble:hover { filter:brightness(.99); } .ds-bubble:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Campus Ticket Board",
+    "overview": "Morningside Tickets feels like a trusted notice board translated into a precise digital marketplace: warm paper underfoot, crisp white working surfaces, Columbia blue for orientation, and seller green for supply-side action. Newsreader supplies an editorial, collegiate voice at moments of hierarchy; Public Sans keeps every transaction, label, and compact row direct and legible.\n\nThe system is restrained, flat, and operational. Information is organized with simple rules, dividers, and compact list rows rather than decorative dashboard furniture. Brand character comes from the type pairing, the warm-and-navy palette, and sparse semantic color—not gradients, glass effects, oversized metric cards, or ornamental chrome.",
+    "keyCharacteristics": [
+      "Warm paper canvas with white working surfaces and navy text.",
+      "Editorial display type paired with compact, practical sans-serif copy.",
+      "Border-led structure, quiet density, and row-based marketplace patterns.",
+      "Columbia blue for navigation and focus; seller green for selling and availability.",
+      "Restrained 8–12px control and container radii, with 16px reserved for larger panels."
+    ],
+    "rules": [
+      { "name": "The Semantic Accent Rule", "body": "Columbia blue orients and focuses; seller green communicates supply-side action or availability; buyer amber appears only when a buyer/seller distinction is explicit.", "section": "colors" },
+      { "name": "The Paper-and-Ink Rule", "body": "Most of every screen remains warm paper, white, and navy. Accent colors are signals, not surface decoration.", "section": "colors" },
+      { "name": "The Two-Voice Rule", "body": "Use Newsreader for hierarchy and human warmth, never for dense controls or explanatory copy; use Public Sans everywhere users compare, enter, or act on information.", "section": "typography" },
+      { "name": "The Quiet Label Rule", "body": "Uppercase tracking belongs only to short 11px labels. Do not turn navigation, buttons, or body copy into all-caps display language.", "section": "typography" },
+      { "name": "The Row-Before-Card Rule", "body": "When presenting comparable marketplace records, start with a divided list or compact bordered row. Use a large standalone panel only when the content is a form, profile summary, empty state, or bounded conversation.", "section": "layout" },
+      { "name": "The Flat-by-Default Rule", "body": "Do not add shadows to marketplace cards, list rows, forms, navigation, or admin panels; use borders and surface contrast instead.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do build screens from warm paper, white surfaces, navy text, and 1px warm borders.",
+      "Do use compact divided rows for inventories, deals, notifications, and administrative records.",
+      "Do keep controls in the established 8–12px radius range and larger panels at 16px.",
+      "Do use Newsreader selectively for hierarchy and Public Sans for all operational content.",
+      "Do align prices and quantities with tabular figures and stable trailing columns.",
+      "Do preserve visible keyboard focus with the 2px Columbia Blue outline."
+    ],
+    "donts": [
+      "Don't introduce generic dashboard grids, floating metric cards, oversized rounded tiles, or pill-heavy navigation.",
+      "Don't add gradients, glassmorphism, ambient glows, decorative shadows, or ornamental background effects to authenticated marketplace surfaces.",
+      "Don't use seller green or buyer amber as general-purpose brand accents.",
+      "Don't create a new font, radius, or spacing language for an individual route.",
+      "Don't trade compact marketplace scanability for spacious marketing-page composition inside the product."
+    ]
+  }
+}
