@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { getEventStats, getListingsForEvent, getSalesCount } from "@/lib/queries";
+import { getEventStats, getListingsForEvent } from "@/lib/queries";
 import { formatDateTime, formatPrice } from "@/lib/format";
 import AdBanner from "@/components/AdBanner";
 import CancelListingButton from "@/components/CancelListingButton";
@@ -14,9 +14,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
 
-  const [stats, salesCount, listings] = await Promise.all([
+  const [stats, listings] = await Promise.all([
     getEventStats(id),
-    getSalesCount(id),
     getListingsForEvent(id),
   ]);
 
@@ -37,18 +36,26 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         {event.description && <p className="text-sm text-muted mt-4 max-w-2xl leading-relaxed">{event.description}</p>}
         {event.poshLink && <a href={event.poshLink} target="_blank" rel="noopener noreferrer" className="inline-block text-sm text-columbia-deep mt-3 hover:underline">Event details ↗</a>}
 
-        <dl className="flex gap-8 mt-5 text-sm">
-          <div>
-            <dt className="text-muted">Available</dt>
-            <dd className="text-xl font-medium tabular-nums">{stats.ticketsAvailable} ticket{stats.ticketsAvailable === 1 ? "" : "s"}</dd>
+        <dl className="grid grid-cols-2 max-w-xl mt-5 text-sm">
+          <div className="grid grid-cols-2 gap-4 pr-4 sm:pr-6">
+            <div>
+              <dt className="text-xs text-muted">Available</dt>
+              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.ticketsAvailable} ticket{stats.ticketsAvailable === 1 ? "" : "s"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted">Starting at</dt>
+              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lowestPriceCents === null ? "—" : formatPrice(stats.lowestPriceCents)}</dd>
+            </div>
           </div>
-          <div>
-            <dt className="text-muted">Starting at</dt>
-            <dd className="text-xl font-medium tabular-nums">{stats.lowestPriceCents === null ? "—" : formatPrice(stats.lowestPriceCents)}</dd>
-          </div>
-          <div className="hidden sm:block">
-            <dt className="text-muted">Last sold</dt>
-            <dd className="text-xl font-medium tabular-nums">{stats.lastSaleCents === null ? "—" : formatPrice(stats.lastSaleCents)}{salesCount > 0 && <span className="text-xs text-muted font-normal ml-1">· {salesCount}</span>}</dd>
+          <div className="grid grid-cols-2 gap-4 border-l border-line pl-4 sm:pl-6">
+            <div>
+              <dt className="text-xs text-muted">Sold</dt>
+              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.salesCount} sale{stats.salesCount === 1 ? "" : "s"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted">Last sold</dt>
+              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lastSaleCents === null ? "—" : formatPrice(stats.lastSaleCents)}</dd>
+            </div>
           </div>
         </dl>
       </header>

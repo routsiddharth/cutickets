@@ -92,7 +92,7 @@ export default async function EventsPage({
               <Link
                 key={event.id}
                 href={`/events/${event.id}`}
-                className="bg-white border border-line rounded-xl p-4 flex items-center justify-between hover:border-columbia transition-colors"
+                className="bg-white border border-line rounded-xl p-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center hover:border-columbia transition-colors"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -103,16 +103,28 @@ export default async function EventsPage({
                     {event.venue ? ` · ${event.venue}` : ""}
                   </p>
                 </div>
-                <div className="flex items-center gap-4 sm:gap-5 text-right shrink-0 ml-4">
-                  <div>
-                    <p className="font-serif text-lg text-sell tabular-nums leading-none">{stats.ticketsAvailable}</p>
-                    <p className="text-[11px] text-muted mt-1">available</p>
+                <dl className="grid grid-cols-2 border-t border-line pt-3 sm:border-t-0 sm:pt-0 sm:w-[23rem]">
+                  <div className="grid grid-cols-2 gap-3 pr-3 sm:pr-5">
+                    <div>
+                      <dt className="text-[11px] text-muted leading-none">Available</dt>
+                      <dd className="font-serif text-lg text-sell tabular-nums leading-none mt-1.5">{stats.ticketsAvailable} <span className="font-sans text-xs text-muted">ticket{stats.ticketsAvailable === 1 ? "" : "s"}</span></dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] text-muted leading-none">Starting at</dt>
+                      <dd className="font-serif text-lg tabular-nums leading-none mt-1.5">{stats.lowestPriceCents !== null ? formatPrice(stats.lowestPriceCents) : "—"}</dd>
+                    </div>
                   </div>
-                  <div className="border-l border-line pl-4 sm:pl-5">
-                    <p className="text-[11px] text-muted leading-none mb-1">from</p>
-                    <p className="font-serif tabular-nums leading-none">{stats.lowestPriceCents !== null ? formatPrice(stats.lowestPriceCents) : "—"}</p>
+                  <div className="grid grid-cols-2 gap-3 border-l border-line pl-3 sm:pl-5">
+                    <div>
+                      <dt className="text-[11px] text-muted leading-none">Sold</dt>
+                      <dd className="font-serif text-lg tabular-nums leading-none mt-1.5">{stats.salesCount} <span className="font-sans text-xs text-muted">sale{stats.salesCount === 1 ? "" : "s"}</span></dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] text-muted leading-none">Last sold</dt>
+                      <dd className="font-serif text-lg tabular-nums leading-none mt-1.5">{stats.lastSaleCents !== null ? formatPrice(stats.lastSaleCents) : "—"}</dd>
+                    </div>
                   </div>
-                </div>
+                </dl>
               </Link>
             ))}
           </div>

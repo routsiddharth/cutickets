@@ -5,6 +5,7 @@ export type EventStats = {
   ticketsAvailable: number;
   listingCount: number;
   lowestPriceCents: number | null;
+  salesCount: number;
   lastSaleCents: number | null;
 };
 
@@ -19,7 +20,7 @@ export async function getLastSaleCents(eventId: string): Promise<number | null> 
 
 export async function getEventStats(eventId: string): Promise<EventStats> {
   const where = { eventId, ...purchasableListingWhere() };
-  const [inventory, lowest, lastSaleCents] = await Promise.all([
+  const [inventory, lowest, salesCount, lastSaleCents] = await Promise.all([
     prisma.listing.aggregate({
       where,
       _sum: { availableQuantity: true },
@@ -30,12 +31,14 @@ export async function getEventStats(eventId: string): Promise<EventStats> {
       orderBy: [{ priceCents: "asc" }, { postedAt: "asc" }],
       select: { priceCents: true },
     }),
+    prisma.deal.count({ where: { eventId, status: "COMPLETED" } }),
     getLastSaleCents(eventId),
   ]);
   return {
     ticketsAvailable: inventory._sum.availableQuantity ?? 0,
     listingCount: inventory._count._all,
     lowestPriceCents: lowest?.priceCents ?? null,
+    salesCount,
     lastSaleCents,
   };
 }
@@ -64,10 +67,6 @@ export async function getEventsWithStats(query?: string) {
   });
   const stats = await Promise.all(events.map((event) => getEventStats(event.id)));
   return events.map((event, index) => ({ event, stats: stats[index] }));
-}
-
-export function getSalesCount(eventId: string): Promise<number> {
-  return prisma.deal.count({ where: { eventId, status: "COMPLETED" } });
 }
 
 export function getMyListingsForEvent(eventId: string, sellerId: string) {
