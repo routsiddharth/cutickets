@@ -2,8 +2,6 @@ import Link from "next/link";
 import { getEventsWithStats } from "@/lib/queries";
 import { formatDate, formatPrice } from "@/lib/format";
 import AdBanner from "@/components/AdBanner";
-import { getCurrentUser } from "@/lib/session";
-import { isAdmin } from "@/lib/admin";
 
 export default async function EventsPage({
   searchParams,
@@ -12,26 +10,15 @@ export default async function EventsPage({
 }) {
   const { q } = await searchParams;
   const query = q?.trim() || undefined;
-  const [events, user] = await Promise.all([getEventsWithStats(query), getCurrentUser()]);
-  const canCreateEvents = !!user && isAdmin(user);
+  const events = await getEventsWithStats(query);
 
   return (
     <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
-      <div className="flex items-center justify-between mb-6 gap-4">
-        <div>
-          <h1 className="font-serif text-3xl">Events</h1>
-          <p className="text-sm text-muted mt-0.5">
-            Browse tickets from verified Columbia and Barnard students.
-          </p>
-        </div>
-        {canCreateEvents && (
-          <Link
-            href="/events/new"
-            className="bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium shrink-0 hover:bg-ink/90"
-          >
-            + New event
-          </Link>
-        )}
+      <div className="mb-6">
+        <h1 className="font-serif text-3xl">Events</h1>
+        <p className="text-sm text-muted mt-0.5">
+          Browse tickets from verified Columbia and Barnard students.
+        </p>
       </div>
 
       <form className="flex gap-2 mb-6" action="/events">
@@ -62,28 +49,16 @@ export default async function EventsPage({
             {query ? "No events match that search." : "No events yet."}
           </p>
           <p className="text-sm text-muted mb-5">
-            {canCreateEvents
-              ? "Be the first to start a market for an event."
-              : query
-                ? "Request it and an admin will review it."
-                : "Morningside Tickets admins add events as they’re announced."}
+            {query
+              ? "Request it and an admin will review it."
+              : "Morningside Tickets admins add events as they’re announced."}
           </p>
-          {canCreateEvents && (
-            <Link
-              href="/events/new"
-              className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
-            >
-              Add an event
-            </Link>
-          )}
-          {!canCreateEvents && (
-            <Link
-              href={`/events/request${query ? `?name=${encodeURIComponent(query)}` : ""}`}
-              className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
-            >
-              Request an event
-            </Link>
-          )}
+          <Link
+            href={`/events/request${query ? `?name=${encodeURIComponent(query)}` : ""}`}
+            className="inline-block bg-ink text-white text-sm px-4 py-2.5 rounded-lg font-medium"
+          >
+            Request an event
+          </Link>
         </div>
       ) : (
         <>
@@ -128,23 +103,11 @@ export default async function EventsPage({
               </Link>
             ))}
           </div>
-          {canCreateEvents && (
-            <div className="mt-6 text-center">
-              <Link
-                href="/events/new"
-                className="text-sm text-columbia-deep hover:underline"
-              >
-                Don&apos;t see your event? Add it →
-              </Link>
-            </div>
-          )}
-          {!canCreateEvents && (
-            <div className="mt-6 text-center">
-              <Link href="/events/request" className="text-sm text-columbia-deep hover:underline">
-                Don&apos;t see your event? Request it →
-              </Link>
-            </div>
-          )}
+          <div className="mt-6 text-center">
+            <Link href="/events/request" className="text-sm text-columbia-deep hover:underline">
+              Don&apos;t see your event? Request it →
+            </Link>
+          </div>
         </>
       )}
     </main>

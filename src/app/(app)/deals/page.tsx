@@ -29,7 +29,7 @@ export default async function DealsPage() {
   const completed = deals.filter((deal) => deal.status === "COMPLETED");
 
   return (
-    <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
+    <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
       <h1 className="font-serif text-3xl mb-7">My deals</h1>
 
       <DealSection title="Active" deals={active} userId={user.id} empty="No active deals." />
@@ -56,15 +56,15 @@ function DealSection({ title, deals, userId, empty }: { title: string; deals: De
     <section className="mb-9">
       <h2 className="text-sm font-medium mb-3">{title}</h2>
       {deals.length === 0 ? (
-        <div className="border-y border-line py-8 text-sm text-muted">{empty} <Link href="/events" className="text-columbia-deep hover:underline">Browse tickets</Link></div>
+        <div className="bg-white border border-line rounded-xl p-6 text-sm text-muted">{empty} <Link href="/events" className="text-columbia-deep hover:underline">Browse tickets</Link></div>
       ) : (
-        <div className="divide-y divide-line border-y border-line">
+        <div className="space-y-3">
           {deals.map((deal) => {
             const buying = deal.buyerId === userId;
             const them = buying ? deal.seller : deal.buyer;
             const youConfirmed = buying ? deal.buyerConfirmed : deal.sellerConfirmed;
             return (
-              <Link key={deal.id} href={`/deals/${deal.id}`} className="grid grid-cols-[1fr_auto] gap-4 py-4 hover:bg-white/60 transition-colors">
+              <Link key={deal.id} href={`/deals/${deal.id}`} className="bg-white border border-line rounded-xl p-4 grid grid-cols-[1fr_auto] gap-4 items-center hover:border-columbia transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
                   <Avatar name={them.name} email={them.email} image={them.image} size={42} />
                   <div className="min-w-0">
