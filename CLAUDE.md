@@ -26,8 +26,14 @@ npx tsc --noEmit
 - Reservation expiry is handled by the protected cron route.
 
 Money is stored as integer cents. Acting user IDs always come from the server
-session. Public listing queries use `PUBLIC_USER_SELECT`; email, phone, and notes
-must only be selected on deal pages restricted to the buyer and seller.
+session. Event listing pages do not select seller identity. Email, phone, and
+notes are otherwise restricted to deal participants or the allowlisted admin
+area.
+
+There is one admin tier. Access is controlled only by the two-email allowlist in
+`src/lib/admin.ts`; do not add database roles or admin invitations. Admins can
+inspect all users and their histories at `/admin/users`, and all trades at
+`/admin/deals`.
 
 Mutations live in `src/lib/actions/`. Schema changes that ship require a committed
 PostgreSQL migration because Vercel runs `prisma migrate deploy` during builds.

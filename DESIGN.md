@@ -169,13 +169,19 @@ Prices and quantities use tabular figures. Common screen headings use Newsreader
 
 ## Layout
 
-The application uses centered single-column work areas: a broad shell capped at 64rem for navigation and event browsing, and a focused 48rem column for event, deal, and profile tasks. Horizontal page padding is 20px on small screens and 28px from the small breakpoint upward; standard page padding is 32px vertically.
+The application uses centered single-column work areas: a broad shell capped at 64rem for navigation, event browsing, and administration, and a focused 48rem column for event, deal, and profile tasks. Horizontal page padding is 20px on small screens and 28px from the small breakpoint upward; standard page padding is 32px vertically.
 
 Spacing follows a compact 4px-derived rhythm, with 8–12px inside controls, 16–24px inside containers, and 24–32px between major sections. Marketplace collections favor stacked rows separated by 1px rules. Dense rows usually pair a flexible identity or event block with a compact right-aligned price/action block.
 
-At the 640px breakpoint, navigation moves from a secondary mobile row into the header, row layouts gain explicit columns, and page gutters widen. At 1024px, the landing surface becomes a two-column composition; the authenticated marketplace remains centered and intentionally narrow.
+Administrative search and filter bars use the same compact controls as the marketplace. A simple search is a flexible field followed by Search and optional Clear actions; combined filters become a responsive grid with a constrained select and grouped actions. Administrative identity and trade records use the full 64rem shell so long names, emails, counts, dates, and prices can form stable reading columns without becoming a dashboard table.
+
+At the 640px breakpoint, navigation moves from a secondary mobile row into the header, dense records gain explicit identity/detail and trailing-stat columns, filter layouts gain constrained columns, and page gutters widen. Before that breakpoint, record metadata flows below the primary identity and keeps its natural left alignment. At 1024px, the landing surface becomes a two-column composition; the authenticated marketplace remains centered and intentionally narrow.
+
+The admin subnavigation remains one 44px-tall horizontal line aligned to the 64rem shell. It uses horizontal overflow on narrow screens rather than wrapping, shrinking, or hiding destinations.
 
 **The Row-Before-Card Rule.** When presenting comparable marketplace records, start with a divided list or compact bordered row. Use a large standalone panel only when the content is a form, profile summary, empty state, or bounded conversation.
+
+**The Admin Continuity Rule.** Administrative tools inherit the marketplace shell, controls, and row density. Do not introduce a separate dashboard grid or table aesthetic for back-office data.
 
 ## Elevation & Depth
 
@@ -231,9 +237,13 @@ Borders are 1px Warm Rule strokes. Dashed borders distinguish empty states. Avoi
 
 The primary header is sticky, white, and separated by one Warm Rule border. It uses the ticket mark plus a small Newsreader wordmark, followed by quiet 14px links that darken on hover. On small screens, core destinations move to a compact 44px secondary row; account and notification controls remain in the main header.
 
+Administrative sections use a second flat white strip with a Warm Rule bottom border. Tabs are inline-flex, at least 44px tall, and separated by a 20px gap. The active tab uses medium Campus Ink text and a 2px Deep Columbia underline; inactive tabs use Slate Copy and darken on hover. The tab row is width-preserving and horizontally scrollable on narrow screens.
+
 ### Marketplace Rows
 
 Comparable records are compact, left-to-right reading units. Identity or event context leads; quantity, availability, and price align to the trailing edge. Repeated records share dividers instead of becoming independent floating cards. Price and count columns use tabular figures, and semantic green is limited to availability or selling.
+
+Administrative identity rows add email and school context below the name, with trade/listing counts and join dates in a quieter trailing column from 640px upward. Trade records preserve the same hierarchy: event or participant relationship first, status and activity metadata second, and total plus unit-price math in a non-shrinking trailing block. On small screens, these columns stack or flow without truncating identity data.
 
 ### Chat
 
@@ -249,6 +259,7 @@ The conversation is a white, bordered 12px container. Outgoing messages use Camp
 - **Do** use Newsreader selectively for hierarchy and Public Sans for all operational content.
 - **Do** align prices and quantities with tabular figures and stable trailing columns.
 - **Do** preserve visible keyboard focus with the 2px Columbia Blue outline.
+- **Do** keep admin tabs on one horizontally scrollable 44px line and admin records responsive without hiding identity or trade context.
 
 ### Don't:
 

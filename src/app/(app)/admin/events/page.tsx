@@ -33,7 +33,7 @@ export default async function AdminEventsPage() {
   ]);
 
   return (
-    <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
+    <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
       <div className="flex items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-serif text-3xl">Events</h1>

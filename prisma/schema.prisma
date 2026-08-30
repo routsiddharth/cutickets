@@ -27,7 +27,6 @@ model User {
   school    String? // e.g. "Columbia College", "Barnard College", "SEAS", "GS"
   classYear Int? //    graduation year, e.g. 2027
   bannedAt  DateTime? // set when an admin/automated control bans the account
-  role      String    @default("USER") // "USER" | "ADMIN"
 
   // Phone verification (Firebase phone OTP, gated before profile setup)
   phone           String? //   E.164, e.g. "+15551234567"
@@ -274,16 +273,7 @@ model Report {
   @@index([reportedId])
 }
 
-// A pending admin invite for a campus email not yet registered. On first sign-in
-// the auth callback promotes the new user to ADMIN and deletes this row.
-model AdminInvite {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdBy String // superadmin user ID (no FK — avoids cascade complexity)
-  createdAt DateTime @default(now())
-}
-
-// An ad unit managed by superadmins. Placement determines which page renders it.
+// An ad unit managed by admins. Placement determines which page renders it.
 model Ad {
   id        String   @id @default(cuid())
   title     String

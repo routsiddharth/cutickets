@@ -9,7 +9,7 @@ export default function AdminTabLink({ href, label }: { href: string; label: str
   return (
     <Link
       href={href}
-      className={`text-sm px-1 pb-2.5 border-b-2 transition-colors ${
+      className={`inline-flex items-center min-h-11 text-sm px-1 border-b-2 whitespace-nowrap transition-colors ${
         active
           ? "border-columbia-deep text-ink font-medium"
           : "border-transparent text-muted hover:text-ink"

@@ -60,21 +60,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const existing = await prisma.user.findUnique({
         where: { email: email as string },
-        select: { bannedAt: true, role: true },
+        select: { bannedAt: true },
       });
       if (existing?.bannedAt) return false;
-
-      if (existing && existing.role !== "ADMIN") {
-        const invite = await prisma.adminInvite.findUnique({
-          where: { email: email as string },
-        });
-        if (invite) {
-          await prisma.$transaction([
-            prisma.user.update({ where: { email: email as string }, data: { role: "ADMIN" } }),
-            prisma.adminInvite.delete({ where: { email: email as string } }),
-          ]);
-        }
-      }
       return true;
     },
     async jwt({ token, user }) {

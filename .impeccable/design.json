@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-30T10:54:38.000Z",
+  "generatedAt": "2026-08-30T15:27:24.000Z",
   "title": "Design System: Morningside Tickets",
   "extensions": {
     "colorMeta": {
@@ -153,6 +153,13 @@
       "css": ".ds-nav { display:flex; align-items:center; gap:20px; min-height:72px; padding:0 24px; background:#FFFFFF; color:#14233D; border-bottom:1px solid #E7E2D8; font-family:'Public Sans',system-ui,sans-serif; } .ds-wordmark { color:#14233D; font:400 18px/1.2 'Newsreader',Georgia,serif; text-decoration:none; } .ds-nav-links { display:flex; gap:20px; margin-right:auto; } .ds-nav-links a { color:#5C6B82; font-size:14px; text-decoration:none; } .ds-nav-links a:hover,.ds-nav-links .ds-nav-active { color:#14233D; } .ds-nav a:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; } .ds-avatar { width:36px; height:36px; display:grid; place-items:center; border-radius:9999px; background:#14233D; color:#FFFFFF; font-size:13px; font-weight:600; }"
     },
     {
+      "name": "Admin Tabs",
+      "kind": "nav",
+      "description": "A shell-aligned, horizontally scrollable 44px tab strip for switching between administrative sections.",
+      "html": "<div class=\"ds-admin-tabs-rail\"><nav class=\"ds-admin-tabs\" aria-label=\"Admin sections\"><a class=\"ds-admin-tab\" href=\"#\">Events</a><a class=\"ds-admin-tab ds-admin-tab-active\" href=\"#\">Users</a><a class=\"ds-admin-tab\" href=\"#\">Trades</a><a class=\"ds-admin-tab\" href=\"#\">Moderation</a><a class=\"ds-admin-tab\" href=\"#\">Ads</a></nav></div>",
+      "css": ".ds-admin-tabs-rail { overflow-x:auto; background:#FFFFFF; border-bottom:1px solid #E7E2D8; padding:0 20px; } .ds-admin-tabs { display:flex; width:max-content; min-width:max-content; gap:20px; margin-bottom:-1px; } .ds-admin-tab { display:inline-flex; align-items:center; min-height:44px; padding:0 4px; border-bottom:2px solid transparent; color:#5C6B82; font:400 14px/1.25 'Public Sans',system-ui,sans-serif; text-decoration:none; white-space:nowrap; transition:color 150ms ease,border-color 150ms ease; } .ds-admin-tab:hover { color:#14233D; } .ds-admin-tab:focus-visible { outline:2px solid #5B8FB9; outline-offset:-2px; } .ds-admin-tab:active,.ds-admin-tab-active { color:#14233D; border-bottom-color:#3D6E97; font-weight:500; }"
+    },
+    {
       "name": "Chat Bubbles",
       "kind": "custom",
       "description": "Directional deal-chat messages using ink for outgoing and warm paper for incoming.",
@@ -176,6 +183,7 @@
       { "name": "The Two-Voice Rule", "body": "Use Newsreader for hierarchy and human warmth, never for dense controls or explanatory copy; use Public Sans everywhere users compare, enter, or act on information.", "section": "typography" },
       { "name": "The Quiet Label Rule", "body": "Uppercase tracking belongs only to short 11px labels. Do not turn navigation, buttons, or body copy into all-caps display language.", "section": "typography" },
       { "name": "The Row-Before-Card Rule", "body": "When presenting comparable marketplace records, start with a divided list or compact bordered row. Use a large standalone panel only when the content is a form, profile summary, empty state, or bounded conversation.", "section": "layout" },
+      { "name": "The Admin Continuity Rule", "body": "Administrative tools inherit the marketplace shell, controls, and row density. Do not introduce a separate dashboard grid or table aesthetic for back-office data.", "section": "layout" },
       { "name": "The Flat-by-Default Rule", "body": "Do not add shadows to marketplace cards, list rows, forms, navigation, or admin panels; use borders and surface contrast instead.", "section": "elevation" }
     ],
     "dos": [
@@ -184,7 +192,8 @@
       "Do keep controls in the established 8–12px radius range and larger panels at 16px.",
       "Do use Newsreader selectively for hierarchy and Public Sans for all operational content.",
       "Do align prices and quantities with tabular figures and stable trailing columns.",
-      "Do preserve visible keyboard focus with the 2px Columbia Blue outline."
+      "Do preserve visible keyboard focus with the 2px Columbia Blue outline.",
+      "Do keep admin tabs on one horizontally scrollable 44px line and admin records responsive without hiding identity or trade context."
     ],
     "donts": [
       "Don't introduce generic dashboard grids, floating metric cards, oversized rounded tiles, or pill-heavy navigation.",

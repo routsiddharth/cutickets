@@ -53,7 +53,7 @@ export default async function AdminModerationPage() {
   }));
 
   return (
-    <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
+    <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
       <h1 className="font-serif text-3xl mb-7">Moderation</h1>
       <ModerationClient listings={listingRows} deals={dealRows} />
     </main>

@@ -35,7 +35,6 @@ async function main() {
         classYear: p.classYear,
         phone: p.phone,
         phoneVerifiedAt: new Date(),
-        role: p.email === "dev@columbia.edu" ? "ADMIN" : "USER",
       },
       create: {
         email: p.email,
@@ -46,7 +45,6 @@ async function main() {
         phoneVerifiedAt: new Date(),
         emailVerified: daysAgo(p.joined),
         createdAt: daysAgo(p.joined),
-        role: p.email === "dev@columbia.edu" ? "ADMIN" : "USER",
       },
     });
     users[p.email] = { id: u.id };

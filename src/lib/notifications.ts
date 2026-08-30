@@ -12,8 +12,7 @@ export type NotificationType =
   | "EVENT_REQUEST_DISMISSED" //     an event request was declined
   | "EVENT_ARCHIVED" //              an event and its open orders were archived
   | "LISTING_KILLED" //              a moderator removed your listing
-  | "TRADE_ADMIN_CANCELLED" //       a moderator cancelled your active deal
-  | "ADMIN_ROLE_GRANTED"; //         you've been granted admin access
+  | "TRADE_ADMIN_CANCELLED"; //      a moderator cancelled your active deal
 
 /**
  * Create an in-app notification. Pass a `tx` to enlist it in a surrounding

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { initials } from "@/lib/format";
 
 export default function Avatar({
@@ -13,22 +16,24 @@ export default function Avatar({
   size?: number;
   className?: string;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const dim = { width: size, height: size };
-  if (image) {
+  if (image && !imageFailed) {
     // eslint-disable-next-line @next/next/no-img-element
     return (
       <img
         src={image}
-        alt={name ?? "avatar"}
+        alt=""
         style={dim}
-        className={`rounded-full object-cover ${className}`}
+        onError={() => setImageFailed(true)}
+        className={`rounded-full object-cover shrink-0 ${className}`}
       />
     );
   }
   return (
     <div
       style={{ ...dim, fontSize: Math.round(size * 0.36) }}
-      className={`rounded-full bg-ink text-white grid place-items-center font-semibold ${className}`}
+      className={`rounded-full bg-ink text-white grid place-items-center font-semibold shrink-0 ${className}`}
     >
       {initials(name, email)}
     </div>

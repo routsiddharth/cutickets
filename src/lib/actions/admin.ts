@@ -4,84 +4,14 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { isAdmin, isSuperAdmin, SUPERADMIN_EMAILS } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin";
 import { notify } from "@/lib/notifications";
 import { releaseDeal } from "@/lib/deals";
-import { isAllowedEmail } from "@/lib/domains";
 import type { ActionState } from "./types";
 
 export type { ActionState };
 
-// ─── Admin invite management (superadmin only) ─────────────────────────────
-
-export async function inviteAdmin(email: string): Promise<ActionState> {
-  const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
-
-  const normalized = email.trim().toLowerCase();
-  if (!isAllowedEmail(normalized)) {
-    return { error: "Must be a columbia.edu or barnard.edu address" };
-  }
-  if ((SUPERADMIN_EMAILS as readonly string[]).includes(normalized)) {
-    return { error: "Already a superadmin" };
-  }
-
-  const target = await prisma.user.findUnique({
-    where: { email: normalized },
-    select: { id: true, role: true, email: true },
-  });
-
-  if (target) {
-    if (target.role === "ADMIN" || isSuperAdmin(target)) {
-      return { error: "Already an admin" };
-    }
-    await prisma.user.update({ where: { id: target.id }, data: { role: "ADMIN" } });
-    await notify({
-      userId: target.id,
-      type: "ADMIN_ROLE_GRANTED",
-      body: "You've been granted admin access on Morningside Tickets",
-    });
-    revalidatePath("/admin/users");
-    return { ok: true };
-  }
-
-  // User not yet registered — queue the invite
-  await prisma.adminInvite.upsert({
-    where: { email: normalized },
-    update: { createdBy: user.id },
-    create: { email: normalized, createdBy: user.id },
-  });
-  revalidatePath("/admin/users");
-  return { ok: true };
-}
-
-export async function cancelAdminInvite(id: string): Promise<ActionState> {
-  const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
-
-  await prisma.adminInvite.delete({ where: { id } });
-  revalidatePath("/admin/users");
-  return { ok: true };
-}
-
-export async function revokeAdmin(targetUserId: string): Promise<ActionState> {
-  const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
-
-  const target = await prisma.user.findUnique({
-    where: { id: targetUserId },
-    select: { id: true, email: true, role: true },
-  });
-  if (!target) return { error: "User not found" };
-  if (isSuperAdmin(target)) return { error: "Cannot revoke a superadmin" };
-  if (target.role !== "ADMIN") return { error: "User is not an admin" };
-
-  await prisma.user.update({ where: { id: targetUserId }, data: { role: "USER" } });
-  revalidatePath("/admin/users");
-  return { ok: true };
-}
-
-// ─── Moderation (admin + superadmin) ──────────────────────────────────────
+// ─── Moderation ───────────────────────────────────────────────────────────
 
 export async function adminKillListing(
   listingId: string,
@@ -160,7 +90,7 @@ export async function adminCancelDeal(
   return { ok: true };
 }
 
-// ─── Ad management (superadmin only) ──────────────────────────────────────
+// ─── Ad management ────────────────────────────────────────────────────────
 
 const adSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(120),
@@ -172,7 +102,7 @@ const adSchema = z.object({
 
 export async function createAd(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
+  if (!isAdmin(user)) return { error: "Not authorized" };
 
   const parsed = adSchema.safeParse({
     title: formData.get("title"),
@@ -204,7 +134,7 @@ export async function updateAd(
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
+  if (!isAdmin(user)) return { error: "Not authorized" };
 
   const parsed = adSchema.safeParse({
     title: formData.get("title"),
@@ -233,7 +163,7 @@ export async function updateAd(
 
 export async function deleteAd(adId: string): Promise<ActionState> {
   const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
+  if (!isAdmin(user)) return { error: "Not authorized" };
 
   await prisma.ad.delete({ where: { id: adId } });
 
@@ -244,7 +174,7 @@ export async function deleteAd(adId: string): Promise<ActionState> {
 
 export async function toggleAd(adId: string): Promise<ActionState> {
   const user = await requireUser();
-  if (!isSuperAdmin(user)) return { error: "Not authorized" };
+  if (!isAdmin(user)) return { error: "Not authorized" };
 
   const ad = await prisma.ad.findUnique({ where: { id: adId }, select: { active: true } });
   if (!ad) return { error: "Ad not found" };

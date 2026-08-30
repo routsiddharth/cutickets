@@ -78,5 +78,6 @@ src/app/api/cron/reservations/   Expiry and reminder backstop
 - Reservation quantities are claimed with an atomic database update.
 - Listings have per-account caps and ticket/price limits.
 - Profiles expose reputation and completed trade history.
-- Users can report profiles; admins can remove listings and cancel active deals.
+- Admin access is restricted to the two emails in `src/lib/admin.ts`.
+- Admins can review every registered user, listing, and trade, and can remove listings or cancel active deals.
 - Payment and transfer remain off-platform and at the users' risk.
