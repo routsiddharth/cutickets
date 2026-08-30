@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getEventStats, getListingsForEvent, getSalesCount } from "@/lib/queries";
-import { formatDateTime, formatPrice, publicName, schoolAbbrev } from "@/lib/format";
-import Avatar from "@/components/Avatar";
+import { formatDateTime, formatPrice } from "@/lib/format";
 import AdBanner from "@/components/AdBanner";
 import CancelListingButton from "@/components/CancelListingButton";
 import ReserveListingForm from "@/components/ReserveListingForm";
@@ -64,34 +63,24 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </section>
       ) : (
         <section className="py-6">
-          <h2 className="font-serif text-2xl mb-4">Tickets for sale</h2>
           <div className="divide-y divide-line border-y border-line">
             {listings.map((listing) => {
               const mine = listing.sellerId === user.id;
-              const sellerName = publicName(listing.seller.name, "student@columbia.edu");
               return (
                 <article key={listing.id} className="py-4 grid sm:grid-cols-[1fr_auto] gap-4 items-center">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <Avatar name={listing.seller.name} email="" image={listing.seller.image} size={42} />
-                    <div className="min-w-0">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <Link href={`/profile/${listing.sellerId}`} className="font-medium hover:underline">{sellerName}</Link>
-                        {mine && <span className="text-xs text-muted">Your listing</span>}
-                      </div>
-                      <p className="text-xs text-muted mt-0.5">
-                        {schoolAbbrev(listing.seller.school, listing.seller.classYear)}
-                        {listing.reputation.ratingAvg !== null ? ` · ★ ${listing.reputation.ratingAvg.toFixed(1)}` : ""}
-                        {` · ${listing.reputation.tradesCompleted} trade${listing.reputation.tradesCompleted === 1 ? "" : "s"}`}
-                      </p>
-                      <p className="text-sm mt-1"><span className="font-medium tabular-nums">{formatPrice(listing.priceCents)}</span> each · {listing.availableQuantity} available</p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="font-medium tabular-nums">{formatPrice(listing.priceCents)} each</p>
+                    <p className="text-sm text-muted mt-0.5">
+                      {listing.availableQuantity} ticket{listing.availableQuantity === 1 ? "" : "s"} available
+                      {mine ? " · Your listing" : ""}
+                    </p>
                   </div>
-                  {mine ? <CancelListingButton listingId={listing.id} /> : <div className="pl-[54px] sm:pl-0"><ReserveListingForm listingId={listing.id} available={listing.availableQuantity} priceCents={listing.priceCents} /></div>}
+                  {mine ? <CancelListingButton listingId={listing.id} /> : <ReserveListingForm listingId={listing.id} available={listing.availableQuantity} priceCents={listing.priceCents} />}
                 </article>
               );
             })}
           </div>
-          <p className="text-xs text-muted mt-4">Reserving opens a private chat and holds the tickets for 24 hours.</p>
+          <p className="text-xs text-muted mt-4">Seller info is available after reserving.</p>
         </section>
       )}
 

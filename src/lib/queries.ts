@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { purchasableListingWhere } from "@/lib/listing";
-import { PUBLIC_USER_SELECT } from "@/lib/public-profile";
-import { getReputation } from "@/lib/reputation";
 
 export type EventStats = {
   ticketsAvailable: number;
@@ -43,7 +41,7 @@ export async function getEventStats(eventId: string): Promise<EventStats> {
 }
 
 export async function getListingsForEvent(eventId: string) {
-  const listings = await prisma.listing.findMany({
+  return prisma.listing.findMany({
     where: { eventId, ...purchasableListingWhere() },
     orderBy: [{ priceCents: "asc" }, { postedAt: "asc" }],
     select: {
@@ -51,12 +49,8 @@ export async function getListingsForEvent(eventId: string) {
       sellerId: true,
       availableQuantity: true,
       priceCents: true,
-      postedAt: true,
-      seller: { select: PUBLIC_USER_SELECT },
     },
   });
-  const reputations = await Promise.all(listings.map((listing) => getReputation(listing.sellerId)));
-  return listings.map((listing, index) => ({ ...listing, reputation: reputations[index] }));
 }
 
 export async function getEventsWithStats(query?: string) {

@@ -29,8 +29,7 @@ export default async function DealsPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
-      <h1 className="font-serif text-3xl">My deals</h1>
-      <p className="text-sm text-muted mt-1 mb-7">Message the other person, arrange the transfer, and confirm when it’s done.</p>
+      <h1 className="font-serif text-3xl mb-7">My deals</h1>
 
       <DealSection title="Active" deals={active} userId={user.id} empty="No active deals." />
       {completed.length > 0 && <DealSection title="Completed" deals={completed} userId={user.id} />}
