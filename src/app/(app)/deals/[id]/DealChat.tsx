@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { sendMessage, type ActionState } from "@/lib/actions/deals";
 import SubmitButton from "@/components/SubmitButton";
+import Avatar from "@/components/Avatar";
 
 export type ChatMessage = {
   id: string;
@@ -13,7 +14,9 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export default function DealChat({ dealId, meId, messages }: { dealId: string; meId: string; messages: ChatMessage[] }) {
+type ChatPerson = { id: string; name: string | null; email: string; image: string | null };
+
+export default function DealChat({ dealId, me, them, messages }: { dealId: string; me: ChatPerson; them: ChatPerson; messages: ChatMessage[] }) {
   const router = useRouter();
   const [state, action] = useActionState<ActionState, FormData>(sendMessage, undefined);
   const formRef = useRef<HTMLFormElement>(null);
@@ -42,12 +45,15 @@ export default function DealChat({ dealId, meId, messages }: { dealId: string; m
           if (message.kind === "EVENT") {
             return <p key={message.id} className="text-center text-xs text-muted py-1">{message.body}</p>;
           }
-          const mine = message.senderId === meId;
+          const mine = message.senderId === me.id;
+          const sender = mine ? me : them;
           return (
-            <div key={message.id} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+            <div key={message.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+              {!mine && <Avatar name={sender.name} email={sender.email} image={sender.image} size={28} />}
               <div className={`max-w-[78%] rounded-xl px-3.5 py-2 text-sm leading-relaxed ${mine ? "bg-ink text-white rounded-br-sm" : "bg-paper border border-line rounded-bl-sm"}`}>
                 {message.body}
               </div>
+              {mine && <Avatar name={sender.name} email={sender.email} image={sender.image} size={28} />}
             </div>
           );
         })}

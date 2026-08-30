@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { formatPrice, publicName } from "@/lib/format";
+import Avatar from "@/components/Avatar";
 
 export default async function DealsPage() {
   const user = await requireUser();
@@ -20,8 +21,8 @@ export default async function DealsPage() {
       buyerConfirmed: true,
       sellerConfirmed: true,
       event: { select: { name: true } },
-      buyer: { select: { name: true, email: true } },
-      seller: { select: { name: true, email: true } },
+      buyer: { select: { name: true, email: true, image: true } },
+      seller: { select: { name: true, email: true, image: true } },
     },
   });
   const active = deals.filter((deal) => deal.status === "RESERVED");
@@ -46,8 +47,8 @@ type DealRow = {
   buyerConfirmed: boolean;
   sellerConfirmed: boolean;
   event: { name: string };
-  buyer: { name: string | null; email: string };
-  seller: { name: string | null; email: string };
+  buyer: { name: string | null; email: string; image: string | null };
+  seller: { name: string | null; email: string; image: string | null };
 };
 
 function DealSection({ title, deals, userId, empty }: { title: string; deals: DealRow[]; userId: string; empty?: string }) {
@@ -64,9 +65,12 @@ function DealSection({ title, deals, userId, empty }: { title: string; deals: De
             const youConfirmed = buying ? deal.buyerConfirmed : deal.sellerConfirmed;
             return (
               <Link key={deal.id} href={`/deals/${deal.id}`} className="grid grid-cols-[1fr_auto] gap-4 py-4 hover:bg-white/60 transition-colors">
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{deal.event.name}</p>
-                  <p className="text-sm text-muted mt-0.5">{buying ? "Buying from" : "Selling to"} {publicName(them.name, them.email)} · {deal.quantity} ticket{deal.quantity === 1 ? "" : "s"}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar name={them.name} email={them.email} image={them.image} size={42} />
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{deal.event.name}</p>
+                    <p className="text-sm text-muted mt-0.5">{buying ? "Buying from" : "Selling to"} {publicName(them.name, them.email)} · {deal.quantity} ticket{deal.quantity === 1 ? "" : "s"}</p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="font-medium tabular-nums">{formatPrice(deal.unitPriceCents * deal.quantity)}</p>

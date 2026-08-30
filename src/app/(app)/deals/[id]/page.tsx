@@ -79,7 +79,12 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
 
       <section className="py-6">
         <h2 className="text-sm font-medium mb-3">Chat</h2>
-        <DealChat dealId={deal.id} meId={user.id} messages={messages} />
+        <DealChat
+          dealId={deal.id}
+          me={{ id: user.id, name: user.name, email: user.email, image: user.image }}
+          them={{ id: them.id, name: them.name, email: them.email, image: them.image }}
+          messages={messages}
+        />
       </section>
 
       <section className="border-t border-line pt-5">

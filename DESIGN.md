@@ -93,6 +93,12 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.container}"
     padding: "16px"
+  avatar-fallback:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.surface}"
+    typography: "{typography.body}"
+    rounded: "{rounded.full}"
+    size: "42px"
 ---
 
 # Design System: Morningside Tickets
@@ -183,6 +189,8 @@ The admin subnavigation remains one 44px-tall horizontal line aligned to the 64r
 
 **The Admin Continuity Rule.** Administrative tools inherit the marketplace shell, controls, and row density. Do not introduce a separate dashboard grid or table aesthetic for back-office data.
 
+**The Peer-Index Rule.** Distinct account classes receive peer destinations and dedicated indexes. Keep regular users and administrators visually separate instead of mixing privileged accounts into the ordinary user list with badges alone.
+
 ## Elevation & Depth
 
 The authenticated product is flat by default and uses no shadows. Depth comes from warm-paper/white contrast, 1px borders, dividers, and occasional tinted state backgrounds. The elevated Google sign-in control is an isolated landing-page exception, using a soft medium shadow that strengthens on hover.
@@ -201,6 +209,10 @@ The authenticated product is flat by default and uses no shadows. Depth comes fr
 Controls are gently curved at 8px. Compact secondary controls may tighten to 6px; recurring cards and contained rows use 12px; larger profile, notification, onboarding, and administrative panels use 16px. Pills and circles are reserved for avatars, counters, status chips, and small numbered markers.
 
 Borders are 1px Warm Rule strokes. Dashed borders distinguish empty states. Avoid fully rounded pill buttons for ordinary actions and avoid mixing several radii within one component unless geometry communicates a real state, as in chat-bubble tails.
+
+Identity images are always circular and non-shrinking. Stored profile photos use edge-to-edge object cropping; missing or failed images fall back in place to Campus Ink with centered white initials, preserving the same size and geometry.
+
+**The Identity-Fallback Rule.** A broken profile image never leaves an empty frame or browser error icon. Replace it with deterministic initials at the exact intended avatar size.
 
 ## Components
 
@@ -237,17 +249,24 @@ Borders are 1px Warm Rule strokes. Dashed borders distinguish empty states. Avoi
 
 The primary header is sticky, white, and separated by one Warm Rule border. It uses the ticket mark plus a small Newsreader wordmark, followed by quiet 14px links that darken on hover. On small screens, core destinations move to a compact 44px secondary row; account and notification controls remain in the main header.
 
-Administrative sections use a second flat white strip with a Warm Rule bottom border. Tabs are inline-flex, at least 44px tall, and separated by a 20px gap. The active tab uses medium Campus Ink text and a 2px Deep Columbia underline; inactive tabs use Slate Copy and darken on hover. The tab row is width-preserving and horizontally scrollable on narrow screens.
+Administrative sections use a second flat white strip with a Warm Rule bottom border. Tabs are inline-flex, at least 44px tall, and separated by a 20px gap. Users and Admins are separate peer tabs rather than one mixed account index. The active tab uses medium Campus Ink text and a 2px Deep Columbia underline; inactive tabs use Slate Copy and darken on hover. The tab row is width-preserving and horizontally scrollable on narrow screens.
 
 ### Marketplace Rows
 
-Comparable records are compact, left-to-right reading units. Identity or event context leads; quantity, availability, and price align to the trailing edge. Repeated records share dividers instead of becoming independent floating cards. Price and count columns use tabular figures, and semantic green is limited to availability or selling.
+Comparable records are compact, left-to-right reading units. Identity or event context leads; quantity, availability, and price align to the trailing edge. When a record represents a person, a 42px avatar precedes the primary identity block. Repeated records share dividers instead of becoming independent floating cards. Price and count columns use tabular figures, and semantic green is limited to availability or selling.
 
-Administrative identity rows add email and school context below the name, with trade/listing counts and join dates in a quieter trailing column from 640px upward. Trade records preserve the same hierarchy: event or participant relationship first, status and activity metadata second, and total plus unit-price math in a non-shrinking trailing block. On small screens, these columns stack or flow without truncating identity data.
+Administrative identity rows add email and school context below the name, with trade/listing counts and join dates in a quieter trailing column from 640px upward. Ordinary user rows use 42px avatars; the dedicated admin index uses 48px avatars and may add a profile link to its trailing metadata. Trade records preserve the same hierarchy: event or participant relationship first, status and activity metadata second, and total plus unit-price math in a non-shrinking trailing block. On small screens, these columns stack or flow without truncating identity data.
+
+### Avatars
+
+- **Source:** Use the stored Google profile photo when present. Crop with `object-fit: cover`, keep it circular, and leave the image decorative when the adjacent text already names the person.
+- **Fallback:** If the source is absent or fails to load, show deterministic initials on Campus Ink with white medium-to-semibold text. The fallback occupies the same box and never changes row alignment.
+- **Scale:** Use 28px beside individual chat messages, 42px in dense user and deal rows, 48px for prominent counterpart or administrator rows, and 64px in an account-detail identity header. The primary navigation may use its established 44px account avatar.
+- **Placement:** Keep avatars non-shrinking with a 12px gap to the identity block. Identity copy remains the accessible name; the image itself does not duplicate that label.
 
 ### Chat
 
-The conversation is a white, bordered 12px container. Outgoing messages use Campus Ink with white text; incoming messages use Warm Paper with a Warm Rule border. Both use 12px bubbles with one tightened 4px lower corner to indicate direction, and system events remain centered, small, and muted.
+The conversation is a white, bordered 12px container. Outgoing messages use Campus Ink with white text; incoming messages use Warm Paper with a Warm Rule border. Both use 12px bubbles with one tightened 4px lower corner to indicate direction. Each text message carries the sender’s 28px avatar at the outer edge of the bubble—left for incoming, right for outgoing—while system events remain centered, small, muted, and avatar-free.
 
 ## Do's and Don'ts
 
@@ -260,6 +279,7 @@ The conversation is a white, bordered 12px container. Outgoing messages use Camp
 - **Do** align prices and quantities with tabular figures and stable trailing columns.
 - **Do** preserve visible keyboard focus with the 2px Columbia Blue outline.
 - **Do** keep admin tabs on one horizontally scrollable 44px line and admin records responsive without hiding identity or trade context.
+- **Do** preserve one circular avatar geometry across photos and initials fallbacks, using the established size for each density level.
 
 ### Don't:
 

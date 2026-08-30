@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-30T15:27:24.000Z",
+  "generatedAt": "2026-08-30T20:02:03.000Z",
   "title": "Design System: Morningside Tickets",
   "extensions": {
     "colorMeta": {
@@ -156,15 +156,23 @@
       "name": "Admin Tabs",
       "kind": "nav",
       "description": "A shell-aligned, horizontally scrollable 44px tab strip for switching between administrative sections.",
-      "html": "<div class=\"ds-admin-tabs-rail\"><nav class=\"ds-admin-tabs\" aria-label=\"Admin sections\"><a class=\"ds-admin-tab\" href=\"#\">Events</a><a class=\"ds-admin-tab ds-admin-tab-active\" href=\"#\">Users</a><a class=\"ds-admin-tab\" href=\"#\">Trades</a><a class=\"ds-admin-tab\" href=\"#\">Moderation</a><a class=\"ds-admin-tab\" href=\"#\">Ads</a></nav></div>",
+      "html": "<div class=\"ds-admin-tabs-rail\"><nav class=\"ds-admin-tabs\" aria-label=\"Admin sections\"><a class=\"ds-admin-tab\" href=\"#\">Events</a><a class=\"ds-admin-tab\" href=\"#\">Users</a><a class=\"ds-admin-tab ds-admin-tab-active\" href=\"#\">Admins</a><a class=\"ds-admin-tab\" href=\"#\">Trades</a><a class=\"ds-admin-tab\" href=\"#\">Moderation</a><a class=\"ds-admin-tab\" href=\"#\">Ads</a></nav></div>",
       "css": ".ds-admin-tabs-rail { overflow-x:auto; background:#FFFFFF; border-bottom:1px solid #E7E2D8; padding:0 20px; } .ds-admin-tabs { display:flex; width:max-content; min-width:max-content; gap:20px; margin-bottom:-1px; } .ds-admin-tab { display:inline-flex; align-items:center; min-height:44px; padding:0 4px; border-bottom:2px solid transparent; color:#5C6B82; font:400 14px/1.25 'Public Sans',system-ui,sans-serif; text-decoration:none; white-space:nowrap; transition:color 150ms ease,border-color 150ms ease; } .ds-admin-tab:hover { color:#14233D; } .ds-admin-tab:focus-visible { outline:2px solid #5B8FB9; outline-offset:-2px; } .ds-admin-tab:active,.ds-admin-tab-active { color:#14233D; border-bottom-color:#3D6E97; font-weight:500; }"
+    },
+    {
+      "name": "Avatar / Initials Fallback",
+      "kind": "custom",
+      "refersTo": "avatar-fallback",
+      "description": "A circular stored profile photo that falls back in place to Campus Ink initials without changing identity-row geometry.",
+      "html": "<div class=\"ds-avatar-sample\"><span class=\"ds-avatar ds-avatar-42\" role=\"img\" aria-label=\"Siddharth Rout initials\">SR</span><span class=\"ds-avatar ds-avatar-28\" role=\"img\" aria-label=\"Siddharth Rout initials\">SR</span></div>",
+      "css": ".ds-avatar-sample { display:flex; align-items:flex-end; gap:12px; } .ds-avatar { display:grid; place-items:center; flex:0 0 auto; overflow:hidden; border-radius:9999px; background:#14233D; color:#FFFFFF; font-family:'Public Sans',system-ui,sans-serif; font-weight:600; } .ds-avatar-42 { width:42px; height:42px; font-size:15px; } .ds-avatar-28 { width:28px; height:28px; font-size:10px; } .ds-avatar:hover { background:#1b2d4b; } .ds-avatar:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; }"
     },
     {
       "name": "Chat Bubbles",
       "kind": "custom",
-      "description": "Directional deal-chat messages using ink for outgoing and warm paper for incoming.",
-      "html": "<div class=\"ds-chat\"><p class=\"ds-bubble ds-bubble-in\">I can transfer after 5.</p><p class=\"ds-bubble ds-bubble-out\">Perfect — I’ll message you then.</p></div>",
-      "css": ".ds-chat { display:flex; flex-direction:column; gap:12px; padding:16px; background:#FFFFFF; border:1px solid #E7E2D8; border-radius:12px; font:400 14px/1.5 'Public Sans',system-ui,sans-serif; } .ds-bubble { max-width:78%; margin:0; padding:8px 14px; border-radius:12px; } .ds-bubble-in { align-self:flex-start; background:#FBFAF7; color:#14233D; border:1px solid #E7E2D8; border-bottom-left-radius:4px; } .ds-bubble-out { align-self:flex-end; background:#14233D; color:#FFFFFF; border-bottom-right-radius:4px; } .ds-bubble:hover { filter:brightness(.99); } .ds-bubble:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; }"
+      "description": "Directional deal-chat messages with a small sender avatar at each bubble’s outer edge.",
+      "html": "<div class=\"ds-chat\"><div class=\"ds-message ds-message-in\"><span class=\"ds-chat-avatar\">SD</span><p class=\"ds-bubble ds-bubble-in\">I can transfer after 5.</p></div><div class=\"ds-message ds-message-out\"><p class=\"ds-bubble ds-bubble-out\">Perfect — I’ll message you then.</p><span class=\"ds-chat-avatar\">SR</span></div></div>",
+      "css": ".ds-chat { display:flex; flex-direction:column; gap:12px; padding:16px; background:#FFFFFF; border:1px solid #E7E2D8; border-radius:12px; font:400 14px/1.5 'Public Sans',system-ui,sans-serif; } .ds-message { display:flex; align-items:flex-end; gap:8px; } .ds-message-in { justify-content:flex-start; } .ds-message-out { justify-content:flex-end; } .ds-chat-avatar { width:28px; height:28px; display:grid; place-items:center; flex:0 0 auto; border-radius:9999px; background:#14233D; color:#FFFFFF; font-size:10px; font-weight:600; } .ds-bubble { max-width:78%; margin:0; padding:8px 14px; border-radius:12px; } .ds-bubble-in { background:#FBFAF7; color:#14233D; border:1px solid #E7E2D8; border-bottom-left-radius:4px; } .ds-bubble-out { background:#14233D; color:#FFFFFF; border-bottom-right-radius:4px; } .ds-bubble:hover { filter:brightness(.99); } .ds-bubble:focus-visible { outline:2px solid #5B8FB9; outline-offset:2px; }"
     }
   ],
   "narrative": {
@@ -184,7 +192,9 @@
       { "name": "The Quiet Label Rule", "body": "Uppercase tracking belongs only to short 11px labels. Do not turn navigation, buttons, or body copy into all-caps display language.", "section": "typography" },
       { "name": "The Row-Before-Card Rule", "body": "When presenting comparable marketplace records, start with a divided list or compact bordered row. Use a large standalone panel only when the content is a form, profile summary, empty state, or bounded conversation.", "section": "layout" },
       { "name": "The Admin Continuity Rule", "body": "Administrative tools inherit the marketplace shell, controls, and row density. Do not introduce a separate dashboard grid or table aesthetic for back-office data.", "section": "layout" },
-      { "name": "The Flat-by-Default Rule", "body": "Do not add shadows to marketplace cards, list rows, forms, navigation, or admin panels; use borders and surface contrast instead.", "section": "elevation" }
+      { "name": "The Peer-Index Rule", "body": "Distinct account classes receive peer destinations and dedicated indexes. Keep regular users and administrators visually separate instead of mixing privileged accounts into the ordinary user list with badges alone.", "section": "layout" },
+      { "name": "The Flat-by-Default Rule", "body": "Do not add shadows to marketplace cards, list rows, forms, navigation, or admin panels; use borders and surface contrast instead.", "section": "elevation" },
+      { "name": "The Identity-Fallback Rule", "body": "A broken profile image never leaves an empty frame or browser error icon. Replace it with deterministic initials at the exact intended avatar size.", "section": "shapes" }
     ],
     "dos": [
       "Do build screens from warm paper, white surfaces, navy text, and 1px warm borders.",
@@ -193,7 +203,8 @@
       "Do use Newsreader selectively for hierarchy and Public Sans for all operational content.",
       "Do align prices and quantities with tabular figures and stable trailing columns.",
       "Do preserve visible keyboard focus with the 2px Columbia Blue outline.",
-      "Do keep admin tabs on one horizontally scrollable 44px line and admin records responsive without hiding identity or trade context."
+      "Do keep admin tabs on one horizontally scrollable 44px line and admin records responsive without hiding identity or trade context.",
+      "Do preserve one circular avatar geometry across photos and initials fallbacks, using the established size for each density level."
     ],
     "donts": [
       "Don't introduce generic dashboard grids, floating metric cards, oversized rounded tiles, or pill-heavy navigation.",

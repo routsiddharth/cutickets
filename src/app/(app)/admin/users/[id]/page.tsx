@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
 import { formatDate, formatDateTime, formatPrice } from "@/lib/format";
+import Avatar from "@/components/Avatar";
 
 export default async function AdminUserPage({ params }: { params: Promise<{ id: string }> }) {
   const admin = await requireUser();
@@ -28,12 +29,17 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
     <main className="max-w-5xl mx-auto px-5 sm:px-7 py-8">
       <Link href="/admin/users" className="text-sm text-muted hover:text-ink">← Users</Link>
       <header className="mt-4 pb-6 border-b border-line">
-        <div className="flex items-baseline gap-3 flex-wrap">
-          <h1 className="font-serif text-3xl">{user.name ?? "No name"}</h1>
-          {isAdmin(user) && <span className="text-xs text-columbia-deep">Admin</span>}
-          {user.bannedAt && <span className="text-xs text-red-700">Suspended</span>}
+        <div className="flex items-center gap-4">
+          <Avatar name={user.name} email={user.email} image={user.image} size={64} />
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <h1 className="font-serif text-3xl">{user.name ?? "No name"}</h1>
+              {isAdmin(user) && <span className="text-xs text-columbia-deep">Admin</span>}
+              {user.bannedAt && <span className="text-xs text-red-700">Suspended</span>}
+            </div>
+            <p className="text-sm mt-1 break-all">{user.email}</p>
+          </div>
         </div>
-        <p className="text-sm mt-1 break-all">{user.email}</p>
         <dl className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 mt-6 text-sm">
           <AccountFact label="School" value={user.school ?? "Not provided"} />
           <AccountFact label="Class year" value={user.classYear ? String(user.classYear) : "Not provided"} />
