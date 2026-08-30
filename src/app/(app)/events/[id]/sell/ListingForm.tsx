@@ -33,7 +33,6 @@ export default function ListingForm({ eventId }: { eventId: string }) {
       <div>
         <label htmlFor="notes" className="block text-sm font-medium mb-2">Private note <span className="font-normal text-muted">(optional)</span></label>
         <textarea id="notes" name="notes" rows={3} maxLength={500} placeholder="Ticket platform, transfer details, or when you can meet." className="w-full border border-line rounded-lg px-3 py-2.5 bg-white resize-none" />
-        <p className="text-xs text-muted mt-1.5">Shown only after a buyer reserves.</p>
       </div>
 
       {state?.error && <p className="text-sm text-red-600" role="alert">{state.error}</p>}
