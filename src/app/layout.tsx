@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Newsreader, Public_Sans } from "next/font/google";
+import { Newsreader, Public_Sans, Space_Mono } from "next/font/google";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -17,6 +17,14 @@ const publicSans = Public_Sans({
   display: "swap",
 });
 
+// Ticket-stub voice: dates, times, prices, and counts on the events list.
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-space-mono",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Morningside Tickets",
   description:
@@ -29,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${newsreader.variable} ${publicSans.variable}`}>
+    <html lang="en" className={`${newsreader.variable} ${publicSans.variable} ${spaceMono.variable}`}>
       <body className="font-sans text-ink min-h-screen">{children}</body>
     </html>
   );

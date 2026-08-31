@@ -34,3 +34,100 @@ body {
   outline: 2px solid theme("colors.columbia.DEFAULT");
   outline-offset: 2px;
 }
+
+/*
+ * Foil: reserved for two moments — the last few tickets on an event, and a
+ * ticket a user owns. Everywhere else on the page stays flat, so this still
+ * reads as a signal instead of decoration.
+ */
+.foil {
+  background: linear-gradient(
+    100deg,
+    #b0642f 0%,
+    #e3a35c 22%,
+    #4e7ba6 45%,
+    #b0642f 68%,
+    #e3a35c 86%,
+    #4e7ba6 100%
+  );
+  background-size: 260% 260%;
+  animation: foil-shift 9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .foil {
+    animation: none;
+    background-position: 30% 50%;
+  }
+}
+@keyframes foil-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Barcode used as a rule instead of a plain hairline divider. */
+.barcode-rule {
+  height: 12px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    #14233d 0px,
+    #14233d 1px,
+    transparent 1px,
+    transparent 3px,
+    #14233d 3px,
+    #14233d 4px,
+    transparent 4px,
+    transparent 7px,
+    #14233d 7px,
+    #14233d 9px,
+    transparent 9px,
+    transparent 11px,
+    #14233d 11px,
+    #14233d 12px,
+    transparent 12px,
+    transparent 16px
+  );
+  opacity: 0.16;
+}
+
+/*
+ * The tear: a perforated notch-and-dash rule that separates event details
+ * from price on a card. Meant to be placed inside a padded container with a
+ * matching negative margin (e.g. "-mx-4") so the notches land on the card's
+ * physical edge, where the card's own overflow-hidden clips them into
+ * half-moon bites.
+ */
+.tear {
+  position: relative;
+  border-top: 1px dashed #cfc8b8;
+}
+.tear::before,
+.tear::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: theme("colors.paper");
+  /* A visible edge on the punch, since card/paper are close enough in tone
+     that the cutout doesn't read from fill color alone. */
+  box-shadow: inset 0 0 0 1px rgba(20, 35, 61, 0.1);
+}
+.tear::before {
+  left: -8px;
+}
+.tear::after {
+  right: -8px;
+}
+
+/* Standing in for a flyer image until events have real artwork. */
+.flyer-placeholder {
+  background-color: #f3efe4;
+  background-image: radial-gradient(#cfc8b8 1px, transparent 1px);
+  background-size: 10px 10px;
+}

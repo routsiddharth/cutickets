@@ -24,6 +24,18 @@ export function formatDate(d: Date | string | null | undefined): string {
   });
 }
 
+/** Ticket-stub style date/time for event cards, e.g. "THU SEP 10 · 10:00 PM". */
+export function formatEventCardDate(d: Date | string | null | undefined): string {
+  if (!d) return "DATE TBD";
+  const date = typeof d === "string" ? new Date(d) : d;
+  const datePart = date
+    .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+    .replace(",", "")
+    .toUpperCase();
+  const timePart = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${datePart} · ${timePart}`;
+}
+
 export function formatDateTime(d: Date | string | null | undefined): string {
   if (!d) return "TBD";
   const date = typeof d === "string" ? new Date(d) : d;

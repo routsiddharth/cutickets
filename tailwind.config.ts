@@ -7,6 +7,7 @@ const config: Config = {
       fontFamily: {
         serif: ["var(--font-newsreader)", "Georgia", "serif"],
         sans: ["var(--font-public-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-space-mono)", "ui-monospace", "monospace"],
       },
       colors: {
         paper: "#FBFAF7",
@@ -16,6 +17,10 @@ const config: Config = {
         columbia: { DEFAULT: "#5B8FB9", soft: "#E8F0F7", deep: "#3D6E97" },
         sell: { DEFAULT: "#1F7A63", soft: "#E6F2ED" },
         buy: { DEFAULT: "#A8651A", soft: "#F7ECDB" },
+        // Ticket-stock additions: a whiter card surface to rest on the cream
+        // page, and a foil accent reserved for scarcity/ownership states.
+        card: "#FFFDF8",
+        foil: "#B0642F",
       },
     },
   },
