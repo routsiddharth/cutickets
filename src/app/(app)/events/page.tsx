@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getEventsWithStats } from "@/lib/queries";
 import { formatEventCardDate, formatPrice } from "@/lib/format";
+import { flyerUrl } from "@/lib/flyer";
 import AdBanner from "@/components/AdBanner";
 
 type EventCardData = {
@@ -8,6 +9,7 @@ type EventCardData = {
   name: string;
   venue: string | null;
   startsAt: Date | null;
+  flyerUpdatedAt: Date | null;
 };
 
 type EventCardStats = {
@@ -34,8 +36,6 @@ export default async function EventsPage({
           Browse tickets from verified Columbia and Barnard students.
         </p>
       </div>
-
-      <div className="barcode-rule rounded-full mb-6" />
 
       <form className="flex gap-2 mb-6" action="/events">
         <input
@@ -80,13 +80,25 @@ function EventCard({ event, stats }: { event: EventCardData; stats: EventCardSta
     stats.salesCount > 0 && stats.lastSaleCents !== null
       ? `${stats.salesCount} sold · last at ${formatPrice(stats.lastSaleCents)}`
       : "No sales yet";
+  const flyer = flyerUrl(event.id, event.flyerUpdatedAt);
 
   return (
     <Link
       href={`/events/${event.id}`}
-      className="group block bg-card border border-line rounded-2xl overflow-hidden shadow-[0_1px_0_rgba(20,35,61,0.06)] hover:border-columbia transition-colors"
+      className="group block bg-card rounded-2xl overflow-hidden shadow-[inset_0_0_0_1px_#e7e2d8,0_1px_0_rgba(20,35,61,0.06)] hover:shadow-[inset_0_0_0_1px_#5b8fb9,0_1px_0_rgba(20,35,61,0.06)] transition-shadow"
     >
-      <div className="relative aspect-[16/10] flyer-placeholder">
+      <div className={`relative aspect-[4/5] ${flyer ? "bg-ink/5" : "flyer-placeholder"}`}>
+        {flyer ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={flyer}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <span className="tag absolute inset-0 grid place-items-center text-ink/20">Flyer</span>
+        )}
         {hasAvailable && (
           <span
             className={`tag font-mono absolute top-3 left-3 px-2.5 py-1 rounded-full ${
@@ -96,7 +108,6 @@ function EventCard({ event, stats }: { event: EventCardData; stats: EventCardSta
             {scarce ? `${stats.ticketsAvailable} left` : `${stats.ticketsAvailable} available`}
           </span>
         )}
-        <span className="tag absolute inset-0 grid place-items-center text-ink/20">Flyer</span>
       </div>
 
       <div className="p-4">

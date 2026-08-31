@@ -90,25 +90,40 @@ model VerificationToken {
 // ─── Marketplace models ────────────────────────────────────────────────────
 
 model Event {
-  id          String    @id @default(cuid())
-  name        String
-  venue       String?
-  startsAt    DateTime?
-  description String?
-  poshLink    String? // optional link to the event's Posh page
-  createdById String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  archivedAt  DateTime?
+  id             String    @id @default(cuid())
+  name           String
+  venue          String?
+  startsAt       DateTime?
+  description    String?
+  poshLink       String? // optional link to the event's Posh page
+  flyerUpdatedAt DateTime? // set when an admin uploads/replaces the flyer image; null if none
+  createdById    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  archivedAt     DateTime?
 
   createdBy     User           @relation("EventCreator", fields: [createdById], references: [id])
   listings      Listing[]
   deals         Deal[]
   requests      EventRequest[]
   notifications Notification[]
+  flyer         EventFlyer?
 
   @@index([startsAt])
   @@index([archivedAt, startsAt])
+}
+
+// The flyer image for an event, kept off the Event row so ordinary event
+// queries never pull image bytes. One per event; admin-uploaded only.
+// Always stored pre-converted to a single format/aspect ratio — see
+// FLYER_CONTENT_TYPE and FLYER_WIDTH/FLYER_HEIGHT in src/lib/flyer.ts.
+model EventFlyer {
+  eventId     String   @id
+  data        Bytes
+  contentType String
+  updatedAt   DateTime @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 // A student suggestion for an event that is missing from the market. Admins

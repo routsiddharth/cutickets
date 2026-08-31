@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getEventStats, getListingsForEvent } from "@/lib/queries";
 import { formatDateTime, formatPrice } from "@/lib/format";
+import { flyerUrl } from "@/lib/flyer";
 import AdBanner from "@/components/AdBanner";
 import CancelListingButton from "@/components/CancelListingButton";
 import ReserveListingForm from "@/components/ReserveListingForm";
@@ -18,46 +19,57 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     getEventStats(id),
     getListingsForEvent(id),
   ]);
+  const flyer = flyerUrl(event.id, event.flyerUpdatedAt);
 
   return (
     <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
       <Link href="/events" className="text-sm text-muted hover:text-ink">← Events</Link>
 
-      <header className="mt-5 pb-6 border-b border-line">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-3xl sm:text-4xl leading-tight">{event.name}</h1>
-            <p className="text-sm text-muted mt-1.5">{formatDateTime(event.startsAt)}{event.venue ? ` · ${event.venue}` : ""}</p>
+      <header className="mt-5 pb-6 border-b border-line flex flex-col sm:flex-row gap-5 sm:gap-6">
+        {flyer && (
+          <div className="w-36 sm:w-44 shrink-0 mx-auto sm:mx-0">
+            <div className="relative aspect-[4/5] rounded-xl overflow-hidden border border-line shadow-[0_1px_0_rgba(20,35,61,0.06)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={flyer} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            </div>
           </div>
-          {!event.archivedAt && (
-            <Link href={`/events/${id}/sell`} className="self-start shrink-0 bg-sell text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-sell/90">Sell tickets</Link>
-          )}
-        </div>
-        {event.description && <p className="text-sm text-muted mt-4 max-w-2xl leading-relaxed">{event.description}</p>}
-        {event.poshLink && <a href={event.poshLink} target="_blank" rel="noopener noreferrer" className="inline-block text-sm text-columbia-deep mt-3 hover:underline">Event details ↗</a>}
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <h1 className="font-serif text-3xl sm:text-4xl leading-tight">{event.name}</h1>
+              <p className="text-sm text-muted mt-1.5">{formatDateTime(event.startsAt)}{event.venue ? ` · ${event.venue}` : ""}</p>
+            </div>
+            {!event.archivedAt && (
+              <Link href={`/events/${id}/sell`} className="self-start shrink-0 bg-sell text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-sell/90">Sell tickets</Link>
+            )}
+          </div>
+          {event.description && <p className="text-sm text-muted mt-4 max-w-2xl leading-relaxed">{event.description}</p>}
+          {event.poshLink && <a href={event.poshLink} target="_blank" rel="noopener noreferrer" className="inline-block text-sm text-columbia-deep mt-3 hover:underline">Event details ↗</a>}
 
-        <dl className="grid grid-cols-2 max-w-xl mt-5 text-sm">
-          <div className="grid grid-cols-2 gap-4 pr-4 sm:pr-6">
-            <div>
-              <dt className="text-xs text-muted">Available</dt>
-              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.ticketsAvailable} ticket{stats.ticketsAvailable === 1 ? "" : "s"}</dd>
+          <dl className="grid grid-cols-2 max-w-xl mt-5 text-sm">
+            <div className="grid grid-cols-2 gap-4 pr-4 sm:pr-6">
+              <div>
+                <dt className="text-xs text-muted">Available</dt>
+                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.ticketsAvailable} ticket{stats.ticketsAvailable === 1 ? "" : "s"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted">Starting at</dt>
+                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lowestPriceCents === null ? "—" : formatPrice(stats.lowestPriceCents)}</dd>
+              </div>
             </div>
-            <div>
-              <dt className="text-xs text-muted">Starting at</dt>
-              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lowestPriceCents === null ? "—" : formatPrice(stats.lowestPriceCents)}</dd>
+            <div className="grid grid-cols-2 gap-4 border-l border-line pl-4 sm:pl-6">
+              <div>
+                <dt className="text-xs text-muted">Sold</dt>
+                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.salesCount} sale{stats.salesCount === 1 ? "" : "s"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted">Last sold</dt>
+                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lastSaleCents === null ? "—" : formatPrice(stats.lastSaleCents)}</dd>
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4 border-l border-line pl-4 sm:pl-6">
-            <div>
-              <dt className="text-xs text-muted">Sold</dt>
-              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.salesCount} sale{stats.salesCount === 1 ? "" : "s"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted">Last sold</dt>
-              <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lastSaleCents === null ? "—" : formatPrice(stats.lastSaleCents)}</dd>
-            </div>
-          </div>
-        </dl>
+          </dl>
+        </div>
       </header>
 
       {event.archivedAt ? (
