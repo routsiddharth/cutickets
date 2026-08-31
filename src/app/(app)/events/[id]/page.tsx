@@ -104,7 +104,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               <p className="font-mono text-xs tracking-wide uppercase text-muted">
                 {formatEventCardDate(event.startsAt)}
               </p>
-              <h1 className="font-serif text-4xl sm:text-5xl leading-tight text-ink mt-1">{event.name}</h1>
+              <h1 className="font-serif text-4xl sm:text-5xl leading-tight text-ink mt-2">{event.name}</h1>
               {event.host && <p className="text-base text-ink-secondary mt-2">{event.host}</p>}
               {(event.venue || event.poshLink) && (
                 <p className="text-sm text-ink-tertiary mt-1.5">
@@ -131,10 +131,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                   {(hasAvailable || stats.lastSaleCents !== null) && (
                     <>
                       <p className="text-sm text-muted leading-none">{hasAvailable ? "From" : "Last sold for"}</p>
-                      {/* The large serif carries extra ascender space even at leading-none, so
-                          pulling it up tight against the label above is what actually reads as
-                          adjacent rather than the built-in margin value. */}
-                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none -mt-1">
+                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none mt-3">
                         {formatPrice((hasAvailable ? stats.lowestPriceCents : stats.lastSaleCents)!)}
                       </p>
                     </>
