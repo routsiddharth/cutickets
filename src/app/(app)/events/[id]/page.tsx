@@ -83,12 +83,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         className="-mt-[124px] pt-[124px] sm:-mt-24 sm:pt-24"
         style={{ background: `linear-gradient(180deg, ${tintTop} 0%, ${tintMid} 78%, #FAF8F2 100%)` }}
       >
-        <div className="max-w-3xl mx-auto px-5 sm:px-7 pt-8 pb-16 sm:pb-20">
+        <div className="max-w-4xl mx-auto px-5 sm:px-7 pt-8 pb-16 sm:pb-20">
           <Link href="/events" className="text-sm text-muted hover:text-ink">← Events</Link>
 
           <div className="mt-6 flex flex-col sm:flex-row gap-6 sm:gap-8">
             {flyer && (
-              <div className="w-[200px] sm:w-[240px] shrink-0 mx-auto sm:mx-0">
+              <div className="w-[300px] sm:w-[360px] shrink-0 mx-auto sm:mx-0">
                 <div
                   className="relative aspect-[4/5] rounded-xl overflow-hidden border border-line"
                   style={{ boxShadow: `0 24px 48px -18px ${hexToRgba(accent, 0.25)}` }}
@@ -127,11 +127,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               )}
 
               {!event.archivedAt && (
-                <div className="mt-6">
+                <div className="mt-8">
                   {(hasAvailable || stats.lastSaleCents !== null) && (
                     <>
-                      <p className="text-sm text-muted">{hasAvailable ? "From" : "Last sold for"}</p>
-                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none mt-1">
+                      <p className="text-sm text-muted leading-none">{hasAvailable ? "From" : "Last sold for"}</p>
+                      {/* The large serif carries extra ascender space even at leading-none, so
+                          pulling it up tight against the label above is what actually reads as
+                          adjacent rather than the built-in margin value. */}
+                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none -mt-1">
                         {formatPrice((hasAvailable ? stats.lowestPriceCents : stats.lastSaleCents)!)}
                       </p>
                     </>
@@ -139,11 +142,20 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
                   <div
                     className={`flex flex-wrap items-center gap-3 ${
-                      hasAvailable || stats.lastSaleCents !== null ? "mt-6" : ""
+                      hasAvailable || stats.lastSaleCents !== null ? "mt-8" : ""
                     }`}
                   >
                     {hasAvailable ? (
-                      heroTarget && <HeroReserveButton listingId={heroTarget.id} priceCents={heroTarget.priceCents} />
+                      heroTarget ? (
+                        <HeroReserveButton listingId={heroTarget.id} priceCents={heroTarget.priceCents} />
+                      ) : (
+                        <a
+                          href="#listings"
+                          className="bg-ink text-white rounded-full px-6 py-3 text-sm font-medium hover:bg-ink/90"
+                        >
+                          Buy for {formatPrice(stats.lowestPriceCents!)}
+                        </a>
+                      )
                     ) : (
                       <NotifyMeButton eventId={id} initiallyWatching={!!watch} />
                     )}
@@ -155,7 +167,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                     </Link>
                   </div>
 
-                  <p className="text-xs text-muted mt-4">
+                  <p className="text-xs text-muted mt-3">
                     {weeklyViews} view{weeklyViews === 1 ? "" : "s"} in the past week
                   </p>
                 </div>
@@ -165,7 +177,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
+      <div id="listings" className="max-w-4xl mx-auto px-5 sm:px-7 py-8 scroll-mt-[124px] sm:scroll-mt-24">
         {event.archivedAt ? (
           <p className="py-6 text-sm text-muted">This event is archived. New reservations are closed.</p>
         ) : openRows.length === 0 && soldRows.length === 0 ? (
@@ -235,7 +247,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         )}
       </div>
 
-      <div className="max-w-3xl mx-auto px-5 sm:px-7">
+      <div className="max-w-4xl mx-auto px-5 sm:px-7">
         <AdBanner placement="EVENT_PAGE" />
       </div>
     </main>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { User } from "@prisma/client";
@@ -5,8 +8,26 @@ import Avatar from "@/components/Avatar";
 import { isAdmin } from "@/lib/admin";
 
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
+  // At rest on scroll position 0, the header stays fully transparent so a
+  // tinted hero (see events/[id]/page.tsx) reads as one unbroken gradient
+  // through the header — any wash/blur here would visibly dilute that color
+  // right at the header's edge. Once the page scrolls, ordinary content can
+  // pass underneath the sticky header, so it picks up a translucent blurred
+  // backing to stay legible.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-30 bg-paper/70 backdrop-blur-xl backdrop-saturate-150">
+    <header
+      className={`sticky top-0 z-30 transition-colors ${
+        scrolled ? "bg-paper/70 backdrop-blur-xl backdrop-saturate-150" : "bg-transparent"
+      }`}
+    >
       <div className="max-w-5xl mx-auto px-5 sm:px-7 h-20 sm:h-24 flex items-center justify-between gap-4">
         <Link href="/events" className="flex items-center gap-2 min-w-0 shrink">
           <Image
