@@ -149,17 +149,15 @@ function RequestEventTile() {
       href="/events/request"
       className="group flex h-full flex-col rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
     >
-      <div className="flex-1 grid place-items-center text-muted group-hover:text-columbia-deep transition-colors">
+      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted group-hover:text-columbia-deep transition-colors">
         <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
           +
         </span>
+        <span className="text-sm font-medium">Request an event</span>
       </div>
 
-      <div className="p-4 pb-11">
+      <div className="p-4 pb-16">
         <div className="tear tear-thick -mx-4 my-3" />
-        <p className="text-sm font-medium text-center text-muted group-hover:text-columbia-deep transition-colors">
-          Request an event
-        </p>
       </div>
     </Link>
   );
