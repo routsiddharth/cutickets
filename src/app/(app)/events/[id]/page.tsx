@@ -17,9 +17,8 @@ import HeroReserveButton from "@/components/HeroReserveButton";
 // accent, so this falls back to the fixed ink tone rather than going colorless.
 const FALLBACK_ACCENT = "#17293F";
 
-type Row =
-  | { kind: "open"; id: string; priceCents: number; quantity: number; mine: boolean; dateLabel: string }
-  | { kind: "gone"; id: string; priceCents: number; quantity: number; dateLabel: string };
+type OpenRow = { id: string; priceCents: number; quantity: number; mine: boolean; dateLabel: string };
+type SoldRow = { id: string; priceCents: number; quantity: number; dateLabel: string };
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -48,29 +47,25 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   // The hero's one-tap reserve always targets the cheapest listing that isn't the viewer's own.
   const heroTarget = listings.find((listing) => listing.sellerId !== user.id);
 
-  const rows: Row[] = [
-    ...listings.map(
-      (listing): Row => ({
-        kind: "open",
-        id: listing.id,
-        priceCents: listing.priceCents,
-        quantity: listing.availableQuantity,
-        mine: listing.sellerId === user.id,
-        dateLabel: relativeDayLabel(listing.postedAt),
-      }),
-    ),
-    ...recentSales
-      .filter((sale) => sale.completedAt)
-      .map(
-        (sale): Row => ({
-          kind: "gone",
-          id: sale.id,
-          priceCents: sale.unitPriceCents,
-          quantity: sale.quantity,
-          dateLabel: relativeDayLabel(sale.completedAt!),
-        }),
-      ),
-  ].sort((a, b) => a.priceCents - b.priceCents);
+  const openRows: OpenRow[] = listings
+    .map((listing) => ({
+      id: listing.id,
+      priceCents: listing.priceCents,
+      quantity: listing.availableQuantity,
+      mine: listing.sellerId === user.id,
+      dateLabel: relativeDayLabel(listing.postedAt),
+    }))
+    .sort((a, b) => a.priceCents - b.priceCents);
+
+  const soldRows: SoldRow[] = recentSales
+    .filter((sale) => sale.completedAt)
+    .map((sale) => ({
+      id: sale.id,
+      priceCents: sale.unitPriceCents,
+      quantity: sale.quantity,
+      dateLabel: relativeDayLabel(sale.completedAt!),
+    }))
+    .sort((a, b) => a.priceCents - b.priceCents);
 
   return (
     <main>
@@ -80,7 +75,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
           <div className="mt-6 flex flex-col sm:flex-row gap-6 sm:gap-8">
             {flyer && (
-              <div className="w-40 sm:w-48 shrink-0 mx-auto sm:mx-0">
+              <div className="w-[200px] sm:w-[240px] shrink-0 mx-auto sm:mx-0">
                 <div
                   className="relative aspect-[4/5] rounded-xl overflow-hidden border border-line"
                   style={{ boxShadow: `0 24px 48px -18px ${hexToRgba(accent, 0.25)}` }}
@@ -98,11 +93,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               </p>
               <h1 className="font-serif text-4xl sm:text-5xl leading-tight text-ink mt-1">{event.name}</h1>
               {event.host && <p className="text-base text-ink-secondary mt-2">{event.host}</p>}
-              {event.venue && (
-                <p className="font-mono text-xs tracking-wide uppercase text-ink-tertiary mt-1.5">
-                  {event.venue.replace(",", " ·")}
-                </p>
-              )}
+              {event.venue && <p className="text-sm text-ink-tertiary mt-1.5">{event.venue}</p>}
               {event.poshLink && (
                 <a
                   href={event.poshLink}
@@ -157,7 +148,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       <div className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
         {event.archivedAt ? (
           <p className="py-6 text-sm text-muted">This event is archived. New reservations are closed.</p>
-        ) : rows.length === 0 ? (
+        ) : openRows.length === 0 && soldRows.length === 0 ? (
           <section className="py-12 text-center">
             <h2 className="font-serif text-2xl">No tickets listed yet</h2>
             <p className="text-sm text-muted mt-1 mb-5">Have one to sell? Add the first listing.</p>
@@ -166,37 +157,61 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             </Link>
           </section>
         ) : (
-          <section>
-            <p className="text-xs text-muted text-right mb-3">Sorted by price</p>
-            <div className="space-y-3">
-              {rows.map((row) => (
-                <article
-                  key={`${row.kind}-${row.id}`}
-                  className="bg-card border border-[rgba(23,41,63,0.12)] rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4"
-                >
-                  <p className="font-serif text-2xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
-                  <div className="min-w-0">
-                    <p className="text-sm text-ink-secondary">
-                      {row.quantity} ticket{row.quantity === 1 ? "" : "s"}
-                      {row.kind === "open" && row.mine ? " · your listing" : ""}
-                    </p>
-                    <p className="text-xs text-muted mt-0.5">
-                      {row.kind === "open" ? `Posted ${row.dateLabel}` : `Sold ${row.dateLabel}`}
-                    </p>
-                  </div>
-                  <div className="pl-4 border-l border-dashed border-[rgba(23,41,63,0.2)]">
-                    {row.kind === "gone" ? (
-                      <span className="tag text-muted">GONE</span>
-                    ) : row.mine ? (
-                      <CancelListingButton listingId={row.id} />
-                    ) : (
-                      <ReserveListingForm listingId={row.id} available={row.quantity} priceCents={row.priceCents} />
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
+          <>
+            {openRows.length > 0 && (
+              <section>
+                <p className="text-xs text-muted text-right mb-3">Sorted by price</p>
+                <div className="space-y-3">
+                  {openRows.map((row) => (
+                    <article
+                      key={row.id}
+                      className="bg-card border border-[rgba(23,41,63,0.12)] rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4"
+                    >
+                      <p className="font-serif text-2xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm text-ink-secondary">
+                          {row.quantity} ticket{row.quantity === 1 ? "" : "s"}
+                          {row.mine ? " · your listing" : ""}
+                        </p>
+                        <p className="text-xs text-muted mt-0.5">Posted {row.dateLabel}</p>
+                      </div>
+                      <div className="pl-4 border-l border-dashed border-[rgba(23,41,63,0.2)]">
+                        {row.mine ? (
+                          <CancelListingButton listingId={row.id} />
+                        ) : (
+                          <ReserveListingForm listingId={row.id} available={row.quantity} priceCents={row.priceCents} />
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {soldRows.length > 0 && (
+              <section className={openRows.length > 0 ? "mt-8" : ""}>
+                {openRows.length > 0 && <div className="barcode-rule rounded-full overflow-hidden mb-8" />}
+                <p className="text-xs text-muted text-right mb-3">Sold</p>
+                <div className="space-y-3">
+                  {soldRows.map((row) => (
+                    <article
+                      key={row.id}
+                      className="bg-card border border-[rgba(23,41,63,0.12)] rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4"
+                    >
+                      <p className="font-serif text-2xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm text-ink-secondary">{row.quantity} ticket{row.quantity === 1 ? "" : "s"}</p>
+                        <p className="text-xs text-muted mt-0.5">Sold {row.dateLabel}</p>
+                      </div>
+                      <div className="pl-4 border-l border-dashed border-[rgba(23,41,63,0.2)]">
+                        <span className="tag text-muted">GONE</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
 
