@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
-import { notify } from "@/lib/notifications";
+import { notify, notifyEventWatchersIfAvailable } from "@/lib/notifications";
 import { releaseDeal } from "@/lib/deals";
 import type { ActionState } from "./types";
 
@@ -83,6 +83,7 @@ export async function adminCancelDeal(
     if (!released) return;
     await notify({ userId: deal.buyerId, type: "TRADE_ADMIN_CANCELLED", body, dealId: deal.id }, tx);
     await notify({ userId: deal.sellerId, type: "TRADE_ADMIN_CANCELLED", body, dealId: deal.id }, tx);
+    await notifyEventWatchersIfAvailable(deal.eventId, deal.event.name, tx);
   });
 
   revalidatePath("/admin/moderation");

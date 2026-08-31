@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { notify } from "@/lib/notifications";
+import { notify, notifyEventWatchersIfAvailable } from "@/lib/notifications";
 import { firstName } from "@/lib/format";
 import { dealParty, releaseDeal } from "@/lib/deals";
 import type { ActionState } from "./types";
@@ -50,6 +50,7 @@ export async function cancelDeal(
       },
       tx,
     );
+    await notifyEventWatchersIfAvailable(deal.eventId, deal.event.name, tx);
   });
 
   revalidatePath("/deals");

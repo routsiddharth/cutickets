@@ -2,7 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { getEventStats, getListingsForEvent, getRecentSalesForEvent } from "@/lib/queries";
+import {
+  getEventStats,
+  getListingsForEvent,
+  getRecentSalesForEvent,
+  recordEventViewAndGetWeeklyCount,
+} from "@/lib/queries";
 import { formatEventCardDate, formatPrice, relativeDayLabel } from "@/lib/format";
 import { flyerUrl } from "@/lib/flyer";
 import { hexToRgba } from "@/lib/color/hex";
@@ -11,6 +16,7 @@ import AdBanner from "@/components/AdBanner";
 import CancelListingButton from "@/components/CancelListingButton";
 import ReserveListingForm from "@/components/ReserveListingForm";
 import HeroReserveButton from "@/components/HeroReserveButton";
+import NotifyMeButton from "@/components/NotifyMeButton";
 
 // Elements inside the hero are tinted per-event (poster shadow, badge
 // outline) from the flyer's sampled accent; a black-and-white flyer has no
@@ -26,10 +32,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
 
-  const [stats, listings, recentSales] = await Promise.all([
+  const [stats, listings, recentSales, weeklyViews, watch] = await Promise.all([
     getEventStats(id),
     getListingsForEvent(id),
     getRecentSalesForEvent(id),
+    recordEventViewAndGetWeeklyCount(id),
+    prisma.eventWatch.findUnique({
+      where: { eventId_userId: { eventId: id, userId: user.id } },
+      select: { id: true },
+    }),
   ]);
   const flyer = flyerUrl(event.id, event.flyerUpdatedAt);
 
@@ -38,11 +49,6 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const accent = event.tintAccent ?? FALLBACK_ACCENT;
 
   const hasAvailable = stats.lowestPriceCents !== null;
-  const scarce = hasAvailable && stats.ticketsAvailable <= 2;
-  const soldLine =
-    stats.salesCount > 0 && stats.lastSaleCents !== null
-      ? `${stats.salesCount} sold · last at ${formatPrice(stats.lastSaleCents)}`
-      : "No sales yet";
 
   // The hero's one-tap reserve always targets the cheapest listing that isn't the viewer's own.
   const heroTarget = listings.find((listing) => listing.sellerId !== user.id);
@@ -69,8 +75,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   return (
     <main>
-      <div style={{ background: `linear-gradient(180deg, ${tintTop} 0%, ${tintMid} 62%, #FAF8F2 100%)` }}>
-        <div className="max-w-3xl mx-auto px-5 sm:px-7 pt-8 pb-10">
+      {/* Bleeds up behind the sticky, translucent Nav (-mt cancels Nav's own
+          height, matching pt keeps the content position unchanged) so the
+          tint reads as one continuous field from the very top of the page,
+          with no seam under the header. */}
+      <div
+        className="-mt-[124px] pt-[124px] sm:-mt-24 sm:pt-24"
+        style={{ background: `linear-gradient(180deg, ${tintTop} 0%, ${tintMid} 78%, #FAF8F2 100%)` }}
+      >
+        <div className="max-w-3xl mx-auto px-5 sm:px-7 pt-8 pb-16 sm:pb-20">
           <Link href="/events" className="text-sm text-muted hover:text-ink">← Events</Link>
 
           <div className="mt-6 flex flex-col sm:flex-row gap-6 sm:gap-8">
@@ -93,51 +106,58 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               </p>
               <h1 className="font-serif text-4xl sm:text-5xl leading-tight text-ink mt-1">{event.name}</h1>
               {event.host && <p className="text-base text-ink-secondary mt-2">{event.host}</p>}
-              {event.venue && <p className="text-sm text-ink-tertiary mt-1.5">{event.venue}</p>}
-              {event.poshLink && (
-                <a
-                  href={event.poshLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-sm text-columbia mt-2.5 hover:underline"
-                >
-                  Event details ↗
-                </a>
+              {(event.venue || event.poshLink) && (
+                <p className="text-sm text-ink-tertiary mt-1.5">
+                  {event.venue}
+                  {event.venue && event.poshLink && " · "}
+                  {event.poshLink && (
+                    <a
+                      href={event.poshLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-columbia hover:underline"
+                    >
+                      Event details ↗
+                    </a>
+                  )}
+                </p>
               )}
               {event.description && (
                 <p className="text-sm text-ink-secondary mt-3 max-w-xl leading-relaxed">{event.description}</p>
               )}
 
-              <div className="flex items-center flex-wrap gap-3 mt-5">
-                {hasAvailable &&
-                  (scarce ? (
-                    <span className="tag font-mono foil text-white px-3 py-1.5 rounded-full">
-                      {stats.ticketsAvailable} LEFT
-                    </span>
-                  ) : (
-                    <span
-                      className="tag font-mono px-3 py-1.5 rounded-full text-ink-secondary"
-                      style={{ border: `1px solid ${hexToRgba(accent, 0.45)}` }}
-                    >
-                      {stats.ticketsAvailable} AVAILABLE
-                    </span>
-                  ))}
-                <span className="text-sm text-muted">{soldLine}</span>
-              </div>
-
               {!event.archivedAt && (
-                <div className="flex flex-wrap items-center gap-3 mt-5">
-                  {hasAvailable ? (
-                    heroTarget && <HeroReserveButton listingId={heroTarget.id} priceCents={heroTarget.priceCents} />
-                  ) : (
-                    <p className="font-serif text-xl text-muted">None right now</p>
+                <div className="mt-6">
+                  {(hasAvailable || stats.lastSaleCents !== null) && (
+                    <>
+                      <p className="text-sm text-muted">{hasAvailable ? "From" : "Last sold for"}</p>
+                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none mt-1">
+                        {formatPrice((hasAvailable ? stats.lowestPriceCents : stats.lastSaleCents)!)}
+                      </p>
+                    </>
                   )}
-                  <Link
-                    href={`/events/${id}/sell`}
-                    className="border border-[rgba(23,41,63,0.28)] text-ink rounded-lg px-5 py-3 text-sm font-medium hover:bg-ink/5"
+
+                  <div
+                    className={`flex flex-wrap items-center gap-3 ${
+                      hasAvailable || stats.lastSaleCents !== null ? "mt-6" : ""
+                    }`}
                   >
-                    Sell tickets
-                  </Link>
+                    {hasAvailable ? (
+                      heroTarget && <HeroReserveButton listingId={heroTarget.id} priceCents={heroTarget.priceCents} />
+                    ) : (
+                      <NotifyMeButton eventId={id} initiallyWatching={!!watch} />
+                    )}
+                    <Link
+                      href={`/events/${id}/sell`}
+                      className="border border-[rgba(23,41,63,0.28)] text-ink rounded-full px-5 py-3 text-sm font-medium hover:bg-ink/5"
+                    >
+                      Sell tickets
+                    </Link>
+                  </div>
+
+                  <p className="text-xs text-muted mt-4">
+                    {weeklyViews} view{weeklyViews === 1 ? "" : "s"} in the past week
+                  </p>
                 </div>
               )}
             </div>

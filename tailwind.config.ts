@@ -6,7 +6,18 @@ const config: Config = {
     extend: {
       fontFamily: {
         serif: ["var(--font-newsreader)", "Georgia", "serif"],
-        sans: ["var(--font-public-sans)", "system-ui", "sans-serif"],
+        // The Apple system font (San Francisco) can't be loaded as a webfont,
+        // so this is the standard stack that resolves to it on Apple devices
+        // and to each platform's native UI face everywhere else.
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "SF Pro Text",
+          "SF Pro Display",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
         mono: ["var(--font-space-mono)", "ui-monospace", "monospace"],
       },
       colors: {

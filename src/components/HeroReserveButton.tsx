@@ -15,9 +15,9 @@ export default function HeroReserveButton({ listingId, priceCents }: { listingId
       <input type="hidden" name="quantity" value="1" />
       <SubmitButton
         pendingText="Reserving…"
-        className="bg-sell text-white rounded-lg px-5 py-3 text-sm font-medium hover:bg-sell/90 disabled:opacity-60"
+        className="bg-ink text-white rounded-full px-6 py-3 text-sm font-medium hover:bg-ink/90 disabled:opacity-60"
       >
-        Reserve at {formatPrice(priceCents)}
+        Buy for {formatPrice(priceCents)}
       </SubmitButton>
       {state?.error && <p className="text-xs text-red-600 mt-1.5" role="alert">{state.error}</p>}
     </form>

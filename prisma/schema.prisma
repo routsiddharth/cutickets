@@ -50,6 +50,7 @@ model User {
   requestsResolved EventRequest[] @relation("EventRequestResolver")
   messagesSent     Message[]      @relation("MessageSender")
   notifications    Notification[] @relation("UserNotifications")
+  eventWatches     EventWatch[]   @relation("EventWatcher")
 }
 
 model Account {
@@ -120,9 +121,41 @@ model Event {
   requests      EventRequest[]
   notifications Notification[]
   flyer         EventFlyer?
+  views         EventView[]
+  watches       EventWatch[]
 
   @@index([startsAt])
   @@index([archivedAt, startsAt])
+}
+
+// One row per event-page load, driving the "N views in the past week" line.
+// Deliberately not deduped per viewer — it's a raw traffic signal, not a
+// unique-visitor count.
+model EventView {
+  id       String   @id @default(cuid())
+  eventId  String
+  viewedAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, viewedAt])
+}
+
+// A buyer's "Notify me" request on a sold-out event. The row's existence is
+// the subscription; createListing() notifies every watcher and clears all
+// rows for the event as soon as a listing appears, so a later sell-out needs
+// a fresh tap.
+model EventWatch {
+  id        String   @id @default(cuid())
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation("EventWatcher", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([eventId])
 }
 
 // The flyer image for an event, kept off the Event row so ordinary event

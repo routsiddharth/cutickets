@@ -15,6 +15,7 @@ const ICON: Record<string, string> = {
   EVENT_ARCHIVED: "✕",
   LISTING_KILLED: "🚫",
   TRADE_ADMIN_CANCELLED: "🚫",
+  EVENT_TICKETS_AVAILABLE: "🔔",
 };
 
 export default async function NotificationsPage() {

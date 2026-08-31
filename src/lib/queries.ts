@@ -93,3 +93,13 @@ export function getMyListingsForEvent(eventId: string, sellerId: string) {
     orderBy: { postedAt: "desc" },
   });
 }
+
+const WEEKLY_VIEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Logs one page view and returns the raw (non-deduped) view count for the trailing 7 days, inclusive of this one. */
+export async function recordEventViewAndGetWeeklyCount(eventId: string): Promise<number> {
+  await prisma.eventView.create({ data: { eventId } });
+  return prisma.eventView.count({
+    where: { eventId, viewedAt: { gte: new Date(Date.now() - WEEKLY_VIEW_WINDOW_MS) } },
+  });
+}

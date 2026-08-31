@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { releaseDeal } from "@/lib/deals";
-import { notify } from "@/lib/notifications";
+import { notify, notifyEventWatchersIfAvailable } from "@/lib/notifications";
 import { RESERVATION_EXPIRING_SOON_MS } from "@/lib/constants";
 
 export const runtime = "nodejs";
@@ -19,6 +19,7 @@ export async function GET(request: Request) {
     where: { status: "RESERVED", reservationExpiresAt: { lt: now } },
     select: {
       id: true,
+      eventId: true,
       listingId: true,
       quantity: true,
       buyerId: true,
@@ -36,6 +37,7 @@ export async function GET(request: Request) {
       for (const userId of [deal.buyerId, deal.sellerId]) {
         await notify({ userId, type: "DEAL_CANCELLED", dealId: deal.id, body: `The ${deal.event.name} reservation expired` }, tx);
       }
+      await notifyEventWatchersIfAvailable(deal.eventId, deal.event.name, tx);
     });
   }
 

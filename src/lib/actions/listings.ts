@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 import { isNewAccount } from "@/lib/reputation";
-import { notify } from "@/lib/notifications";
+import { notify, notifyEventWatchersIfAvailable } from "@/lib/notifications";
 import {
   MAX_TICKETS_PER_LISTING,
   MAX_PRICE_CENTS,
@@ -53,7 +53,7 @@ export async function createListing(
   const [event, activeCount] = await Promise.all([
     prisma.event.findUnique({
       where: { id: parsed.data.eventId },
-      select: { id: true, startsAt: true, archivedAt: true },
+      select: { id: true, name: true, startsAt: true, archivedAt: true },
     }),
     prisma.listing.count({ where: { sellerId: user.id, ...availableListingWhere() } }),
   ]);
@@ -69,16 +69,19 @@ export async function createListing(
     ? new Date(event.startsAt.getTime() + 86_400_000)
     : new Date(Date.now() + DEFAULT_EXPIRY_DAYS * 86_400_000);
 
-  await prisma.listing.create({
-    data: {
-      eventId: event.id,
-      sellerId: user.id,
-      quantity: parsed.data.quantity,
-      availableQuantity: parsed.data.quantity,
-      priceCents,
-      notes: parsed.data.notes ?? null,
-      expiresAt,
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.listing.create({
+      data: {
+        eventId: event.id,
+        sellerId: user.id,
+        quantity: parsed.data.quantity,
+        availableQuantity: parsed.data.quantity,
+        priceCents,
+        notes: parsed.data.notes ?? null,
+        expiresAt,
+      },
+    });
+    await notifyEventWatchersIfAvailable(event.id, event.name, tx);
   });
 
   revalidatePath("/events");

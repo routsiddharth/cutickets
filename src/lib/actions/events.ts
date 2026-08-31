@@ -225,6 +225,23 @@ export async function requestEvent(
   return { ok: true };
 }
 
+/** Subscribes the current user to a one-time notification for the event's next listing. */
+export async function watchEvent(eventId: string): Promise<ActionState> {
+  const user = await requireUser();
+  if (!isOnboarded(user)) redirect("/onboarding");
+
+  const event = await prisma.event.findUnique({ where: { id: eventId }, select: { archivedAt: true } });
+  if (!event) return { error: "Event not found" };
+  if (event.archivedAt) return { error: "This event is archived" };
+
+  await prisma.eventWatch.upsert({
+    where: { eventId_userId: { eventId, userId: user.id } },
+    create: { eventId, userId: user.id },
+    update: {},
+  });
+  return { ok: true };
+}
+
 export async function dismissEventRequest(requestId: string): Promise<ActionState> {
   const user = await requireUser();
   if (!isAdmin(user)) return { error: "Not authorized" };
