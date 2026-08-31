@@ -47,6 +47,17 @@ export function formatDateTime(d: Date | string | null | undefined): string {
   });
 }
 
+/** "today" / "yesterday" / "N days ago", falling back to a short date past a week — used for listing rows. */
+export function relativeDayLabel(d: Date | string): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
+  return formatDate(date);
+}
+
 export function relativeExpiry(expiresAt: Date | string): string {
   const date = typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
   const ms = date.getTime() - Date.now();

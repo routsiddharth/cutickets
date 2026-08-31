@@ -52,6 +52,24 @@ export async function getListingsForEvent(eventId: string) {
       sellerId: true,
       availableQuantity: true,
       priceCents: true,
+      postedAt: true,
+    },
+  });
+}
+
+const RECENT_SALES_LIMIT = 5;
+
+/** The event page's price-sorted list interleaves live listings with a handful of recent sales ("GONE" rows). */
+export async function getRecentSalesForEvent(eventId: string) {
+  return prisma.deal.findMany({
+    where: { eventId, status: "COMPLETED" },
+    orderBy: { completedAt: "desc" },
+    take: RECENT_SALES_LIMIT,
+    select: {
+      id: true,
+      quantity: true,
+      unitPriceCents: true,
+      completedAt: true,
     },
   });
 }

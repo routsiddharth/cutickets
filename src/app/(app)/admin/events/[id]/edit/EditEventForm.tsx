@@ -7,6 +7,7 @@ import SubmitButton from "@/components/SubmitButton";
 type EditableEvent = {
   id: string;
   name: string;
+  host: string | null;
   venue: string | null;
   startsAt: string;
   startsTime: string;
@@ -22,6 +23,11 @@ export default function EditEventForm({ event }: { event: EditableEvent }) {
       <div>
         <label htmlFor="name" className="text-sm font-medium">Event name</label>
         <input id="name" name="name" required maxLength={120} defaultValue={event.name}
+          className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-base bg-white" />
+      </div>
+      <div>
+        <label htmlFor="host" className="text-sm font-medium">Hosting org <span className="font-normal text-muted">(optional)</span></label>
+        <input id="host" name="host" maxLength={120} defaultValue={event.host ?? ""}
           className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-base bg-white" />
       </div>
       <div className="grid sm:grid-cols-3 gap-4">

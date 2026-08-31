@@ -6,6 +6,7 @@ import SubmitButton from "@/components/SubmitButton";
 
 type EventDefaults = {
   name?: string;
+  host?: string;
   venue?: string;
   startsAt?: string;
   startsTime?: string;
@@ -38,6 +39,19 @@ export default function EventForm({
           maxLength={120}
           defaultValue={defaults?.name}
           placeholder="Bacchanal Spring Concert"
+          className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
+        />
+      </div>
+      <div>
+        <label htmlFor="host" className="tag text-muted">
+          Hosting org <span className="normal-case tracking-normal">(optional)</span>
+        </label>
+        <input
+          id="host"
+          name="host"
+          maxLength={120}
+          defaultValue={defaults?.host}
+          placeholder="Sigma Phi Epsilon"
           className="mt-1.5 w-full border border-line rounded-lg px-3 py-2.5 text-sm bg-white"
         />
       </div>

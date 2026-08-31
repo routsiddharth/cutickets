@@ -13,6 +13,7 @@ export type { ActionState };
 
 const eventSchema = z.object({
   name: z.string().trim().min(2, "Event name is too short").max(120),
+  host: z.string().trim().max(120).optional(),
   venue: z.string().trim().max(120).optional(),
   startsAt: z.string().trim().min(1, "Pick the event date"),
   startsTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Pick a valid start time"),
@@ -42,6 +43,7 @@ function isPastDate(value: Date): boolean {
 function eventData(formData: FormData) {
   return eventSchema.safeParse({
     name: formData.get("name"),
+    host: formData.get("host") || undefined,
     venue: formData.get("venue") || undefined,
     startsAt: formData.get("startsAt") || undefined,
     startsTime: formData.get("startsTime") || undefined,
@@ -75,6 +77,7 @@ export async function createEvent(
     const created = await tx.event.create({
       data: {
         name: parsed.data.name,
+        host: parsed.data.host ?? null,
         venue: parsed.data.venue ?? null,
         description: parsed.data.description ?? null,
         poshLink: parsed.data.poshLink ?? null,
@@ -125,6 +128,7 @@ export async function updateEvent(
     where: { id: eventId },
     data: {
       name: parsed.data.name,
+      host: parsed.data.host ?? null,
       venue: parsed.data.venue ?? null,
       startsAt,
       description: parsed.data.description ?? null,

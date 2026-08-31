@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { flyerUrl } from "@/lib/flyer";
 import EditEventForm from "./EditEventForm";
 import FlyerUploadForm from "./FlyerUploadForm";
+import TintOverridePicker from "./TintOverridePicker";
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -17,9 +18,13 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
       <div className="mb-6">
         <FlyerUploadForm eventId={event.id} flyerUrl={flyerUrl(event.id, event.flyerUpdatedAt)} />
       </div>
+      <div className="mb-6">
+        <TintOverridePicker eventId={event.id} tintOverride={event.tintOverride} tintTop={event.tintTop} />
+      </div>
       <EditEventForm event={{
         id: event.id,
         name: event.name,
+        host: event.host,
         venue: event.venue,
         startsAt: event.startsAt?.toISOString().slice(0, 10) ?? "",
         startsTime: event.startsAt

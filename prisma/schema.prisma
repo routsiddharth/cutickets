@@ -92,11 +92,23 @@ model VerificationToken {
 model Event {
   id             String    @id @default(cuid())
   name           String
+  host           String? // hosting org/club, shown as its own hero line (e.g. "Sigma Phi Epsilon")
   venue          String?
   startsAt       DateTime?
   description    String?
   poshLink       String? // optional link to the event's Posh page
   flyerUpdatedAt DateTime? // set when an admin uploads/replaces the flyer image; null if none
+
+  // Cached hero tint, sampled from the flyer at upload time (see
+  // src/lib/flyerTint.ts). All three are hex strings; tintAccent is null for
+  // a flyer with no derivable hue (pure black-and-white), in which case
+  // accent-tinted UI falls back to the fixed ink palette. Never computed at
+  // render time — only on flyer upload or an explicit override change.
+  tintTop      String? // hero gradient start
+  tintMid      String? // hero gradient mid stop
+  tintAccent   String? // low-alpha accent: poster shadow, hero hairlines/badge outlines
+  tintOverride String? // host-chosen preset key from TINT_PRESETS, or null to derive from the poster
+
   createdById    String
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

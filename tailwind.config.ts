@@ -10,12 +10,15 @@ const config: Config = {
         mono: ["var(--font-space-mono)", "ui-monospace", "monospace"],
       },
       colors: {
-        paper: "#FBFAF7",
-        ink: "#14233D",
-        muted: "#5C6B82",
+        paper: "#FAF8F2",
+        // Ink ramp: four fixed tones, darkest to lightest. `ink` (DEFAULT)
+        // stays the primary tone everywhere it's already used; secondary/
+        // tertiary are additions for graduated hero-text hierarchy.
+        ink: { DEFAULT: "#17293F", secondary: "#33404F", tertiary: "#6A7382" },
+        muted: "#5C6B7A",
         line: "#E7E2D8",
-        columbia: { DEFAULT: "#5B8FB9", soft: "#E8F0F7", deep: "#3D6E97" },
-        sell: { DEFAULT: "#1F7A63", soft: "#E6F2ED" },
+        columbia: { DEFAULT: "#4E7BA6", soft: "#E8F0F7", deep: "#3D6382" },
+        sell: { DEFAULT: "#125C42", soft: "#E6F2ED" },
         buy: { DEFAULT: "#A8651A", soft: "#F7ECDB" },
         // Ticket-stock additions: a whiter card surface to rest on the cream
         // page, and a foil accent reserved for scarcity/ownership states.

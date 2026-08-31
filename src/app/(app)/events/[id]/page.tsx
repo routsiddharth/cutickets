@@ -2,12 +2,24 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
-import { getEventStats, getListingsForEvent } from "@/lib/queries";
-import { formatDateTime, formatPrice } from "@/lib/format";
+import { getEventStats, getListingsForEvent, getRecentSalesForEvent } from "@/lib/queries";
+import { formatEventCardDate, formatPrice, relativeDayLabel } from "@/lib/format";
 import { flyerUrl } from "@/lib/flyer";
+import { hexToRgba } from "@/lib/color/hex";
+import { DEFAULT_TINT } from "@/lib/tintPresets";
 import AdBanner from "@/components/AdBanner";
 import CancelListingButton from "@/components/CancelListingButton";
 import ReserveListingForm from "@/components/ReserveListingForm";
+import HeroReserveButton from "@/components/HeroReserveButton";
+
+// Elements inside the hero are tinted per-event (poster shadow, badge
+// outline) from the flyer's sampled accent; a black-and-white flyer has no
+// accent, so this falls back to the fixed ink tone rather than going colorless.
+const FALLBACK_ACCENT = "#17293F";
+
+type Row =
+  | { kind: "open"; id: string; priceCents: number; quantity: number; mine: boolean; dateLabel: string }
+  | { kind: "gone"; id: string; priceCents: number; quantity: number; dateLabel: string };
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,95 +27,182 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
 
-  const [stats, listings] = await Promise.all([
+  const [stats, listings, recentSales] = await Promise.all([
     getEventStats(id),
     getListingsForEvent(id),
+    getRecentSalesForEvent(id),
   ]);
   const flyer = flyerUrl(event.id, event.flyerUpdatedAt);
 
+  const tintTop = event.tintTop ?? DEFAULT_TINT.tintTop;
+  const tintMid = event.tintMid ?? DEFAULT_TINT.tintMid;
+  const accent = event.tintAccent ?? FALLBACK_ACCENT;
+
+  const hasAvailable = stats.lowestPriceCents !== null;
+  const scarce = hasAvailable && stats.ticketsAvailable <= 2;
+  const soldLine =
+    stats.salesCount > 0 && stats.lastSaleCents !== null
+      ? `${stats.salesCount} sold · last at ${formatPrice(stats.lastSaleCents)}`
+      : "No sales yet";
+
+  // The hero's one-tap reserve always targets the cheapest listing that isn't the viewer's own.
+  const heroTarget = listings.find((listing) => listing.sellerId !== user.id);
+
+  const rows: Row[] = [
+    ...listings.map(
+      (listing): Row => ({
+        kind: "open",
+        id: listing.id,
+        priceCents: listing.priceCents,
+        quantity: listing.availableQuantity,
+        mine: listing.sellerId === user.id,
+        dateLabel: relativeDayLabel(listing.postedAt),
+      }),
+    ),
+    ...recentSales
+      .filter((sale) => sale.completedAt)
+      .map(
+        (sale): Row => ({
+          kind: "gone",
+          id: sale.id,
+          priceCents: sale.unitPriceCents,
+          quantity: sale.quantity,
+          dateLabel: relativeDayLabel(sale.completedAt!),
+        }),
+      ),
+  ].sort((a, b) => a.priceCents - b.priceCents);
+
   return (
-    <main className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
-      <Link href="/events" className="text-sm text-muted hover:text-ink">← Events</Link>
+    <main>
+      <div style={{ background: `linear-gradient(180deg, ${tintTop} 0%, ${tintMid} 62%, #FAF8F2 100%)` }}>
+        <div className="max-w-3xl mx-auto px-5 sm:px-7 pt-8 pb-10">
+          <Link href="/events" className="text-sm text-muted hover:text-ink">← Events</Link>
 
-      <header className="mt-5 pb-6 border-b border-line flex flex-col sm:flex-row gap-5 sm:gap-6">
-        {flyer && (
-          <div className="w-36 sm:w-44 shrink-0 mx-auto sm:mx-0">
-            <div className="relative aspect-[4/5] rounded-xl overflow-hidden border border-line shadow-[0_1px_0_rgba(20,35,61,0.06)]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={flyer} alt="" className="absolute inset-0 h-full w-full object-cover" />
-            </div>
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div>
-              <h1 className="font-serif text-3xl sm:text-4xl leading-tight">{event.name}</h1>
-              <p className="text-sm text-muted mt-1.5">{formatDateTime(event.startsAt)}{event.venue ? ` · ${event.venue}` : ""}</p>
-            </div>
-            {!event.archivedAt && (
-              <Link href={`/events/${id}/sell`} className="self-start shrink-0 bg-sell text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-sell/90">Sell tickets</Link>
+          <div className="mt-6 flex flex-col sm:flex-row gap-6 sm:gap-8">
+            {flyer && (
+              <div className="w-40 sm:w-48 shrink-0 mx-auto sm:mx-0">
+                <div
+                  className="relative aspect-[4/5] rounded-xl overflow-hidden border border-line"
+                  style={{ boxShadow: `0 24px 48px -18px ${hexToRgba(accent, 0.25)}` }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={flyer} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                </div>
+              </div>
             )}
+
+            <div className="min-w-0 flex-1">
+              {/* Four hero lines, fixed ink ramp in order of emphasis: title darkest, then host, venue, date/time. */}
+              <p className="font-mono text-xs tracking-wide uppercase text-muted">
+                {formatEventCardDate(event.startsAt)}
+              </p>
+              <h1 className="font-serif text-4xl sm:text-5xl leading-tight text-ink mt-1">{event.name}</h1>
+              {event.host && <p className="text-base text-ink-secondary mt-2">{event.host}</p>}
+              {event.venue && (
+                <p className="font-mono text-xs tracking-wide uppercase text-ink-tertiary mt-1.5">
+                  {event.venue.replace(",", " ·")}
+                </p>
+              )}
+              {event.poshLink && (
+                <a
+                  href={event.poshLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block text-sm text-columbia mt-2.5 hover:underline"
+                >
+                  Event details ↗
+                </a>
+              )}
+              {event.description && (
+                <p className="text-sm text-ink-secondary mt-3 max-w-xl leading-relaxed">{event.description}</p>
+              )}
+
+              <div className="flex items-center flex-wrap gap-3 mt-5">
+                {hasAvailable &&
+                  (scarce ? (
+                    <span className="tag font-mono foil text-white px-3 py-1.5 rounded-full">
+                      {stats.ticketsAvailable} LEFT
+                    </span>
+                  ) : (
+                    <span
+                      className="tag font-mono px-3 py-1.5 rounded-full text-ink-secondary"
+                      style={{ border: `1px solid ${hexToRgba(accent, 0.45)}` }}
+                    >
+                      {stats.ticketsAvailable} AVAILABLE
+                    </span>
+                  ))}
+                <span className="text-sm text-muted">{soldLine}</span>
+              </div>
+
+              {!event.archivedAt && (
+                <div className="flex flex-wrap items-center gap-3 mt-5">
+                  {hasAvailable ? (
+                    heroTarget && <HeroReserveButton listingId={heroTarget.id} priceCents={heroTarget.priceCents} />
+                  ) : (
+                    <p className="font-serif text-xl text-muted">None right now</p>
+                  )}
+                  <Link
+                    href={`/events/${id}/sell`}
+                    className="border border-[rgba(23,41,63,0.28)] text-ink rounded-lg px-5 py-3 text-sm font-medium hover:bg-ink/5"
+                  >
+                    Sell tickets
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-          {event.description && <p className="text-sm text-muted mt-4 max-w-2xl leading-relaxed">{event.description}</p>}
-          {event.poshLink && <a href={event.poshLink} target="_blank" rel="noopener noreferrer" className="inline-block text-sm text-columbia-deep mt-3 hover:underline">Event details ↗</a>}
-
-          <dl className="grid grid-cols-2 max-w-xl mt-5 text-sm">
-            <div className="grid grid-cols-2 gap-4 pr-4 sm:pr-6">
-              <div>
-                <dt className="text-xs text-muted">Available</dt>
-                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.ticketsAvailable} ticket{stats.ticketsAvailable === 1 ? "" : "s"}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted">Starting at</dt>
-                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lowestPriceCents === null ? "—" : formatPrice(stats.lowestPriceCents)}</dd>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 border-l border-line pl-4 sm:pl-6">
-              <div>
-                <dt className="text-xs text-muted">Sold</dt>
-                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.salesCount} sale{stats.salesCount === 1 ? "" : "s"}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted">Last sold</dt>
-                <dd className="text-lg sm:text-xl font-medium tabular-nums mt-0.5">{stats.lastSaleCents === null ? "—" : formatPrice(stats.lastSaleCents)}</dd>
-              </div>
-            </div>
-          </dl>
         </div>
-      </header>
+      </div>
 
-      {event.archivedAt ? (
-        <p className="py-10 text-sm text-muted">This event is archived. New reservations are closed.</p>
-      ) : listings.length === 0 ? (
-        <section className="py-12 text-center border-b border-line">
-          <h2 className="font-serif text-2xl">No tickets listed yet</h2>
-          <p className="text-sm text-muted mt-1 mb-5">Have one to sell? Add the first listing.</p>
-          <Link href={`/events/${id}/sell`} className="inline-block bg-sell text-white rounded-lg px-4 py-2.5 text-sm font-medium">Sell tickets</Link>
-        </section>
-      ) : (
-        <section className="py-6">
-          <div className="divide-y divide-line border-y border-line">
-            {listings.map((listing) => {
-              const mine = listing.sellerId === user.id;
-              return (
-                <article key={listing.id} className="py-4 grid sm:grid-cols-[1fr_auto] gap-4 items-center">
+      <div className="max-w-3xl mx-auto px-5 sm:px-7 py-8">
+        {event.archivedAt ? (
+          <p className="py-6 text-sm text-muted">This event is archived. New reservations are closed.</p>
+        ) : rows.length === 0 ? (
+          <section className="py-12 text-center">
+            <h2 className="font-serif text-2xl">No tickets listed yet</h2>
+            <p className="text-sm text-muted mt-1 mb-5">Have one to sell? Add the first listing.</p>
+            <Link href={`/events/${id}/sell`} className="inline-block bg-sell text-white rounded-lg px-4 py-2.5 text-sm font-medium">
+              Sell tickets
+            </Link>
+          </section>
+        ) : (
+          <section>
+            <p className="text-xs text-muted text-right mb-3">Sorted by price</p>
+            <div className="space-y-3">
+              {rows.map((row) => (
+                <article
+                  key={`${row.kind}-${row.id}`}
+                  className="bg-card border border-[rgba(23,41,63,0.12)] rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4"
+                >
+                  <p className="font-serif text-2xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
                   <div className="min-w-0">
-                    <p className="font-medium tabular-nums">{formatPrice(listing.priceCents)} each</p>
-                    <p className="text-sm text-muted mt-0.5">
-                      {listing.availableQuantity} ticket{listing.availableQuantity === 1 ? "" : "s"} available
-                      {mine ? " · Your listing" : ""}
+                    <p className="text-sm text-ink-secondary">
+                      {row.quantity} ticket{row.quantity === 1 ? "" : "s"}
+                      {row.kind === "open" && row.mine ? " · your listing" : ""}
+                    </p>
+                    <p className="text-xs text-muted mt-0.5">
+                      {row.kind === "open" ? `Posted ${row.dateLabel}` : `Sold ${row.dateLabel}`}
                     </p>
                   </div>
-                  {mine ? <CancelListingButton listingId={listing.id} /> : <ReserveListingForm listingId={listing.id} available={listing.availableQuantity} priceCents={listing.priceCents} />}
+                  <div className="pl-4 border-l border-dashed border-[rgba(23,41,63,0.2)]">
+                    {row.kind === "gone" ? (
+                      <span className="tag text-muted">GONE</span>
+                    ) : row.mine ? (
+                      <CancelListingButton listingId={row.id} />
+                    ) : (
+                      <ReserveListingForm listingId={row.id} available={row.quantity} priceCents={row.priceCents} />
+                    )}
+                  </div>
                 </article>
-              );
-            })}
-          </div>
-          <p className="text-xs text-muted mt-4">Seller info is available after reserving.</p>
-        </section>
-      )}
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
 
-      <AdBanner placement="EVENT_PAGE" />
+      <div className="max-w-3xl mx-auto px-5 sm:px-7">
+        <AdBanner placement="EVENT_PAGE" />
+      </div>
     </main>
   );
 }

@@ -13,7 +13,7 @@ html {
 
 body {
   background-color: theme("colors.paper");
-  color: theme("colors.ink");
+  color: theme("colors.ink.DEFAULT");
 }
 
 /* Tabular figures for prices everywhere they appear. */

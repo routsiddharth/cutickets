@@ -26,8 +26,8 @@ export default function ReserveListingForm({
         </select>
       )}
       {available === 1 && <input type="hidden" name="quantity" value="1" />}
-      <SubmitButton pendingText="Reserving…" className="bg-ink text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-60">
-        Reserve · {formatPrice(priceCents * quantity)}
+      <SubmitButton pendingText="Reserving…" className="bg-sell text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-sell/90 disabled:opacity-60">
+        {available > 1 ? `Reserve · ${formatPrice(priceCents * quantity)}` : "Reserve"}
       </SubmitButton>
       {state?.error && <p className="basis-full sm:text-right text-xs text-red-600" role="alert">{state.error}</p>}
     </form>
