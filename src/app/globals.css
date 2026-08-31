@@ -136,38 +136,13 @@ body {
 }
 
 /*
- * Notch sides: the same punched-circle silhouette as .tear, without the
- * dashed divider rule. Used on ticket-shaped tiles that want the torn-edge
- * look but have no content to split with a tear line — center it vertically
- * on the tile via a wrapping element sized to the tile's edges.
+ * Thicker notch variant — pair with .tear (className="tear tear-thick ...")
+ * on tiles whose outer border is emphasized (2px inset shadow instead of the
+ * standard 1px hairline), so the notch's own border reads at the same weight.
  */
-.notch-sides {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.notch-sides::before,
-.notch-sides::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
-  border-radius: 9999px;
-  background: theme("colors.paper");
-  border: 2px solid theme("colors.line");
-  transition: border-color 150ms ease;
-}
-.notch-sides::before {
-  left: -11px;
-}
-.notch-sides::after {
-  right: -11px;
-}
-.group:hover .notch-sides::before,
-.group:hover .notch-sides::after {
-  border-color: theme("colors.columbia.DEFAULT");
+.tear-thick::before,
+.tear-thick::after {
+  border-width: 2px;
 }
 
 /* Standing in for a flyer image until events have real artwork. */

@@ -119,7 +119,7 @@ function EventCard({ event, stats }: { event: EventCardData; stats: EventCardSta
 
         <div className="tear -mx-4 my-3" />
 
-        <div className="flex items-end justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 pt-1">
           <div className="min-w-0">
             {hasAvailable ? (
               <p className="font-serif text-2xl leading-none tabular-nums">
@@ -128,14 +128,14 @@ function EventCard({ event, stats }: { event: EventCardData; stats: EventCardSta
             ) : (
               <p className="font-serif text-xl leading-none text-muted">None right now</p>
             )}
-            <p className="font-mono text-[11px] text-muted mt-1.5 truncate">{soldLine}</p>
+            <p className="font-mono text-[11px] text-muted mt-1 truncate">{soldLine}</p>
           </div>
           <span
             className={`shrink-0 text-xs font-medium px-3.5 py-2 rounded-lg ${
               hasAvailable ? "bg-ink text-white" : "border border-line text-muted"
             }`}
           >
-            {hasAvailable ? "Reserve" : "Notify me"}
+            {hasAvailable ? "Buy Now" : "Notify me"}
           </span>
         </div>
       </div>
@@ -147,13 +147,20 @@ function RequestEventTile() {
   return (
     <Link
       href="/events/request"
-      className="group relative h-full flex flex-col items-center justify-center gap-2 rounded-2xl overflow-hidden border-2 border-dashed border-line text-muted hover:border-columbia hover:text-columbia-deep transition-colors p-6 text-center"
+      className="group flex h-full flex-col rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
     >
-      <span className="notch-sides" aria-hidden="true" />
-      <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
-        +
-      </span>
-      <span className="text-sm font-medium">Request an event</span>
+      <div className="flex-1 grid place-items-center text-muted group-hover:text-columbia-deep transition-colors">
+        <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
+          +
+        </span>
+      </div>
+
+      <div className="p-4 pb-11">
+        <div className="tear tear-thick -mx-4 my-3" />
+        <p className="text-sm font-medium text-center text-muted group-hover:text-columbia-deep transition-colors">
+          Request an event
+        </p>
+      </div>
     </Link>
   );
 }
