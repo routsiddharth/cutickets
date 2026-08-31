@@ -131,7 +131,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                   {(hasAvailable || stats.lastSaleCents !== null) && (
                     <>
                       <p className="text-sm text-muted leading-none">{hasAvailable ? "From" : "Last sold for"}</p>
-                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none mt-3">
+                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none mt-[14px]">
                         {formatPrice((hasAvailable ? stats.lowestPriceCents : stats.lastSaleCents)!)}
                       </p>
                     </>
