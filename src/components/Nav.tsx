@@ -60,6 +60,7 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
         <Link href="/events" className="hover:text-ink">Events</Link>
         <Link href="/deals" className="hover:text-ink">My deals</Link>
       </nav>
+      <div className="barcode-rule" />
     </header>
   );
 }
