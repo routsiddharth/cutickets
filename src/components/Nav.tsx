@@ -6,7 +6,7 @@ import { isAdmin } from "@/lib/admin";
 
 export default function Nav({ user, unread = 0 }: { user: User; unread?: number }) {
   return (
-    <header className="bg-white border-b border-line sticky top-0 z-30">
+    <header className="bg-paper sticky top-0 z-30">
       <div className="max-w-5xl mx-auto px-5 sm:px-7 h-20 sm:h-24 flex items-center justify-between gap-4">
         <Link href="/events" className="flex items-center gap-2 min-w-0 shrink">
           <Image
@@ -60,6 +60,7 @@ export default function Nav({ user, unread = 0 }: { user: User; unread?: number 
         <Link href="/events" className="hover:text-ink">Events</Link>
         <Link href="/deals" className="hover:text-ink">My deals</Link>
       </nav>
+      <div className="barcode-rule" />
     </header>
   );
 }
