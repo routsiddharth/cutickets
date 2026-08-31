@@ -100,6 +100,13 @@ body {
  * matching negative margin (e.g. "-mx-4") so the notches land on the card's
  * physical edge, where the card's own overflow-hidden clips them into
  * half-moon bites.
+ *
+ * Each bite carries its own border tracing the exposed arc, in the same
+ * colors as the card's inset-box-shadow border (line -> columbia on hover),
+ * so the straight edge appears to dip into the notch rather than cutting
+ * through it. The circle's center sits exactly on the card's physical edge,
+ * so clipping always bisects it into a clean semicircle — never a straight
+ * line across the diameter.
  */
 .tear {
   position: relative;
@@ -114,12 +121,53 @@ body {
   height: 22px;
   border-radius: 9999px;
   background: theme("colors.paper");
+  border: 1px solid theme("colors.line");
+  transition: border-color 150ms ease;
 }
 .tear::before {
   left: -11px;
 }
 .tear::after {
   right: -11px;
+}
+.group:hover .tear::before,
+.group:hover .tear::after {
+  border-color: theme("colors.columbia.DEFAULT");
+}
+
+/*
+ * Notch sides: the same punched-circle silhouette as .tear, without the
+ * dashed divider rule. Used on ticket-shaped tiles that want the torn-edge
+ * look but have no content to split with a tear line — center it vertically
+ * on the tile via a wrapping element sized to the tile's edges.
+ */
+.notch-sides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.notch-sides::before,
+.notch-sides::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: theme("colors.paper");
+  border: 2px solid theme("colors.line");
+  transition: border-color 150ms ease;
+}
+.notch-sides::before {
+  left: -11px;
+}
+.notch-sides::after {
+  right: -11px;
+}
+.group:hover .notch-sides::before,
+.group:hover .notch-sides::after {
+  border-color: theme("colors.columbia.DEFAULT");
 }
 
 /* Standing in for a flyer image until events have real artwork. */

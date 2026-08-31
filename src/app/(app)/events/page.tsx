@@ -147,8 +147,9 @@ function RequestEventTile() {
   return (
     <Link
       href="/events/request"
-      className="h-full flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-line text-muted hover:border-columbia hover:text-columbia-deep transition-colors p-6 text-center"
+      className="group relative h-full flex flex-col items-center justify-center gap-2 rounded-2xl overflow-hidden border-2 border-dashed border-line text-muted hover:border-columbia hover:text-columbia-deep transition-colors p-6 text-center"
     >
+      <span className="notch-sides" aria-hidden="true" />
       <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
         +
       </span>
