@@ -17,7 +17,7 @@ export default function CancelListingButton({ listingId }: { listingId: string }
           })
         }
         disabled={pending}
-        className="text-xs px-3 py-1.5 rounded-md border border-[rgba(23,41,63,0.28)] text-ink hover:bg-ink/5 disabled:opacity-60"
+        className="text-sm font-medium px-5 py-2.5 rounded-full border border-[rgba(23,41,63,0.28)] text-ink hover:bg-ink/5 disabled:opacity-60"
       >
         {pending ? "Removing…" : "Remove"}
       </button>

@@ -13,18 +13,14 @@ import { flyerUrl } from "@/lib/flyer";
 import { hexToRgba } from "@/lib/color/hex";
 import { DEFAULT_TINT } from "@/lib/tintPresets";
 import AdBanner from "@/components/AdBanner";
-import CancelListingButton from "@/components/CancelListingButton";
-import ReserveListingForm from "@/components/ReserveListingForm";
 import HeroReserveButton from "@/components/HeroReserveButton";
 import NotifyMeButton from "@/components/NotifyMeButton";
+import TicketListingsSection, { type OpenRow, type SoldRow } from "@/components/TicketListingsSection";
 
 // Elements inside the hero are tinted per-event (poster shadow, badge
 // outline) from the flyer's sampled accent; a black-and-white flyer has no
 // accent, so this falls back to the fixed ink tone rather than going colorless.
 const FALLBACK_ACCENT = "#17293F";
-
-type OpenRow = { id: string; priceCents: number; quantity: number; mine: boolean; dateLabel: string };
-type SoldRow = { id: string; priceCents: number; quantity: number; dateLabel: string };
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -60,6 +56,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       quantity: listing.availableQuantity,
       mine: listing.sellerId === user.id,
       dateLabel: relativeDayLabel(listing.postedAt),
+      postedAtMs: listing.postedAt.getTime(),
     }))
     .sort((a, b) => a.priceCents - b.priceCents);
 
@@ -70,6 +67,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       priceCents: sale.unitPriceCents,
       quantity: sale.quantity,
       dateLabel: relativeDayLabel(sale.completedAt!),
+      completedAtMs: sale.completedAt!.getTime(),
     }))
     .sort((a, b) => a.priceCents - b.priceCents);
 
@@ -131,7 +129,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                   {(hasAvailable || stats.lastSaleCents !== null) && (
                     <>
                       <p className="text-sm text-muted leading-none">{hasAvailable ? "From" : "Last sold for"}</p>
-                      <p className="font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none mt-[14px]">
+                      <p
+                        className={`font-serif text-6xl sm:text-7xl tabular-nums text-ink leading-none ${
+                          hasAvailable ? "mt-[14px]" : "mt-[18px]"
+                        }`}
+                      >
                         {formatPrice((hasAvailable ? stats.lowestPriceCents : stats.lastSaleCents)!)}
                       </p>
                     </>
@@ -186,61 +188,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             </Link>
           </section>
         ) : (
-          <>
-            {openRows.length > 0 && (
-              <section>
-                <p className="text-xs text-muted text-right mb-3">Sorted by price</p>
-                <div className="space-y-3">
-                  {openRows.map((row) => (
-                    <article
-                      key={row.id}
-                      className="bg-card border border-[rgba(23,41,63,0.12)] rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4"
-                    >
-                      <p className="font-serif text-2xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
-                      <div className="min-w-0">
-                        <p className="text-sm text-ink-secondary">
-                          {row.quantity} ticket{row.quantity === 1 ? "" : "s"}
-                          {row.mine ? " · your listing" : ""}
-                        </p>
-                        <p className="text-xs text-muted mt-0.5">Posted {row.dateLabel}</p>
-                      </div>
-                      <div className="pl-4 border-l border-dashed border-[rgba(23,41,63,0.2)]">
-                        {row.mine ? (
-                          <CancelListingButton listingId={row.id} />
-                        ) : (
-                          <ReserveListingForm listingId={row.id} available={row.quantity} priceCents={row.priceCents} />
-                        )}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {soldRows.length > 0 && (
-              <section className={openRows.length > 0 ? "mt-8" : ""}>
-                {openRows.length > 0 && <div className="barcode-rule rounded-full overflow-hidden mb-8" />}
-                <p className="text-xs text-muted text-right mb-3">Sold</p>
-                <div className="space-y-3">
-                  {soldRows.map((row) => (
-                    <article
-                      key={row.id}
-                      className="bg-card border border-[rgba(23,41,63,0.12)] rounded-xl grid grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-4"
-                    >
-                      <p className="font-serif text-2xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
-                      <div className="min-w-0">
-                        <p className="text-sm text-ink-secondary">{row.quantity} ticket{row.quantity === 1 ? "" : "s"}</p>
-                        <p className="text-xs text-muted mt-0.5">Sold {row.dateLabel}</p>
-                      </div>
-                      <div className="pl-4 border-l border-dashed border-[rgba(23,41,63,0.2)]">
-                        <span className="tag text-muted">GONE</span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </section>
-            )}
-          </>
+          <TicketListingsSection openRows={openRows} soldRows={soldRows} />
         )}
       </div>
 
