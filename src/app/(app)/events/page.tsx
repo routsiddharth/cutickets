@@ -66,14 +66,7 @@ export default async function EventsPage({
           {events.map(({ event, stats }) => (
             <EventCard key={event.id} event={event} stats={stats} />
           ))}
-          {/* The tile trails the grid, so it lands alone in a mostly-empty
-              final row whenever the event count leaves a remainder of 1
-              column at a given breakpoint. Span the row in that case instead
-              of leaving dead cells beside it. */}
-          <RequestEventTile
-            spanSm={(events.length + 1) % 2 === 1}
-            spanLg={(events.length + 1) % 3 === 1}
-          />
+          <RequestEventTile />
         </div>
       )}
     </main>
@@ -150,13 +143,11 @@ function EventCard({ event, stats }: { event: EventCardData; stats: EventCardSta
   );
 }
 
-function RequestEventTile({ spanSm, spanLg }: { spanSm: boolean; spanLg: boolean }) {
+function RequestEventTile() {
   return (
     <Link
       href="/events/request"
-      className={`group flex h-full flex-col rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow ${
-        spanSm ? "sm:col-span-2" : ""
-      } ${spanLg ? "lg:col-span-3" : ""}`}
+      className="group flex h-full flex-col rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
     >
       <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted group-hover:text-columbia-deep transition-colors">
         <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
