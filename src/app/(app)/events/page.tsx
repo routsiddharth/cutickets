@@ -147,17 +147,34 @@ function RequestEventTile() {
   return (
     <Link
       href="/events/request"
-      className="group flex h-full flex-col rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
+      className="group block rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
     >
-      <div className="flex-1 flex flex-col items-center justify-center gap-2 text-muted group-hover:text-columbia-deep transition-colors">
+      <div className="relative aspect-[4/5] flex flex-col items-center justify-center gap-2 text-muted group-hover:text-columbia-deep transition-colors">
         <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
           +
         </span>
         <span className="text-sm font-medium">Request an event</span>
       </div>
 
-      <div className="p-4 pb-16">
-        <div className="tear tear-thick -mx-4 my-3" />
+      {/* Invisible mirror of EventCard's info panel — reserves the exact same
+          height so this tile matches a real card even when it lands alone in
+          its own grid row. Only the tear divider stays visible. */}
+      <div className="p-4 invisible" aria-hidden="true">
+        <p className="font-mono text-[11px] tracking-wide">&nbsp;</p>
+        <p className="font-serif text-xl mt-1">&nbsp;</p>
+        <p className="text-xs mt-0.5">&nbsp;</p>
+
+        <div className="tear tear-thick -mx-4 my-3 visible" />
+
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <div className="min-w-0">
+            <p className="font-serif text-2xl leading-none">&nbsp;</p>
+            <p className="font-mono text-[11px] mt-1">&nbsp;</p>
+          </div>
+          <span className="shrink-0 text-xs font-medium px-3.5 py-2 rounded-lg border border-line">
+            &nbsp;
+          </span>
+        </div>
       </div>
     </Link>
   );
