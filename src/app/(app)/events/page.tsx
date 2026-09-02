@@ -150,10 +150,12 @@ function RequestEventTile() {
       className="group block rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
     >
       <div className="relative aspect-[4/5] flex flex-col items-center justify-center gap-2 text-muted group-hover:text-columbia-deep transition-colors">
-        <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
-          +
-        </span>
-        <span className="text-sm font-medium">Request an event</span>
+        <div className="flex flex-col items-center gap-2 translate-y-3">
+          <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
+            +
+          </span>
+          <span className="text-sm font-medium">Request an event</span>
+        </div>
       </div>
 
       {/* Invisible mirror of EventCard's info panel — reserves the exact same
