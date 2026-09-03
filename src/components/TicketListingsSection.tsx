@@ -112,10 +112,10 @@ export default function TicketListingsSection({ openRows, soldRows }: { openRows
   const [sortSold, setSortSold] = useState<SortKey>("newest");
 
   const tabs = [
-    ...(openRows.length > 0 ? [{ key: "open", label: `Listings · ${openRows.length}` }] : []),
-    ...(soldRows.length > 0 ? [{ key: "sold", label: `Sold · ${soldRows.length}` }] : []),
+    { key: "open", label: `Listings · ${openRows.length}` },
+    { key: "sold", label: `Sold · ${soldRows.length}` },
   ];
-  const activeTab = tabs.some((t) => t.key === tab) ? tab : (tabs[0]?.key as "open" | "sold");
+  const activeTab = tab;
 
   const sortedOpen = useMemo(
     () => sortByKey(openRows.map((row) => ({ ...row, timeMs: row.postedAtMs })), sortOpen),
@@ -138,27 +138,33 @@ export default function TicketListingsSection({ openRows, soldRows }: { openRows
       </div>
 
       {activeTab === "open" ? (
-        <div className="divide-y divide-line">
-          {sortedOpen.map((row) => (
-            <div key={row.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-5">
-              <p className="font-serif text-4xl sm:text-5xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
-              <div className="min-w-0">
-                <p className="text-[15px] sm:text-base font-semibold text-ink">
-                  {row.quantity} ticket{row.quantity === 1 ? "" : "s"}
-                  {row.mine ? " · your listing" : ""}
-                </p>
-                <p className="text-sm text-muted mt-1">Posted {row.dateLabel}</p>
+        sortedOpen.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted">No open listings right now.</p>
+        ) : (
+          <div className="divide-y divide-line">
+            {sortedOpen.map((row) => (
+              <div key={row.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-5">
+                <p className="font-serif text-4xl sm:text-5xl tabular-nums text-ink">{formatPrice(row.priceCents)}</p>
+                <div className="min-w-0">
+                  <p className="text-[15px] sm:text-base font-semibold text-ink">
+                    {row.quantity} ticket{row.quantity === 1 ? "" : "s"}
+                    {row.mine ? " · your listing" : ""}
+                  </p>
+                  <p className="text-sm text-muted mt-1">Posted {row.dateLabel}</p>
+                </div>
+                <div className="justify-self-end">
+                  {row.mine ? (
+                    <CancelListingButton listingId={row.id} />
+                  ) : (
+                    <ReserveListingForm listingId={row.id} available={row.quantity} priceCents={row.priceCents} />
+                  )}
+                </div>
               </div>
-              <div className="justify-self-end">
-                {row.mine ? (
-                  <CancelListingButton listingId={row.id} />
-                ) : (
-                  <ReserveListingForm listingId={row.id} available={row.quantity} priceCents={row.priceCents} />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
+      ) : sortedSold.length === 0 ? (
+        <p className="py-10 text-center text-sm text-muted">No sales yet.</p>
       ) : (
         <div className="divide-y divide-line">
           {sortedSold.map((row) => (
