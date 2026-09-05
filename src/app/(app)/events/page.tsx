@@ -1,23 +1,8 @@
 import Link from "next/link";
 import { getEventsWithStats } from "@/lib/queries";
-import { formatEventCardDate, formatPrice } from "@/lib/format";
 import { flyerUrl } from "@/lib/flyer";
 import AdBanner from "@/components/AdBanner";
-
-type EventCardData = {
-  id: string;
-  name: string;
-  venue: string | null;
-  startsAt: Date | null;
-  flyerUpdatedAt: Date | null;
-};
-
-type EventCardStats = {
-  ticketsAvailable: number;
-  lowestPriceCents: number | null;
-  salesCount: number;
-  lastSaleCents: number | null;
-};
+import EventsGrid from "@/components/EventsGrid";
 
 export default async function EventsPage({
   searchParams,
@@ -62,123 +47,20 @@ export default async function EventsPage({
       {events.length === 0 ? (
         <EmptyState query={query} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {events.map(({ event, stats }) => (
-            <EventCard key={event.id} event={event} stats={stats} />
-          ))}
-          <RequestEventTile />
-        </div>
+        <EventsGrid
+          events={events.map(({ event, stats }) => ({
+            event: {
+              id: event.id,
+              name: event.name,
+              venue: event.venue,
+              startsAt: event.startsAt,
+              flyer: flyerUrl(event.id, event.flyerUpdatedAt),
+            },
+            stats,
+          }))}
+        />
       )}
     </main>
-  );
-}
-
-function EventCard({ event, stats }: { event: EventCardData; stats: EventCardStats }) {
-  const hasAvailable = stats.lowestPriceCents !== null;
-  const scarce = hasAvailable && stats.ticketsAvailable <= 2;
-  const soldLine =
-    stats.salesCount > 0 && stats.lastSaleCents !== null
-      ? `${stats.salesCount} sold · last at ${formatPrice(stats.lastSaleCents)}`
-      : "No sales yet";
-  const flyer = flyerUrl(event.id, event.flyerUpdatedAt);
-
-  return (
-    <Link
-      href={`/events/${event.id}`}
-      className="group block bg-card rounded-2xl overflow-hidden shadow-[inset_0_0_0_1px_#e7e2d8,0_1px_0_rgba(20,35,61,0.06)] hover:shadow-[inset_0_0_0_1px_#5b8fb9,0_1px_0_rgba(20,35,61,0.06)] transition-shadow"
-    >
-      <div className={`relative aspect-[4/5] ${flyer ? "bg-ink/5" : "flyer-placeholder"}`}>
-        {flyer ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={flyer}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <span className="tag absolute inset-0 grid place-items-center text-ink/20">Flyer</span>
-        )}
-        {hasAvailable && (
-          <span
-            className={`tag font-mono absolute top-3 left-3 px-2.5 py-1 rounded-full ${
-              scarce ? "foil text-white" : "bg-sell-soft text-sell"
-            }`}
-          >
-            {scarce ? `${stats.ticketsAvailable} left` : `${stats.ticketsAvailable} available`}
-          </span>
-        )}
-      </div>
-
-      <div className="p-4">
-        <p className="font-mono text-[11px] tracking-wide text-muted">
-          {formatEventCardDate(event.startsAt)}
-        </p>
-        <p className="font-serif text-xl mt-1 truncate">{event.name}</p>
-        {event.venue && <p className="text-xs text-muted mt-0.5 truncate">{event.venue}</p>}
-
-        <div className="tear -mx-4 my-3" />
-
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="min-w-0">
-            {hasAvailable ? (
-              <p className="font-serif text-2xl leading-none tabular-nums">
-                {formatPrice(stats.lowestPriceCents!)}
-              </p>
-            ) : (
-              <p className="font-serif text-xl leading-none text-muted">None right now</p>
-            )}
-            <p className="font-mono text-[11px] text-muted mt-1 truncate">{soldLine}</p>
-          </div>
-          <span
-            className={`shrink-0 text-xs font-medium px-3.5 py-2 rounded-lg ${
-              hasAvailable ? "bg-ink text-white" : "border border-line text-muted"
-            }`}
-          >
-            {hasAvailable ? "Buy Now" : "Notify me"}
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function RequestEventTile() {
-  return (
-    <Link
-      href="/events/request"
-      className="group block rounded-2xl overflow-hidden bg-card shadow-[inset_0_0_0_2px_#e7e2d8] hover:shadow-[inset_0_0_0_2px_#5b8fb9] transition-shadow"
-    >
-      <div className="relative aspect-[4/5] flex flex-col items-center justify-center gap-2 text-muted group-hover:text-columbia-deep transition-colors">
-        <div className="flex flex-col items-center gap-2 translate-y-3">
-          <span className="w-9 h-9 rounded-full border border-current grid place-items-center text-lg leading-none">
-            +
-          </span>
-          <span className="text-sm font-medium">Request an event</span>
-        </div>
-      </div>
-
-      {/* Invisible mirror of EventCard's info panel — reserves the exact same
-          height so this tile matches a real card even when it lands alone in
-          its own grid row. Only the tear divider stays visible. */}
-      <div className="p-4 invisible" aria-hidden="true">
-        <p className="font-mono text-[11px] tracking-wide">&nbsp;</p>
-        <p className="font-serif text-xl mt-1">&nbsp;</p>
-        <p className="text-xs mt-0.5">&nbsp;</p>
-
-        <div className="tear tear-thick -mx-4 my-3 visible" />
-
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="min-w-0">
-            <p className="font-serif text-2xl leading-none">&nbsp;</p>
-            <p className="font-mono text-[11px] mt-1">&nbsp;</p>
-          </div>
-          <span className="shrink-0 text-xs font-medium px-3.5 py-2 rounded-lg border border-line">
-            &nbsp;
-          </span>
-        </div>
-      </div>
-    </Link>
   );
 }
 

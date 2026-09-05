@@ -10,11 +10,11 @@ import {
 } from "@/lib/queries";
 import { formatEventCardDate, formatPrice, relativeDayLabel } from "@/lib/format";
 import { flyerUrl } from "@/lib/flyer";
-import { hexToRgba } from "@/lib/color/hex";
 import { DEFAULT_TINT } from "@/lib/tintPresets";
 import AdBanner from "@/components/AdBanner";
 import HeroReserveButton from "@/components/HeroReserveButton";
 import NotifyMeButton from "@/components/NotifyMeButton";
+import PosterTilt from "@/components/PosterTilt";
 import TicketListingsSection, { type OpenRow, type SoldRow } from "@/components/TicketListingsSection";
 
 // Elements inside the hero are tinted per-event (poster shadow, badge
@@ -87,13 +87,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           <div className="mt-6 flex flex-col sm:flex-row gap-6 sm:gap-8">
             {flyer && (
               <div className="w-[300px] sm:w-[360px] shrink-0 mx-auto sm:mx-0">
-                <div
-                  className="relative aspect-[4/5] rounded-xl overflow-hidden border border-line"
-                  style={{ boxShadow: `0 24px 48px -18px ${hexToRgba(accent, 0.25)}` }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={flyer} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                </div>
+                <PosterTilt src={flyer} accent={accent} />
               </div>
             )}
 
