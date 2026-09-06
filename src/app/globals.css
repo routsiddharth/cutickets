@@ -99,15 +99,21 @@ body {
  * The tear: a perforated notch-and-dash rule that separates event details
  * from price on a card. Meant to be placed inside a padded container with a
  * matching negative margin (e.g. "-mx-4") so the notches land on the card's
- * physical edge, where the card's own overflow-hidden clips them into
- * half-moon bites.
+ * physical edge.
  *
- * Each bite carries its own border tracing the exposed arc, in the same
- * colors as the card's inset-box-shadow border (line -> columbia on hover),
- * so the straight edge appears to dip into the notch rather than cutting
- * through it. The circle's center sits exactly on the card's physical edge,
- * so clipping always bisects it into a clean semicircle — never a straight
- * line across the diameter.
+ * Each notch is a self-contained half-circle (a half-width box with only its
+ * outer corners rounded) sitting flush against the card's edge, filled with
+ * the page's own background color so it reads as a bite taken out of the
+ * card. An earlier version drew a full circle straddling the edge and relied
+ * on the card's own overflow-hidden to clip it in half — that clip boundary
+ * is razor-thin and rounds inconsistently at higher device pixel ratios,
+ * leaving a visible seam and an uncovered sliver on real phone screens. A
+ * shape that's whole by construction has no clip boundary to get wrong.
+ *
+ * Each bite carries its own border tracing the exposed arc only (no border
+ * on the flat edge, which sits invisibly flush with the card boundary), in
+ * the same colors as the card's inset-box-shadow border (line -> columbia on
+ * hover).
  */
 .tear {
   position: relative;
@@ -118,18 +124,25 @@ body {
   content: "";
   position: absolute;
   top: -11px;
-  width: 22px;
+  width: 11px;
   height: 22px;
-  border-radius: 9999px;
   background: theme("colors.paper");
-  border: 1px solid theme("colors.line");
+  border-style: solid;
+  border-color: theme("colors.line");
+  border-width: 1px;
   transition: border-color 150ms ease;
 }
 .tear::before {
-  left: -11px;
+  left: 0;
+  border-left-width: 0;
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
 }
 .tear::after {
-  right: -11px;
+  right: 0;
+  border-right-width: 0;
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
 }
 .group:hover .tear::before,
 .group:hover .tear::after {
@@ -140,10 +153,17 @@ body {
  * Thicker notch variant — pair with .tear (className="tear tear-thick ...")
  * on tiles whose outer border is emphasized (2px inset shadow instead of the
  * standard 1px hairline), so the notch's own border reads at the same weight.
+ * Only the three bordered sides thicken — the flat edge stays at 0 width.
  */
-.tear-thick::before,
+.tear-thick::before {
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
+}
 .tear-thick::after {
-  border-width: 2px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-bottom-width: 2px;
 }
 
 /* Standing in for a flyer image until events have real artwork. */
