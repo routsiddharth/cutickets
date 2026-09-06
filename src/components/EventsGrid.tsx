@@ -5,7 +5,7 @@ import Link from "next/link";
 import { formatEventCardDate, formatPrice } from "@/lib/format";
 
 // Single easing curve shared by every layer of the hover effect, so the lift,
-// shadow, poster zoom, and CTA all feel like one physical motion.
+// shadow, and CTA all feel like one physical motion.
 const EASE = "cubic-bezier(.2, .8, .2, 1)";
 
 const REQUEST_TILE_ID = "__request-event__";
@@ -87,8 +87,15 @@ function EventCard({
       style={{
         transform: hovered ? "translateY(-8px)" : "translateY(0)",
         boxShadow: hovered
-          ? "inset 0 0 0 1px #E0D8C6, 0 20px 44px rgba(22,35,58,.13)"
+          ? "inset 0 0 0 1px #E0D8C6, 0 20px 36px rgba(22,35,58,.16)"
           : "inset 0 0 0 1px #EDE7DA, 0 1px 2px rgba(22,35,58,.04)",
+        // The tear notch on the left/right edges is a flat cutout color, not
+        // a real hole, so a shadow reaching the card's own edges shows up as
+        // a mismatched pale disc instead of blending into the page. Clipping
+        // the shadow to the card's sides/top and letting it bleed only below
+        // keeps it off the notches entirely (and reads as a more natural
+        // "lifted straight up" cast shadow).
+        clipPath: "inset(0 0 -80px 0)",
         transition: `transform 500ms ${EASE}, box-shadow 300ms ${EASE}`,
       }}
     >
@@ -99,10 +106,6 @@ function EventCard({
             src={event.flyer}
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
-            style={{
-              transform: hovered ? "scale(1.055)" : "scale(1)",
-              transition: `transform 700ms ${EASE}`,
-            }}
             loading="lazy"
           />
         ) : (
@@ -195,8 +198,9 @@ function RequestEventTile({
       style={{
         transform: hovered ? "translateY(-8px)" : "translateY(0)",
         boxShadow: hovered
-          ? "inset 0 0 0 2px #E0D8C6, 0 20px 44px rgba(22,35,58,.13)"
+          ? "inset 0 0 0 2px #E0D8C6, 0 20px 36px rgba(22,35,58,.16)"
           : "inset 0 0 0 2px #EDE7DA, 0 1px 2px rgba(22,35,58,.04)",
+        clipPath: "inset(0 0 -80px 0)",
         transition: `transform 500ms ${EASE}, box-shadow 300ms ${EASE}`,
       }}
     >
