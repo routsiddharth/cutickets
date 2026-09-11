@@ -8,7 +8,7 @@ import { soldDealWhere } from "@/lib/deals";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import SignOutButton from "@/components/SignOutButton";
-import { formatPrice, publicName, formatDate } from "@/lib/format";
+import { formatPrice, publicName, formatDateTime } from "@/lib/format";
 import { NYC_TZ } from "@/lib/timezone";
 
 export default async function ProfilePage({
@@ -103,7 +103,7 @@ export default async function ProfilePage({
                     </div>
                     <span className="font-serif tabular-nums shrink-0 ml-3">
                       {formatPrice(deal.unitPriceCents)}{" "}
-                      <span className="text-muted text-xs">· {formatDate(deal.createdAt)}</span>
+                      <span className="text-muted text-xs">· {formatDateTime(deal.createdAt)}</span>
                     </span>
                   </div>
                 );

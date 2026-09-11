@@ -9,7 +9,7 @@ import {
   getRecentSalesForEvent,
   recordEventViewAndGetWeeklyCount,
 } from "@/lib/queries";
-import { formatEventCardDate, formatPrice, relativeDayLabel } from "@/lib/format";
+import { formatDateTime, formatEventCardDate, formatPrice, relativeDayLabel } from "@/lib/format";
 import { flyerUrl } from "@/lib/flyer";
 import { DEFAULT_TINT } from "@/lib/tintPresets";
 import AdBanner from "@/components/AdBanner";
@@ -67,7 +67,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       id: sale.id,
       priceCents: sale.unitPriceCents,
       quantity: sale.quantity,
-      dateLabel: relativeDayLabel(sale.createdAt),
+      dateLabel: formatDateTime(sale.createdAt),
       soldAtMs: sale.createdAt.getTime(),
     }))
     .sort((a, b) => a.priceCents - b.priceCents);
