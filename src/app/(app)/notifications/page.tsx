@@ -15,6 +15,7 @@ const ICON: Record<string, string> = {
   EVENT_ARCHIVED: "✕",
   LISTING_KILLED: "🚫",
   TRADE_ADMIN_CANCELLED: "🚫",
+  TRADE_ADMIN_COMPLETED: "✓",
   EVENT_TICKETS_AVAILABLE: "🔔",
 };
 

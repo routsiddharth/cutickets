@@ -14,6 +14,7 @@ export type NotificationType =
   | "EVENT_ARCHIVED" //              an event and its open orders were archived
   | "LISTING_KILLED" //              a moderator removed your listing
   | "TRADE_ADMIN_CANCELLED" //       a moderator cancelled your active deal
+  | "TRADE_ADMIN_COMPLETED" //       a moderator force-completed your active deal
   | "EVENT_TICKETS_AVAILABLE"; //    a ticket was listed for an event you asked to be notified about
 
 /**

@@ -98,7 +98,7 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-start justify-between gap-5 flex-wrap">
             <div>
               <h2 className="font-serif text-2xl">Finish the sale</h2>
-              <p className="text-sm text-muted mt-1">Confirm after payment and ticket transfer are complete.</p>
+              <p className="text-sm text-muted mt-1">Once you’ve actually exchanged payment and the ticket, tap the button — texting each other doesn’t close this out. We mark the sale done once you’ve both confirmed.</p>
               <p className="text-xs text-muted mt-1">Reserved until {formatDateTime(deal.reservationExpiresAt)}</p>
             </div>
             <div className="text-right space-y-3">

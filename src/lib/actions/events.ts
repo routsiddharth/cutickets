@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 import { notify } from "@/lib/notifications";
 import { isAdmin } from "@/lib/admin";
+import { zonedTimeToUtc, startOfZonedDay } from "@/lib/timezone";
 
 import type { ActionState } from "./types";
 export type { ActionState };
@@ -28,16 +29,18 @@ const requestSchema = z.object({
   details: z.string().trim().max(500).optional(),
 });
 
+// Event dates/times are entered by admins as campus wall-clock time (the
+// datetime-local inputs carry no offset), so we parse them as NYC time
+// rather than the server's runtime TZ — otherwise a date typed as "8:00 PM"
+// silently lands hours off from the actual event.
 function parseDate(raw: string, required: boolean): Date | null | undefined {
   if (!raw) return required ? undefined : null;
-  const value = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
-  return Number.isNaN(value.getTime()) ? undefined : value;
+  const value = zonedTimeToUtc(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw);
+  return value ?? undefined;
 }
 
 function isPastDate(value: Date): boolean {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return value.getTime() < today.getTime();
+  return value.getTime() < startOfZonedDay(new Date()).getTime();
 }
 
 function eventData(formData: FormData) {

@@ -74,7 +74,7 @@ function DealSection({ title, deals, userId, empty }: { title: string; deals: De
                 </div>
                 <div className="text-right">
                   <p className="font-medium tabular-nums">{formatPrice(deal.unitPriceCents * deal.quantity)}</p>
-                  <p className="text-xs text-muted mt-0.5">{deal.status === "COMPLETED" ? "Completed" : youConfirmed ? "Waiting on them" : "Open chat"}</p>
+                  <p className="text-xs text-muted mt-0.5">{deal.status === "COMPLETED" ? "Completed" : youConfirmed ? "Waiting on them" : "Confirm when done"}</p>
                 </div>
               </Link>
             );

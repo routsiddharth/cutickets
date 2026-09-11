@@ -33,6 +33,8 @@ export default async function AdminModerationPage() {
         quantity: true,
         unitPriceCents: true,
         createdAt: true,
+        buyerConfirmed: true,
+        sellerConfirmed: true,
         event: { select: { name: true } },
         buyer: { select: { name: true, email: true } },
         seller: { select: { name: true, email: true } },

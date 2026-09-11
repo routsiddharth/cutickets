@@ -91,6 +91,61 @@ export async function adminCancelDeal(
   return { ok: true };
 }
 
+/**
+ * Force-closes a RESERVED deal as completed without waiting on the buyer/
+ * seller confirmation checkboxes — for when a moderator has verified
+ * elsewhere (texts, a support DM) that the exchange actually happened but
+ * one or both sides never clicked confirm in-app.
+ */
+export async function adminCompleteDeal(
+  dealId: string,
+  reason?: string,
+): Promise<ActionState> {
+  const user = await requireUser();
+  if (!isAdmin(user)) return { error: "Not authorized" };
+
+  const deal = await prisma.deal.findUnique({
+    where: { id: dealId },
+    select: {
+      id: true,
+      buyerId: true,
+      sellerId: true,
+      status: true,
+      event: { select: { name: true } },
+    },
+  });
+  if (!deal) return { error: "Deal not found" };
+  if (deal.status !== "RESERVED") return { error: "Deal is not active" };
+
+  const body = reason
+    ? `A moderator marked your "${deal.event.name}" sale complete: ${reason}`
+    : `A moderator marked your "${deal.event.name}" sale complete`;
+
+  await prisma.$transaction(async (tx) => {
+    const written = await tx.deal.updateMany({
+      where: { id: deal.id, status: "RESERVED" },
+      data: { status: "COMPLETED", completedAt: new Date(), buyerConfirmed: true, sellerConfirmed: true },
+    });
+    if (!written.count) return;
+    await tx.message.create({
+      data: {
+        dealId: deal.id,
+        senderId: user.id,
+        kind: "EVENT",
+        body: reason ? `Marked complete by a moderator: ${reason}` : "Marked complete by a moderator.",
+      },
+    });
+    await notify({ userId: deal.buyerId, type: "TRADE_ADMIN_COMPLETED", body, dealId: deal.id }, tx);
+    await notify({ userId: deal.sellerId, type: "TRADE_ADMIN_COMPLETED", body, dealId: deal.id }, tx);
+  });
+
+  revalidatePath("/admin/moderation");
+  revalidatePath("/admin/deals");
+  revalidatePath(`/deals/${deal.id}`);
+  revalidatePath("/deals");
+  return { ok: true };
+}
+
 // ─── Ad management ────────────────────────────────────────────────────────
 
 const adSchema = z.object({

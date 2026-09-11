@@ -1,4 +1,5 @@
 // Display helpers. Money is stored as integer cents everywhere.
+import { NYC_TZ, zonedDayKey } from "./timezone";
 
 export function formatPrice(cents: number): string {
   const dollars = cents / 100;
@@ -21,6 +22,7 @@ export function formatDate(d: Date | string | null | undefined): string {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: NYC_TZ,
   });
 }
 
@@ -29,10 +31,10 @@ export function formatEventCardDate(d: Date | string | null | undefined): string
   if (!d) return "DATE TBD";
   const date = typeof d === "string" ? new Date(d) : d;
   const datePart = date
-    .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+    .toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: NYC_TZ })
     .replace(",", "")
     .toUpperCase();
-  const timePart = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const timePart = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: NYC_TZ });
   return `${datePart} · ${timePart}`;
 }
 
@@ -44,14 +46,15 @@ export function formatDateTime(d: Date | string | null | undefined): string {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: NYC_TZ,
   });
 }
 
 /** "today" / "yesterday" / "N days ago", falling back to a short date past a week — used for listing rows. */
 export function relativeDayLabel(d: Date | string): string {
   const date = typeof d === "string" ? new Date(d) : d;
-  const startOfDay = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
-  const days = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
+  const dayInstant = (x: Date) => Date.parse(`${zonedDayKey(x)}T00:00:00Z`);
+  const days = Math.round((dayInstant(new Date()) - dayInstant(date)) / 86_400_000);
   if (days <= 0) return "today";
   if (days === 1) return "yesterday";
   if (days < 7) return `${days} days ago`;

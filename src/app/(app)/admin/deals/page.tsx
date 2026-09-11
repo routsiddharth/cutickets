@@ -81,6 +81,16 @@ export default async function AdminDealsPage({
                     <span className="text-muted"> ({deal.seller.email})</span>
                   </p>
                   <p className="text-xs text-muted mt-1">{deal._count.messages} messages · {deal._count.ratings} ratings · {formatDateTime(deal.createdAt)}</p>
+                  {deal.status === "RESERVED" && (
+                    <p className="text-xs mt-1">
+                      <span className={deal.buyerConfirmed ? "text-sell" : "text-muted"}>{deal.buyerConfirmed ? "✓" : "—"} buyer confirmed</span>
+                      <span className="text-muted"> · </span>
+                      <span className={deal.sellerConfirmed ? "text-sell" : "text-muted"}>{deal.sellerConfirmed ? "✓" : "—"} seller confirmed</span>
+                    </p>
+                  )}
+                  {deal.status === "COMPLETED" && deal.completedAt && (
+                    <p className="text-xs text-muted mt-1">Completed {formatDateTime(deal.completedAt)}</p>
+                  )}
                 </div>
                 <div className="text-right shrink-0 tabular-nums">
                   <p className="font-medium">{formatPrice(deal.quantity * deal.unitPriceCents)}</p>

@@ -8,6 +8,7 @@ import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import SignOutButton from "@/components/SignOutButton";
 import { formatPrice, publicName, formatDate } from "@/lib/format";
+import { NYC_TZ } from "@/lib/timezone";
 
 export default async function ProfilePage({
   params,
@@ -48,9 +49,7 @@ export default async function ProfilePage({
     .join(" · ");
 
   // "Jun '26" — month + two-digit year.
-  const memberSince = `${rep.memberSince.toLocaleDateString("en-US", { month: "short" })} '${String(
-    rep.memberSince.getFullYear(),
-  ).slice(2)}`;
+  const memberSince = `${rep.memberSince.toLocaleDateString("en-US", { month: "short", timeZone: NYC_TZ })} '${rep.memberSince.toLocaleDateString("en-US", { year: "2-digit", timeZone: NYC_TZ })}`;
 
   return (
     <main className="max-w-2xl mx-auto px-5 sm:px-7 py-8">
