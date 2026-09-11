@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
 import { purchasableListingWhere } from "@/lib/listing";
+import { soldDealWhere } from "@/lib/deals";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import SignOutButton from "@/components/SignOutButton";
@@ -23,15 +24,15 @@ export default async function ProfilePage({
 
   const isSelf = target.id === viewer.id;
 
-  const [rep, completed, activeListings] = await Promise.all([
+  const [rep, sales, activeListings] = await Promise.all([
     getReputation(target.id),
     prisma.deal.findMany({
       where: {
-        status: "COMPLETED",
         OR: [{ buyerId: target.id }, { sellerId: target.id }],
+        ...soldDealWhere(),
       },
       include: { event: { select: { id: true, name: true } } },
-      orderBy: { completedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 20,
     }),
     isSelf
@@ -80,11 +81,11 @@ export default async function ProfilePage({
         {/* Past sales */}
         <div className="p-6 sm:p-7">
           <p className="tag text-muted mb-3">Past sales</p>
-          {completed.length === 0 ? (
-            <p className="text-sm text-muted">No confirmed sales yet.</p>
+          {sales.length === 0 ? (
+            <p className="text-sm text-muted">No sales yet.</p>
           ) : (
             <div className="space-y-2.5">
-              {completed.map((deal) => {
+              {sales.map((deal) => {
                 const sold = deal.sellerId === target.id;
                 return (
                   <div
@@ -102,7 +103,7 @@ export default async function ProfilePage({
                     </div>
                     <span className="font-serif tabular-nums shrink-0 ml-3">
                       {formatPrice(deal.unitPriceCents)}{" "}
-                      <span className="text-muted text-xs">· {formatDate(deal.completedAt)}</span>
+                      <span className="text-muted text-xs">· {formatDate(deal.createdAt)}</span>
                     </span>
                   </div>
                 );

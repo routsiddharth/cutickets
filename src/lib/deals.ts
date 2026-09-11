@@ -39,3 +39,13 @@ export function dealParty(
     otherId: isBuyer ? deal.sellerId : deal.buyerId,
   };
 }
+
+/**
+ * Public-facing "sold" stats (event sale counts, last-sale price, seller
+ * reputation) count a deal from the moment it's reserved, not once both
+ * sides confirm — most trades happen off-platform and never get an in-app
+ * confirmation. Only a cancelled or expired reservation falls back out.
+ */
+export function soldDealWhere() {
+  return { status: { in: ["RESERVED", "COMPLETED"] as string[] } };
+}

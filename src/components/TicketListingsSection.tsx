@@ -19,7 +19,7 @@ export type SoldRow = {
   priceCents: number;
   quantity: number;
   dateLabel: string;
-  completedAtMs: number;
+  soldAtMs: number;
 };
 
 type SortKey = "price-asc" | "price-desc" | "newest" | "oldest";
@@ -122,7 +122,7 @@ export default function TicketListingsSection({ openRows, soldRows }: { openRows
     [openRows, sortOpen]
   );
   const sortedSold = useMemo(
-    () => sortByKey(soldRows.map((row) => ({ ...row, timeMs: row.completedAtMs })), sortSold),
+    () => sortByKey(soldRows.map((row) => ({ ...row, timeMs: row.soldAtMs })), sortSold),
     [soldRows, sortSold]
   );
 

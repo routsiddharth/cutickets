@@ -59,7 +59,8 @@ export async function cancelDeal(
   redirect("/deals");
 }
 
-export async function confirmSale(
+/** Either party can close the chat once the trade actually happened — no separate two-sided confirm step. */
+export async function closeDeal(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -79,67 +80,28 @@ export async function confirmSale(
     },
   });
   if (!deal) return { error: "Deal not found" };
-  const { isBuyer, authorized, otherId } = dealParty(deal, user.id);
+  const { authorized } = dealParty(deal, user.id);
   if (!authorized) return { error: "Not authorized" };
   if (deal.status !== "RESERVED") return { error: "This deal is no longer active" };
 
   await prisma.$transaction(async (tx) => {
-    const fresh = await tx.deal.findUnique({
-      where: { id: deal.id },
-      select: { status: true, buyerConfirmed: true, sellerConfirmed: true },
-    });
-    if (!fresh || fresh.status !== "RESERVED") return;
-
-    const changed = isBuyer ? !fresh.buyerConfirmed : !fresh.sellerConfirmed;
-    if (!changed) return;
-
-    // Each party writes only its own flag. This prevents simultaneous buyer and
-    // seller confirmations from overwriting one another.
-    const written = await tx.deal.updateMany({
+    const closed = await tx.deal.updateMany({
       where: { id: deal.id, status: "RESERVED" },
-      data: isBuyer ? { buyerConfirmed: true } : { sellerConfirmed: true },
+      data: { status: "COMPLETED", completedAt: new Date(), buyerConfirmed: true, sellerConfirmed: true },
     });
-    if (!written.count) return;
-    const confirmed = await tx.deal.findUnique({
-      where: { id: deal.id },
-      select: { status: true, buyerConfirmed: true, sellerConfirmed: true },
-    });
-    const completed = confirmed?.status === "RESERVED" && confirmed.buyerConfirmed && confirmed.sellerConfirmed;
-    if (completed) {
-      await tx.deal.updateMany({
-        where: { id: deal.id, status: "RESERVED" },
-        data: { status: "COMPLETED", completedAt: new Date() },
-      });
-    }
+    if (!closed.count) return;
+
     await tx.message.create({
       data: {
         dealId: deal.id,
         senderId: user.id,
         kind: "EVENT",
-        body: completed ? "Sale complete." : `${firstName(user)} marked the sale complete.`,
+        body: `${firstName(user)} closed the chat — sale complete.`,
       },
     });
-
-    if (completed) {
-      for (const userId of [deal.buyerId, deal.sellerId]) {
-        await notify(
-          {
-            userId,
-            type: "TRADE_COMPLETED",
-            dealId: deal.id,
-            body: `Your ${deal.event.name} sale is complete`,
-          },
-          tx,
-        );
-      }
-    } else {
+    for (const userId of [deal.buyerId, deal.sellerId]) {
       await notify(
-        {
-          userId: otherId,
-          type: "TRADE_CONFIRMED",
-          dealId: deal.id,
-          body: `${firstName(user)} marked the ${deal.event.name} sale complete`,
-        },
+        { userId, type: "TRADE_COMPLETED", dealId: deal.id, body: `Your ${deal.event.name} sale is complete` },
         tx,
       );
     }

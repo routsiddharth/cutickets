@@ -18,8 +18,6 @@ export default async function DealsPage() {
       buyerId: true,
       quantity: true,
       unitPriceCents: true,
-      buyerConfirmed: true,
-      sellerConfirmed: true,
       event: { select: { name: true } },
       buyer: { select: { name: true, email: true, image: true } },
       seller: { select: { name: true, email: true, image: true } },
@@ -44,8 +42,6 @@ type DealRow = {
   buyerId: string;
   quantity: number;
   unitPriceCents: number;
-  buyerConfirmed: boolean;
-  sellerConfirmed: boolean;
   event: { name: string };
   buyer: { name: string | null; email: string; image: string | null };
   seller: { name: string | null; email: string; image: string | null };
@@ -62,7 +58,6 @@ function DealSection({ title, deals, userId, empty }: { title: string; deals: De
           {deals.map((deal) => {
             const buying = deal.buyerId === userId;
             const them = buying ? deal.seller : deal.buyer;
-            const youConfirmed = buying ? deal.buyerConfirmed : deal.sellerConfirmed;
             return (
               <Link key={deal.id} href={`/deals/${deal.id}`} className="bg-white border border-line rounded-xl p-4 grid grid-cols-[1fr_auto] gap-4 items-center hover:border-columbia transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
@@ -74,7 +69,7 @@ function DealSection({ title, deals, userId, empty }: { title: string; deals: De
                 </div>
                 <div className="text-right">
                   <p className="font-medium tabular-nums">{formatPrice(deal.unitPriceCents * deal.quantity)}</p>
-                  <p className="text-xs text-muted mt-0.5">{deal.status === "COMPLETED" ? "Completed" : youConfirmed ? "Waiting on them" : "Confirm when done"}</p>
+                  <p className="text-xs text-muted mt-0.5">{deal.status === "COMPLETED" ? "Closed" : "Chat open"}</p>
                 </div>
               </Link>
             );

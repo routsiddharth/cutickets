@@ -60,7 +60,7 @@ export default async function AdminUserPage({ params }: { params: Promise<{ id: 
                 <div key={deal.id} className="grid sm:grid-cols-[1fr_auto] gap-2 sm:gap-6 py-3.5 text-sm">
                   <div className="min-w-0">
                     <p><span className={buying ? "text-buy font-medium" : "text-sell font-medium"}>{buying ? "Bought" : "Sold"}</span> · <Link href={`/events/${deal.event.id}`} className="hover:underline">{deal.event.name}</Link></p>
-                    <p className="text-xs text-muted mt-1">With <Link href={`/admin/users/${other.id}`} className="hover:underline">{other.name ?? other.email}</Link> · {deal._count.messages} messages · {deal._count.ratings} ratings</p>
+                    <p className="text-xs text-muted mt-1">With <Link href={`/admin/users/${other.id}`} className="hover:underline">{other.name ?? other.email}</Link> · <Link href={`/admin/deals/${deal.id}`} className="hover:underline">{deal._count.messages} messages</Link> · {deal._count.ratings} ratings</p>
                   </div>
                   <div className="sm:text-right tabular-nums">
                     <p>{deal.quantity} × {formatPrice(deal.unitPriceCents)} · {formatPrice(deal.quantity * deal.unitPriceCents)}</p>

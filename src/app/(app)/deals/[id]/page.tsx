@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/session";
 import { getReputation } from "@/lib/reputation";
 import { formatDateTime, formatPrice, publicName, schoolAbbrev } from "@/lib/format";
 import Avatar from "@/components/Avatar";
-import { CancelDealForm, ConfirmSaleForm, RatingForm } from "@/components/DealActions";
+import { CancelDealForm, CloseChatForm, RatingForm } from "@/components/DealActions";
 import DealChat, { type ChatMessage } from "./DealChat";
 
 export default async function DealPage({ params }: { params: Promise<{ id: string }> }) {
@@ -39,8 +39,6 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
       ? prisma.rating.findUnique({ where: { dealId_authorId: { dealId: deal.id, authorId: user.id } }, select: { stars: true } })
       : Promise.resolve(null),
   ]);
-  const youConfirmed = isBuyer ? deal.buyerConfirmed : deal.sellerConfirmed;
-  const theyConfirmed = isBuyer ? deal.sellerConfirmed : deal.buyerConfirmed;
   const messages: ChatMessage[] = deal.messages.map((message) => ({
     id: message.id,
     senderId: message.senderId,
@@ -90,20 +88,20 @@ export default async function DealPage({ params }: { params: Promise<{ id: strin
       <section className="border-t border-line pt-5">
         {deal.status === "COMPLETED" ? (
           <div>
-            <h2 className="font-serif text-2xl">Sale complete</h2>
-            <p className="text-sm text-muted mt-1 mb-4">Both sides confirmed the handoff.</p>
+            <h2 className="font-serif text-2xl">Chat closed</h2>
+            <p className="text-sm text-muted mt-1 mb-4">This sale is done.</p>
             <RatingForm dealId={deal.id} existingStars={myRating?.stars ?? null} />
           </div>
         ) : (
           <div className="flex items-start justify-between gap-5 flex-wrap">
             <div>
-              <h2 className="font-serif text-2xl">Finish the sale</h2>
-              <p className="text-sm text-muted mt-1">Once you’ve actually exchanged payment and the ticket, tap the button — texting each other doesn’t close this out. We mark the sale done once you’ve both confirmed.</p>
-              <p className="text-xs text-muted mt-1">Reserved until {formatDateTime(deal.reservationExpiresAt)}</p>
+              <h2 className="font-serif text-2xl">Wrapping up?</h2>
+              <p className="text-sm text-muted mt-1">Once you’ve actually exchanged payment and the ticket, close the chat — that’s what marks the sale done.</p>
+              <p className="text-xs text-muted mt-1">Falls through automatically {formatDateTime(deal.reservationExpiresAt)} if nobody's closed it by then — the tickets go back on sale.</p>
             </div>
             <div className="text-right space-y-3">
-              <ConfirmSaleForm dealId={deal.id} youConfirmed={youConfirmed} theyConfirmed={theyConfirmed} />
-              {!youConfirmed && <CancelDealForm dealId={deal.id} />}
+              <CloseChatForm dealId={deal.id} />
+              <CancelDealForm dealId={deal.id} />
             </div>
           </div>
         )}

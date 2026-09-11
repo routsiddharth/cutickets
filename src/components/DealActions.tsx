@@ -1,35 +1,20 @@
 "use client";
 
 import { useActionState } from "react";
-import { cancelDeal, confirmSale, rateSale, type ActionState } from "@/lib/actions/deals";
+import { cancelDeal, closeDeal, rateSale, type ActionState } from "@/lib/actions/deals";
 import SubmitButton from "@/components/SubmitButton";
 
-export function ConfirmSaleForm({
-  dealId,
-  youConfirmed,
-  theyConfirmed,
-}: {
-  dealId: string;
-  youConfirmed: boolean;
-  theyConfirmed: boolean;
-}) {
-  const [state, action] = useActionState<ActionState, FormData>(confirmSale, undefined);
-  if (youConfirmed) {
-    return (
-      <p className="text-sm text-sell font-medium">
-        Confirmed{theyConfirmed ? " — sale complete" : " — waiting for them"}
-      </p>
-    );
-  }
+export function CloseChatForm({ dealId }: { dealId: string }) {
+  const [state, action] = useActionState<ActionState, FormData>(closeDeal, undefined);
   return (
     <div>
       <form action={action}>
         <input type="hidden" name="dealId" value={dealId} />
         <SubmitButton
-          pendingText="Saving…"
+          pendingText="Closing…"
           className="bg-ink text-white px-4 py-2.5 rounded-lg font-medium text-sm disabled:opacity-60"
         >
-          I completed the sale
+          Close chat
         </SubmitButton>
       </form>
       {state?.error && <p className="text-xs text-red-600 mt-2" role="alert">{state.error}</p>}
@@ -47,7 +32,7 @@ export function CancelDealForm({ dealId }: { dealId: string }) {
           pendingText="Cancelling…"
           className="text-sm text-muted underline underline-offset-4 hover:text-ink disabled:opacity-60"
         >
-          Cancel reservation
+          Cancel sale
         </SubmitButton>
       </form>
       {state?.error && <p className="text-xs text-red-600 mt-2" role="alert">{state.error}</p>}

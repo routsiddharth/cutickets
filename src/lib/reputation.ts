@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NEW_ACCOUNT_AGE_DAYS } from "@/lib/constants";
+import { soldDealWhere } from "@/lib/deals";
 
 export type Reputation = {
   ratingAvg: number | null;
@@ -17,19 +18,16 @@ export function isNewAccount(createdAt: Date): boolean {
   return accountAgeDays(createdAt) < NEW_ACCOUNT_AGE_DAYS;
 }
 
-/**
- * A completed sale is a deal both buyer and seller confirmed.
- */
-export async function countCompletedSales(userId: string): Promise<number> {
+export async function countSales(userId: string): Promise<number> {
   return prisma.deal.count({
     where: {
-      status: "COMPLETED",
       OR: [{ buyerId: userId }, { sellerId: userId }],
+      ...soldDealWhere(),
     },
   });
 }
 
-/** Aggregate a user's reputation from ratings + completed deals. */
+/** Aggregate a user's reputation from ratings + sales. */
 export async function getReputation(userId: string): Promise<Reputation> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -43,7 +41,7 @@ export async function getReputation(userId: string): Promise<Reputation> {
     _count: { _all: true },
   });
 
-  const salesCompleted = await countCompletedSales(userId);
+  const salesCompleted = await countSales(userId);
 
   return {
     ratingAvg: ratingAgg._avg.stars,

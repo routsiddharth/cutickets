@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser, isOnboarded } from "@/lib/session";
 import { notify } from "@/lib/notifications";
 import { isAdmin } from "@/lib/admin";
+import { archiveEventCore } from "@/lib/events";
 import { zonedTimeToUtc, startOfZonedDay } from "@/lib/timezone";
 
 import type { ActionState } from "./types";
@@ -154,17 +155,7 @@ export async function archiveEvent(eventId: string): Promise<ActionState> {
   if (!event) return { error: "Event not found" };
   if (event.archivedAt) return { error: "Event is already archived" };
 
-  await prisma.$transaction(async (tx) => {
-    await tx.event.update({ where: { id: eventId }, data: { archivedAt: new Date() } });
-    await tx.listing.updateMany({ where: { eventId, status: "OPEN" }, data: { status: "CANCELLED", availableQuantity: 0 } });
-    const affectedUsers = [...new Set(event.listings.map((listing) => listing.sellerId))];
-    await Promise.all(affectedUsers.map((userId) => notify({
-      userId,
-      type: "EVENT_ARCHIVED",
-      body: `“${event.name}” was archived, so your open order was cancelled.`,
-      eventId,
-    }, tx)));
-  });
+  await prisma.$transaction((tx) => archiveEventCore(tx, event));
   revalidatePath("/events");
   revalidatePath(`/events/${eventId}`);
   revalidatePath("/admin/events");

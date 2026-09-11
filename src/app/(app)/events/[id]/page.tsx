@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
 import {
   getEventStats,
   getListingsForEvent,
@@ -27,6 +28,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const user = await requireUser();
   const event = await prisma.event.findUnique({ where: { id } });
   if (!event) notFound();
+  if (event.archivedAt && !isAdmin(user)) notFound();
 
   const [stats, listings, recentSales, weeklyViews, watch] = await Promise.all([
     getEventStats(id),
@@ -61,13 +63,12 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
     .sort((a, b) => a.priceCents - b.priceCents);
 
   const soldRows: SoldRow[] = recentSales
-    .filter((sale) => sale.completedAt)
     .map((sale) => ({
       id: sale.id,
       priceCents: sale.unitPriceCents,
       quantity: sale.quantity,
-      dateLabel: relativeDayLabel(sale.completedAt!),
-      completedAtMs: sale.completedAt!.getTime(),
+      dateLabel: relativeDayLabel(sale.createdAt),
+      soldAtMs: sale.createdAt.getTime(),
     }))
     .sort((a, b) => a.priceCents - b.priceCents);
 

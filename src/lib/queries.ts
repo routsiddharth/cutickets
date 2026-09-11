@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { purchasableListingWhere } from "@/lib/listing";
+import { soldDealWhere } from "@/lib/deals";
 
 export type EventStats = {
   ticketsAvailable: number;
@@ -11,8 +12,8 @@ export type EventStats = {
 
 export async function getLastSaleCents(eventId: string): Promise<number | null> {
   const lastSale = await prisma.deal.findFirst({
-    where: { status: "COMPLETED", eventId },
-    orderBy: { completedAt: "desc" },
+    where: { eventId, ...soldDealWhere() },
+    orderBy: { createdAt: "desc" },
     select: { unitPriceCents: true },
   });
   return lastSale?.unitPriceCents ?? null;
@@ -31,7 +32,7 @@ export async function getEventStats(eventId: string): Promise<EventStats> {
       orderBy: [{ priceCents: "asc" }, { postedAt: "asc" }],
       select: { priceCents: true },
     }),
-    prisma.deal.count({ where: { eventId, status: "COMPLETED" } }),
+    prisma.deal.count({ where: { eventId, ...soldDealWhere() } }),
     getLastSaleCents(eventId),
   ]);
   return {
@@ -62,14 +63,14 @@ const RECENT_SALES_LIMIT = 5;
 /** The event page's price-sorted list interleaves live listings with a handful of recent sales ("GONE" rows). */
 export async function getRecentSalesForEvent(eventId: string) {
   return prisma.deal.findMany({
-    where: { eventId, status: "COMPLETED" },
-    orderBy: { completedAt: "desc" },
+    where: { eventId, ...soldDealWhere() },
+    orderBy: { createdAt: "desc" },
     take: RECENT_SALES_LIMIT,
     select: {
       id: true,
       quantity: true,
       unitPriceCents: true,
-      completedAt: true,
+      createdAt: true,
     },
   });
 }

@@ -80,14 +80,9 @@ export default async function AdminDealsPage({
                     <Link href={`/admin/users/${deal.seller.id}`} className="hover:underline">{deal.seller.name ?? "No name"}</Link>
                     <span className="text-muted"> ({deal.seller.email})</span>
                   </p>
-                  <p className="text-xs text-muted mt-1">{deal._count.messages} messages · {deal._count.ratings} ratings · {formatDateTime(deal.createdAt)}</p>
-                  {deal.status === "RESERVED" && (
-                    <p className="text-xs mt-1">
-                      <span className={deal.buyerConfirmed ? "text-sell" : "text-muted"}>{deal.buyerConfirmed ? "✓" : "—"} buyer confirmed</span>
-                      <span className="text-muted"> · </span>
-                      <span className={deal.sellerConfirmed ? "text-sell" : "text-muted"}>{deal.sellerConfirmed ? "✓" : "—"} seller confirmed</span>
-                    </p>
-                  )}
+                  <p className="text-xs text-muted mt-1">
+                    <Link href={`/admin/deals/${deal.id}`} className="hover:underline">{deal._count.messages} messages</Link> · {deal._count.ratings} ratings · {formatDateTime(deal.createdAt)}
+                  </p>
                   {deal.status === "COMPLETED" && deal.completedAt && (
                     <p className="text-xs text-muted mt-1">Completed {formatDateTime(deal.completedAt)}</p>
                   )}
