@@ -34,8 +34,8 @@ area.
 There is one admin tier. Access is controlled only by the two-email allowlist in
 `src/lib/admin.ts`; do not add database roles or admin invitations. Admins can
 inspect all users and their histories at `/admin/users`, and all trades at
-`/admin/deals` (drill into `/admin/deals/[id]` for the full chat thread and
-ratings on a specific deal).
+`/admin/deals`. Each paginated sale row exposes its full chat transcript inline;
+`/admin/deals/[id]` remains the dedicated record for that chat and its ratings.
 
 Mutations live in `src/lib/actions/`. Schema changes that ship require a committed
 PostgreSQL migration because Vercel runs `prisma migrate deploy` during builds.

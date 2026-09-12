@@ -40,7 +40,11 @@ export default async function AdminDealsPage({
       event: { select: { id: true, name: true } },
       buyer: { select: { id: true, name: true, email: true } },
       seller: { select: { id: true, name: true, email: true } },
-      _count: { select: { messages: true, ratings: true } },
+      messages: {
+        orderBy: { createdAt: "asc" },
+        include: { sender: { select: { name: true, email: true } } },
+      },
+      _count: { select: { ratings: true } },
     },
   });
 
@@ -81,7 +85,7 @@ export default async function AdminDealsPage({
                     <span className="text-muted"> ({deal.seller.email})</span>
                   </p>
                   <p className="text-xs text-muted mt-1">
-                    <Link href={`/admin/deals/${deal.id}`} className="hover:underline">{deal._count.messages} messages</Link> · {deal._count.ratings} ratings · {formatDateTime(deal.createdAt)}
+                    {deal._count.ratings} ratings · {formatDateTime(deal.createdAt)} · <Link href={`/admin/deals/${deal.id}`} className="hover:underline">Open sale record</Link>
                   </p>
                   {deal.status === "COMPLETED" && deal.completedAt && (
                     <p className="text-xs text-muted mt-1">Completed {formatDateTime(deal.completedAt)}</p>
@@ -92,6 +96,34 @@ export default async function AdminDealsPage({
                   <p className="text-xs text-muted mt-1">{deal.quantity} × {formatPrice(deal.unitPriceCents)}</p>
                 </div>
               </div>
+
+              <details className="mt-3 border-t border-line pt-3">
+                <summary className="w-fit cursor-pointer text-sm text-columbia-deep hover:underline marker:text-muted">
+                  {deal.messages.length} {deal.messages.length === 1 ? "message" : "messages"}
+                </summary>
+                <div className="mt-3 rounded-xl border border-line bg-white px-4 py-3">
+                  {deal.messages.length === 0 ? (
+                    <p className="text-sm text-muted">No messages in this sale.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {deal.messages.map((message) =>
+                        message.kind === "EVENT" ? (
+                          <p key={message.id} className="text-center text-xs text-muted break-words">
+                            {message.body}
+                          </p>
+                        ) : (
+                          <div key={message.id} className="text-sm min-w-0">
+                            <p className="text-xs text-muted break-words">
+                              {message.sender.name ?? message.sender.email} · {formatDateTime(message.createdAt)}
+                            </p>
+                            <p className="mt-0.5 whitespace-pre-wrap break-words">{message.body}</p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              </details>
             </article>
           ))}
         </div>
